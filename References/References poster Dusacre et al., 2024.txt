@@ -1,4 +1,4 @@
 
-References poster congress MICRO 2024: Dusacre et al., 2024
+References poster congress MICRO 2024: Cachot et al., 2024
 
 [1] B. Kuczenski, C. Vargas Poulsen, E. L. Gilman, M. Musyl, R. Geyer, and J. Wilson, “Plastic gear loss estimates from remote observation of industrial fishing activity,” Fish and Fisheries, vol. 23, no. 1, pp. 22–33, Jan. 2021, doi: 10.1111/faf.12596. 
