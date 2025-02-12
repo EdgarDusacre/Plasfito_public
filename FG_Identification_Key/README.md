@@ -1,7 +1,7 @@
 
-!!! All the data and methods are currently under submission in a scientific journal. We will update this repository as soon as the article is published !!!
+# All the data and methods are currently under submission in a scientific journal. We will update this repository as soon as the article is published
 
-# Fishing gear Identification Key
+## Fishing gear Identification Key
 
 This repository is made to share all the information and files about the "identification key of the fishing gear washed up on the coastlines or collected in the aquatic environment." 
 
@@ -11,11 +11,11 @@ You'll be able to find:
   - The bank of images we used to create the initial photo guide (actualized when necessary). 
   - The Beaufort scale in French, English and Spanish.
 
-## Using the FG identification key for its structure:
+### Using the FG identification key for its structure:
 
 The PLASFITO research project has developed a fishing gear (FG) identification key for plastics found on beaches and in aquatic environments. This initiative aims to address the need for standardized tools to classify fishing-related waste. We strive to share this identification key with as many organizations and research teams developing plastic pollution studies or monitoring programs as possible.
 
-### How to use this FG identification key?
+#### How to use this FG identification key?
 
 This identification key is designed to be versatile and can be used with a wide range of sampling protocols, from citizen science initiatives to rigorous experimental research studies. To effectively use this key, follow these steps:
 
