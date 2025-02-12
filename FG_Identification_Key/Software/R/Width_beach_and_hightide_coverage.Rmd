@@ -1,0 +1,160 @@
+---
+title: "width_beach"
+author: "Edgar"
+date: "2024-07-17"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r }
+library(ggplot2)
+library(tidyr)
+library(forcats)
+library(dplyr)
+library(readxl) 
+library(readr)
+library(RColorBrewer)
+library(tidyverse)
+library(binom)
+library(lubridate)
+library(ade4)
+library(ggrepel)
+library(broom)
+library(ggpubr)
+library(rstatix)
+library(wesanderson)
+library(car)
+library(multcompView)
+library(rcompanion)
+library(writexl)
+library(gmodels)
+library(tools)
+library(fmsb)
+```
+
+```{r import data}
+surval_modif <- read_excel("Datasheets/surval_modif.xlsx") %>% 
+  separate(coeff, into = c("coeff1", "coeff2"), sep = "/") %>% 
+  mutate(across(c(coeff1, coeff2), as.numeric)) %>% 
+  rowwise() %>%
+  mutate(coeff_mean = mean(c(coeff1, coeff2), na.rm = TRUE),
+         surface_m2 = width_high_tide_mark*100) %>%
+  ungroup() %>% 
+  rename(width_beach = width_high_tide_mark) 
+surval_modif
+
+```
+
+```{r regression width vs. coeff}
+
+surval_low <- surval_modif %>% 
+  filter(tide == "low"| tide == "middle")
+surval_low
+
+surval_high <- surval_modif %>% 
+  filter(tide == "high")
+surval_high
+
+CrossTable(surval_modif$site)
+
+G_reg <- surval_low%>% 
+  ggplot(aes(x = coeff_mean, y = width_beach, color = tide)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = T, color = "black") +
+  facet_wrap(~site, scales = "free") 
+G_reg
+```
+
+Correlation results are so weird. I recommend to do a mean width of the low and middle tides for each site.
+
+```{r}
+avg_width_low <- surval_low %>% 
+  group_by(Country, North_South, site) %>% 
+  summarise(n_L = n(),
+            avg_width_L = mean(width_beach, na.rm = TRUE),
+            sd_width_L = sd(width_beach, na.rm = TRUE),
+            avg_surface_L = mean(surface_m2, na.rm = TRUE),
+            sd_surface_L = sd(surface_m2, na.rm = TRUE))
+avg_width_low
+
+avg_width_high <- surval_high %>% 
+  group_by(Country, North_South, site) %>% 
+  summarise(n_H = n(),
+            avg_width_H = mean(width_beach, na.rm = TRUE),
+            sd_width_H = sd(width_beach, na.rm = TRUE),
+            avg_surface_H = mean(surface_m2, na.rm = TRUE),
+            sd_surface_H = sd(surface_m2, na.rm = TRUE))
+avg_width_high
+
+avg_joined <- left_join(avg_width_low, avg_width_high, by = c("site", "Country", "North_South")) %>% 
+filter(site != "Le Teich") %>% mutate(cov_rate_S = 100-(avg_surface_H*100/avg_surface_L)) %>% 
+  rename(Site_long = site,
+         Site = North_South)
+avg_joined
+
+avg_for_join <- avg_joined %>% 
+  ungroup() %>% 
+  dplyr::select(Site, avg_surface_L)
+
+#write_xlsx(avg_for_join, "Datasheets/avg_for_join.xlsx")
+
+#Mean beach coverage at high tide
+avg_cv_HT <- avg_joined %>% 
+  group_by(Country) %>% 
+  summarise(avg_cov_rate_S = mean(cov_rate_S, na.rm = TRUE),
+            sd_cov_rate_S = sd(cov_rate_S, na.rm = TRUE))
+avg_cv_HT
+
+```
+
+cov_rate_S is the percentage of surface of the beach covered by the high tide
+
+At low tide French beaches are 1.7 to 6.2 time widerthan Basque country ones. 
+At high tide, French beaches are 1.8 to 24.5 times wider than Basque country ones. 
+The percentage of surface covered by the high tide is 1.6 to 2.5 times higher in Basque country than in France.
+In average at high tide French beaches are recovered at 31.5±15.7% by the sea while the Spanish ones are covered at 58.7±20.3%. 
+
+```{r stat coverage}
+df_stat <- avg_joined %>% 
+  dplyr::select(Country, cov_rate_S)
+df_stat
+
+france_data <- df_stat$cov_rate_S[df_stat$Country == "France"]
+shapiro.test(france_data)
+spain_data <- df_stat$cov_rate_S[df_stat$Country == "Spain"]
+shapiro.test(spain_data)
+
+par(mfrow=c(1,2))
+qqnorm(france_data, main="Q-Q Plot France")
+qqline(france_data)
+qqnorm(spain_data, main="Q-Q Plot Espagne")
+qqline(spain_data)
+
+#Statistical test for the coverage rate
+##t-test
+t_test <- t.test(france_data, spain_data)
+t_test
+
+##MWU
+wilcox.test(cov_rate_S ~ Country, data = df_stat)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

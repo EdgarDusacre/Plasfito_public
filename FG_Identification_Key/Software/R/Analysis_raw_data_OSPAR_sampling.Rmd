@@ -1,0 +1,728 @@
+---
+title: "data_OSPAR"
+author: "Edgar Dusacre"
+date: "`r Sys.Date()`"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+```{r package upload}
+library(ggplot2)
+library(tidyr)
+library(forcats)
+library(dplyr)
+library(readxl) 
+library(readr)
+library(RColorBrewer)
+library(tidyverse)
+library(binom)
+library(lubridate)
+library(ade4)
+library(ggrepel)
+library(broom)
+library(ggpubr)
+library(rstatix)
+library(wesanderson)
+library(car)
+library(multcompView)
+library(rcompanion)
+library(writexl)
+library(gmodels)
+library(tools)
+library(fmsb)
+```
+
+
+```{r import Surfrider spain, eval=FALSE, include=FALSE}
+# Chemin du dossier contenant les fichiers
+folder_path <- "Datasheets/Data OSPAR Surfrider/R/"
+
+# Lister tous les fichiers Excel dans le dossier
+file_list <- list.files(path = folder_path, pattern = "\\.xlsx$", full.names = TRUE)
+
+# Initialiser une liste pour stocker les résultats
+result_list <- list()
+
+# Fonction pour appliquer les transformations à une feuille
+process_sheet <- function(data) {
+  data <- data %>% dplyr::select(`...1`, `...2`, `...3`, `...4`) %>%
+    filter(!is.na(`...4`), `...4` != "Cat", `...4` != "Otra") %>%
+    rename(Cat_code = `...1`, Object = `...2`, nb = `...3`, Family = `...4`)
+  return(data)
+}
+
+# Parcourir chaque fichier et chaque feuille
+for (file in file_list) {
+  sheet_names <- excel_sheets(file)
+  file_base_name <- file_path_sans_ext(basename(file))  # Enlever l'extension du nom de fichier
+  for (sheet in sheet_names) {
+    data <- read_excel(file, sheet = sheet, col_names = FALSE)
+    processed_data <- process_sheet(data)
+    table_name <- paste0(file_base_name, "_", sheet)
+    processed_data <- processed_data %>% mutate(ID = table_name)  # Ajouter la colonne ID
+    result_list[[table_name]] <- processed_data
+  }
+}
+
+# Regrouper tous les tableaux en un seul
+SurfRider_final <- bind_rows(result_list) %>% separate(ID, c("Site", "transect", "Season"), sep = "_", remove = T) %>% 
+  mutate(Season = case_when(
+        Season == "primavera" ~ "spring",
+        Season == "verano" ~ "summer",
+        Season == "otoño" ~ "autumn",
+        Season == "invierno" ~ "winter",
+        TRUE ~ Season),
+        Cat_code = as.double(Cat_code),
+        nb = as.double(nb)) %>% 
+  dplyr::select(-transect) %>% 
+  filter(Family != "Piezas de Parafina o Cera")
+SurfRider_final
+
+#write.xlsx(SurfRider_final, "SurfRider_final.xlsx")
+
+```
+
+```{r import PNM, eval=FALSE, include=FALSE}
+
+# Chemin d'accès au répertoire
+chemin <- "Datasheets/Data OSPAR PNM/R/2023/"
+
+# Fonction pour traiter une feuille
+traiter_feuille <- function(fichier, nom_feuille) {
+  df <- read_excel(fichier, sheet = nom_feuille) %>%
+    dplyr::select(-contains("DCSMM"), -contains("Observation")) %>% 
+    dplyr::select(matches("OSPAR|Type|Nombre")) 
+  
+  split_df <- lapply(seq(1, ncol(df), by = 3), function(i) df %>% dplyr::select(i:(i+2)))
+  
+  rename_columns <- function(df) {
+    df %>%
+      rename_with(~ gsub(".*OSPAR.*", "Cat_code", .),
+                  contains("OSPAR")) %>%
+      rename_with(~ gsub(".*Type.*", "Object", .),
+                  contains("Type")) %>%
+      rename_with(~ gsub(".*Nombre.*", "nb", .),
+                  contains("Nombre"))
+  }
+  
+  split_df <- lapply(split_df, rename_columns)
+  
+  PNM_final <- bind_rows(bind_rows(split_df[1:6]) %>% mutate(Family = "Plastic"),
+                         split_df[[7]] %>% mutate(Family = "Rubber"),
+                         split_df[[8]] %>% mutate(Family = "Textil"),
+                         split_df[[9]] %>% mutate(Family = "Cardboard"),
+                         split_df[[10]] %>% mutate(Family = "Wood"),
+                         split_df[[11]] %>% mutate(Family = "Metal"),
+                         split_df[[12]] %>% mutate(Family = "Glass"),
+                         split_df[[13]] %>% mutate(Family = "Chemicals"))
+  
+  # Ajout de la colonne ID
+  nom_tableau <- tools::file_path_sans_ext(basename(fichier))
+  nom_tableau_sans_espace <- gsub(" ", "_", nom_tableau)
+  nom_feuille_sans_espace <- gsub(" ", "_", nom_feuille)
+  PNM_final$ID <- paste(nom_tableau_sans_espace, nom_feuille_sans_espace, sep = "_")
+  return(PNM_final)
+}
+
+# Obtenir la liste des fichiers Excel dans le répertoire
+fichiers <- list.files(path = chemin, pattern = "\\.xlsx$", full.names = TRUE)
+
+# Traitement de chaque fichier et chaque feuille
+resultats <- lapply(fichiers, function(fichier) {
+  nom_fichier <- tools::file_path_sans_ext(basename(fichier))
+  feuilles <- excel_sheets(fichier)
+  liste_resultats <- lapply(feuilles, function(nom_feuille) {
+    traiter_feuille(fichier, nom_feuille)
+  })
+  return(liste_resultats)
+})
+
+for (file in file_list) {
+  sheet_names <- excel_sheets(file)
+  file_base_name <- file_path_sans_ext(basename(file))  # Enlever l'extension du nom de fichier
+  for (sheet in sheet_names) {
+    data <- read_excel(file, sheet = sheet, col_names = FALSE)
+    processed_data <- process_sheet(data)
+    table_name <- paste0(file_base_name, "_", sheet)
+    processed_data <- processed_data %>% mutate(ID = table_name)  # Ajouter la colonne ID
+    result_list[[table_name]] <- processed_data
+  }
+}
+
+# Combinaison de tous les résultats en une seule liste
+resultats_combine <- do.call(c, resultats)
+
+# Regrouper tous les tableaux en un seul
+PNM_final <- bind_rows(resultats_combine) %>% separate(ID, c("Site", "Month", "Year"), sep = "_", remove = T) %>% 
+  mutate(Season = case_when(
+        Month == "janv" | Month == "Janv" | Month == "Janvier" ~ "winter",
+        Month == "avril" | Month == "Avril" | Month == "avrl" ~ "spring",
+        Month == "juil" | Month == "Juill" | Month == "July" ~ "summer",
+        Month == "octobre" | Month == "Oct" | Month == "oct" | Month == "October" ~ "autumn",
+        TRUE ~ Month)) %>% dplyr::select(-Month, -Year)
+PNM_final 
+
+#write.xlsx(PNM_final, "PNM_final.xlsx")
+
+```
+
+
+```{r data import}
+SurfRider_final <- read_excel("Datasheets/SurfRider_final.xlsx")
+PNM_final <- read_excel("Datasheets/PNM_final.xlsx")
+surface_beach <- read_excel("Datasheets/avg_for_join.xlsx")
+```
+
+
+```{r Group df}
+final_OSPAR <- bind_rows(SurfRider_final, PNM_final) %>% 
+  mutate(Family = case_when(
+    Family == "PLÁSTICO/ POLIESTIRENO" ~ "Plastic",
+    Family == "RESIDUOS HIGIÉNICO-SANITARIOS" ~ "Plastic",
+    Family == "VIDRIO" ~ "Glass",
+    Family == "ROPA- TEXTIL" ~ "Textil",
+    Family == "MADERA" ~ "Wood",
+    Family == "PAPEL Y CARTÓN" ~ "Cardboard",
+    Family == "METALES" ~ "Metal",
+    Family == "METAL" ~ "Metal",
+    Family == "GOMA" ~ "Rubber",
+    Family == "CERÁMICA" ~ "Glass",
+    Family == "RESIDUOS MÉDICOS" ~ "Plastic",
+    TRUE ~ Family),
+    nb = if_else(is.na(nb), 0, nb),
+    Site = case_when(
+    Site == "ALKOLEA" ~ "ES3",
+    Site == "MURGITA" ~ "ES1",
+    Site == "Orrua" ~ "ES2",
+    Site == "ORRUA" ~ "ES2",
+    Site == "Lege" ~ "FR1",
+    Site == "Teich" ~ "Le Teich",
+    TRUE ~ Site),
+    Season = if_else(Season == "winter", "S1", 
+                         if_else(Season == "spring", "S2", 
+                                 if_else(Season == "summer", "S3", 
+                                         if_else(Season == "autumn", "S4", Season)))),
+    Site = if_else(Site == "Lège", "FR1",
+                   if_else(Site == "Arguin", "FR2", 
+                           if_else(Site == "Wharf", "FR3",
+                                   if_else(Site == "Tarnos", "FR4",
+                                           if_else(Site == "Murgita", "ES1",
+                                                           if_else(Site == "Mutriku", "ES3",
+                                                                   if_else(Site == "Gorrondatxe", "ES4", Site)))))))) %>% 
+  left_join(surface_beach, by = "Site")
+final_OSPAR
+```
+
+```{r Abundance Waste}
+total_cat <- final_OSPAR %>% filter(Site != "Le Teich") %>%  group_by() %>% summarise(total = sum(nb))
+total_cat
+
+OSPAR_without_FG <- final_OSPAR %>% 
+  filter(Site != "Le Teich") %>% 
+  filter(!Cat_code %in% c("13", "26", "27", "31", "32", "33", "34", "35", "37", "114", "115", "116")) %>% 
+  group_by() %>% 
+  summarise(total = sum(nb)) 
+OSPAR_without_FG
+
+Data_IDK <- season_FG %>% 
+  filter(Site != "Le Teich") %>% 
+  rename(nb = total_FG) %>% 
+  mutate(Family = "Plastic") %>% 
+  left_join(surface_beach, by = "Site") 
+Data_IDK
+
+OSPAR_IDK_final <- final_OSPAR %>% 
+  filter(Site != "Le Teich") %>% 
+  filter(!Cat_code %in% c("13", "26", "27", "31", "32", "33", "34", "35", "37", "114", "115", "116")) %>% 
+  dplyr::select(Site, Season, Family, avg_surface_L, nb) %>%
+  bind_rows(Data_IDK)
+OSPAR_IDK_final
+
+Total_wastes_OSPAR <- OSPAR_IDK_final %>% 
+  group_by() %>% 
+  summarise(total = sum(nb)) 
+Total_wastes_OSPAR
+
+OSPAR_Plas <- OSPAR_IDK_final %>% 
+  filter(Family == "Plastic") %>% 
+  group_by() %>% 
+  summarise(total = sum(nb)) 
+OSPAR_Plas
+
+total_cat_family <- OSPAR_IDK_final %>% 
+  group_by(Site) %>% 
+  summarise(total_cat = sum(nb)) 
+total_cat_family
+
+total_cat_season <- OSPAR_IDK_final %>% 
+  group_by(Season, avg_surface_L) %>% 
+  summarise(total = sum(nb)) %>% 
+  mutate(conc_m2 = total/avg_surface_L)
+total_cat_season
+
+#nb of plastic waste by 100 m 
+total_cat_site <- OSPAR_IDK_final %>% 
+  filter(Family == "Plastic") %>% 
+  group_by(Site, Season, avg_surface_L) %>% 
+  summarise(total = sum(nb)) %>% 
+  mutate(conc_m2 = total/avg_surface_L)
+total_cat_site
+
+avg_cat_site <- total_cat_site %>% 
+  group_by() %>% 
+  #median value and IC
+  summarise(median_tot = median(total, na.rm = TRUE),
+            lower_CI_tot = quantile(total, probs = 0.025, na.rm = TRUE),
+            upper_CI_tot = quantile(total, probs = 0.975, na.rm = TRUE),
+            avg_m2 = mean(conc_m2, na.rm = TRUE),
+            sd = sd(conc_m2, na.rm = TRUE))
+avg_cat_site
+
+
+total_plas_season <- OSPAR_IDK_final %>% 
+  group_by(Site, Season, Family, avg_surface_L) %>% 
+  summarise(total_plas = sum(nb)) %>% 
+  filter(Family == "Plastic") %>% 
+  mutate(conc_m2 = total_plas/avg_surface_L)
+total_plas_season
+
+total_plas_site <- OSPAR_IDK_final %>% 
+  group_by(Site, Family, avg_surface_L) %>% 
+  summarise(total_plas = sum(nb)) %>% 
+  filter(Family == "Plastic") %>% 
+  mutate(conc_m2 = total_plas/avg_surface_L)
+total_plas_site
+
+
+```
+
+```{r Abundance OSPAR vs FG}
+
+#Percentage of FG with the OSPAR classification
+compa_plas_season <- total_plas_season %>% 
+  left_join(season_FG) %>% 
+  mutate(per_waste = 100, per_FG = total_FG*1/total_plas*100) %>% 
+  na.omit()
+compa_plas_season
+
+sum_FG_per <- compa_plas_season %>% group_by() %>% summarise(sum_tot = sum(total_plas, na.rm = TRUE),
+                                                            sum_FG = sum(total_FG, na.rm = TRUE)) %>% 
+  mutate(per_FG = sum_FG*1/sum_tot*100)
+sum_FG_per
+
+
+#Percentage of FG with the OSPAR classification
+compa_plas_season <- total_plas_season %>% 
+  left_join(season_FG) %>% 
+  mutate(per_waste = 100, per_FG = total_FG*1/total_plas*100) %>% 
+  na.omit()
+compa_plas_season
+
+sum_FG_per <- compa_plas_season %>% group_by() %>% summarise(sum_tot = sum(total_plas, na.rm = TRUE),
+                                                            sum_FG = sum(total_FG, na.rm = TRUE)) %>% 
+  mutate(per_FG = sum_FG*1/sum_tot*100)
+sum_FG_per
+
+#Percentage of FG with the OSPAR classification without Unidentified
+
+season_FG2 <- Global_2023 %>% 
+  filter(Site != "Le Teich") %>% 
+  filter(FG != "Unidentified net", FG != "Unidentified rope") %>%
+  group_by() %>% 
+  summarise(total_FG = sum(N)) 
+season_FG2
+
+FG_per_IDK <- season_FG2/15907*100
+FG_per_IDK
+
+#Percentage of FG with the OSPAR classification without Maritime ropes and Unidentified
+
+season_FG2 <- Global_2023 %>% 
+  filter(Site != "Le Teich") %>% 
+  filter(FG != "Unidentified net", FG != "Unidentified rope") %>%
+  filter(FG != "Maritime rope") %>%
+  group_by() %>% 
+  summarise(total_FG = sum(N)) 
+season_FG2
+
+FG_per_IDK <- season_FG2/15907*100
+FG_per_IDK
+
+#Quantity of FG per 100m and per m2 with all
+total_FG_site <- Global_2023 %>% 
+  filter(Site != "Le Teich") %>% 
+  group_by(Site, Season, Area) %>% 
+  summarise(total = sum(N)) %>% 
+  mutate(conc_m2 = total/Area)
+total_FG_site
+
+avg_FG_site <- total_FG_site %>% 
+  group_by() %>% 
+  #median value and IC
+  summarise(median_tot = median(total, na.rm = TRUE),
+            lower_CI_tot = quantile(total, probs = 0.025, na.rm = TRUE),
+            upper_CI_tot = quantile(total, probs = 0.975, na.rm = TRUE),
+            avg_m2 = mean(conc_m2, na.rm = TRUE),
+            sd = sd(conc_m2, na.rm = TRUE))
+avg_FG_site
+
+#Quantity of FG per 100m and per m2 with maritime rope
+total_FG_site <- Global_2023 %>% 
+  filter(Site != "Le Teich") %>% 
+  filter(FG != "Unidentified net", FG != "Unidentified rope") %>%
+  #filter(FG != "Maritime rope") %>%
+  group_by(Site, Season, Area) %>% 
+  summarise(total = sum(N)) %>% 
+  mutate(conc_m2 = total/Area)
+total_FG_site
+
+avg_FG_site <- total_FG_site %>% 
+  group_by() %>% 
+  #median value and IC
+  summarise(median_tot = median(total, na.rm = TRUE),
+            lower_CI_tot = quantile(total, probs = 0.025, na.rm = TRUE),
+            upper_CI_tot = quantile(total, probs = 0.975, na.rm = TRUE),
+            avg_m2 = mean(conc_m2, na.rm = TRUE),
+            sd = sd(conc_m2, na.rm = TRUE))
+avg_FG_site
+
+#Quantity of FG per 100m and per m2
+total_FG_site <- Global_2023 %>% 
+  filter(Site != "Le Teich") %>% 
+  filter(FG != "Unidentified net", FG != "Unidentified rope") %>%
+  filter(FG != "Maritime rope") %>%
+  group_by(Site, Season, Area) %>% 
+  summarise(total = sum(N)) %>% 
+  mutate(conc_m2 = total/Area)
+total_FG_site
+
+avg_FG_site <- total_FG_site %>% 
+  group_by() %>% 
+  #median value and IC
+  summarise(median_tot = median(total, na.rm = TRUE),
+            lower_CI_tot = quantile(total, probs = 0.025, na.rm = TRUE),
+            upper_CI_tot = quantile(total, probs = 0.975, na.rm = TRUE),
+            avg_m2 = mean(conc_m2, na.rm = TRUE),
+            sd = sd(conc_m2, na.rm = TRUE))
+avg_FG_site
+
+
+#______________ Other things 08.02.2025
+compa_season2 <- total_cat_season %>% 
+  left_join(season_FG) %>% 
+  mutate(per_waste = 100, per_FG = total_FG*1/total*100) %>% 
+  filter(Site != "Le Teich") %>% 
+  na.omit() 
+compa_season2
+
+compa_plas_season2 <- total_plas_season %>% 
+  left_join(season_FG) %>% 
+  filter(Site != "Le Teich") %>%
+  mutate(per_waste = 100, per_FG = total_FG*1/total_plas*100) %>% 
+  na.omit()
+compa_plas_season2
+
+sum_FG_per2 <- compa_plas_season2 %>% group_by() %>% summarise(sum_tot = sum(total_plas, na.rm = TRUE),
+                                                            sum_FG = sum(total_FG, na.rm = TRUE)) %>% 
+  mutate(per_FG = sum_FG*1/sum_tot*100)
+sum_FG_per2
+
+##Sites
+
+site_FG2 <- Global_2023 %>% 
+  filter(FG != "Unidentified net", FG != "Unidentified rope") %>% 
+  group_by(Site) %>% 
+  summarise(total_FG = sum(N)) %>% 
+  mutate(total_FG = if_else(is.na(total_FG), 0, total_FG))
+site_FG2
+
+compa_plas_site2 <- total_plas_site %>% 
+  left_join(site_FG2) %>% 
+  filter(Site != "Le Teich") %>%
+  mutate(per_plas = total_plas*1/14462*100,
+         per_FG = total_FG*1/14462*100) %>% 
+  na.omit()
+compa_plas_site2
+
+```
+
+```{r Correlation Abundance Plastic vs FG}
+#normality
+compa_plas_season %>% ggplot(aes(x = total_plas)) + geom_histogram() + geom_density()
+compa_plas_season %>% ggplot(aes(x = total_FG)) + geom_histogram() + geom_density()
+
+#Correlation general
+
+correlation_plas <- cor.test(compa_plas_season$total_plas, compa_plas_season$total_FG, method = "spearman")
+correlation_plas
+
+ggplot(compa_plas_season, aes(x = total_plas, y = total_FG)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = T) +
+  #facet_grid(~Season, scales  = "free") +
+  labs(title = "Relation entre total et total_FG",
+       x = "Total",
+       y = "Total_FG") +
+  theme_classic()
+
+#Correlation by Sites
+# Fonction pour appliquer cor.test à chaque groupe
+Corr_site <- function(data) {
+  cor_test_result <- cor.test(data$total_plas, data$total_FG, method = "spearman")
+  return(data.frame(
+    site = unique(data$Site),
+    corr_coeff = cor_test_result$estimate,
+    p_value = cor_test_result$p.value
+  ))
+}
+
+# Appliquer la fonction à chaque groupe
+res_corr_site <- compa_plas_season %>%
+  group_by(Site) %>%
+  do(Corr_site(.))
+res_corr_site
+
+#Correlation by Season
+# Fonction pour appliquer cor.test à chaque groupe
+Corr_season <- function(data) {
+  cor_test_result <- cor.test(data$total_plas, data$total_FG, method = "spearman")
+  return(data.frame(
+    site = unique(data$Season),
+    corr_coeff = cor_test_result$estimate,
+    p_value = cor_test_result$p.value
+  ))
+}
+
+# Appliquer la fonction à chaque groupe
+res_corr_season <- compa_plas_season %>%
+  group_by(Season) %>%
+  do(Corr_season(.))
+res_corr_season
+
+ggplot(compa_plas_season, aes(x = total_plas, y = total_FG)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = T) +
+  #facet_grid(~Season, scales  = "free") +
+  labs(title = "Relation entre total et total_FG",
+       x = "Total",
+       y = "Total_FG") +
+  theme_classic()
+```
+
+Conslusions correlation Global plastic litter vs Fishing gear:
+Global correlation: p-value < 0.0001, on rejette l'hypothèse nulle et on accepte l'hypothèse alternative. Il y a une corrélation significative entre les déchets plastique globaux et les déchets de pêche --> Les déchets de pêche représentent: 16.7% des plastiques collectés.
+
+Correlation par site: p-value > 0.05 pr. S1, on ne peut rejetter l'hypothèse nulle. Il n'y a pas de corrélation significative entre les déchets plastique globaux et les déchets de pêche par site --> Les déchets de pêche représentent: 
+Site        per_FG
+FR2          9.60
+ES4          19.0 
+FR1          20.7 
+ES1          16.4 
+ES3          3.05
+ES2          3.51
+FR4           25   
+FR3          8.54
+
+Correlation par saison:
+p-value > 0.05 pr. S1, on ne peut rejetter l'hypothèse nulle. Il n'y a pas de corrélation significative entre les déchets plastique globaux et les déchets de pêche par saison.
+p-value < 0.001 pr. les autres, on  rejette l'hypothèse nulle et on accepte l'hypothèse alternative. Il y a une corrélation significative entre les déchets plastique globaux et les déchets de pêche pa saison --> Les déchets de pêche représentent: 
+
+Season           per_FG
+S1       17.1
+S3     22.6
+S4       14.2
+S2     14.8
+
+
+```{r plots}
+
+season_vector <- c("S1", "S2", "S3", "S4")
+season_factor <- factor(season_vector, levels = c("S1", "S2", "S3", "S4"))
+compa_season3 <- compa_season2 %>%
+  arrange(factor(Season, levels = season_factor))
+
+compa_season2 <- compa_season2 %>%
+  filter(Site != "Le Teich") %>%
+  arrange(desc(Season)) %>% 
+  mutate(pos_total = as.numeric(if_else(Season == "S1", 0.8, 
+                                        if_else(Season == "S2", 1.8, 
+                                                if_else(Season == "S3", 2.8, 3.8)))),
+         pos_total_FG = as.numeric(if_else(Season == "S1", 1.2, 
+                                        if_else(Season == "S2", 2.2, 
+                                                if_else(Season == "S3", 3.2, 4.2)))))
+         
+
+
+compa_season2$Site = factor(compa_season2$Site, levels=c('FR1', 'FR2','FR3','FR4', 
+                                                     "ES1", "ES2", "ES3", "ES4"))
+
+compa_season2$Season = factor(compa_season2$Season, levels=c("S1", "S2", "S3", "S4"))
+
+# Création du graphique avec les colonnes côte à côte
+plot1 <- compa_season2 %>% 
+  ggplot() + 
+  geom_col(aes(x = pos_total, y = total, fill = "Total"), width = 0.4) +
+  geom_col(aes(x = pos_total_FG, y = total_FG, fill = "Total_FG"), width = 0.4) +
+  facet_wrap(~Site, scales = "free_x", nrow = 2) +
+  scale_x_continuous(breaks = 1:length(unique(compa_season3$Season)),
+                     labels = unique(compa_season3$Season)) +
+  scale_fill_manual(values = c("Total" = "#1F78B4", "Total_FG" = "#36A7A7")) +
+  labs(title = "Comparaison des valeurs totales et totales de total_FG par saison et site",
+       x = "Saison",
+       y = "Valeur",
+       fill = "Variable") +
+  theme_bw()
+
+plot1
+
+compa_season2$Site = factor(compa_season2$Site, levels=c('FR1', 'FR2','FR3','FR4', 
+                                                     "ES1", "ES2", "ES3", "ES4"))
+
+compa_season2$Season = factor(compa_season2$Season, levels=c("S1", "S2", "S3", "S4"))
+
+#Total number of piece (4 seasons)
+plot1 <- compa_season2 %>%
+  filter(Site != "Le Teich") %>%
+  ggplot() + 
+  geom_col(aes(x = Season, y = total, fill = "Total"), position = position_dodge(width = 0.9), width = 0.4) +
+  geom_col(aes(x = Season, y = total_FG, fill = "Total_FG"), position = position_dodge(width = -0.9), width = 0.4) +
+  scale_fill_manual(values = c("Total" = "#1F78B4", "Total_FG" = "#36A7A7"),
+                    labels = c("Total" = "Global litter", "Total_FG" = "Fishing gear")) +
+  facet_wrap(~Site, scales = "free", nrow = 2) +
+  theme_bw() + 
+  labs(title = "Total amount of fishing gear compared to the global waste collected\n",
+       x = "Seasons",
+       y = "Number of waste per 100 m", 
+       fill = "Type of waste") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.position="right",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.text=element_text(size = 16, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) +
+  rotate_x_text(angle = 30) 
+
+plot1 
+
+#Percentage of piece Global per site // percentage of FG
+
+compa_plas_site2$Site = factor(compa_plas_site2$Site, levels=c('FR1', 'FR2','FR3','FR4', 
+                                                     "ES1", "ES2", "ES3", "ES4"))
+
+plot1 <- compa_plas_site2 %>%
+  ggplot() + 
+  geom_col(aes(x = Site, y = per_plas, fill = "Plastic"), position = position_dodge(width = 0.9), width = 0.4) +
+  geom_col(aes(x = Site, y = per_FG, fill = "FG"), position = position_dodge(width = -0.9), width = 0.4) +
+  scale_fill_manual(values = c("Plastic" = "#1F78B4", "FG" = "#36A7A7"),
+                    labels = c("Plastic" = "Plastics", "FG" = "Fishing gear")) +
+  theme_bw() + 
+  labs(title = "Percentage of fishing gear compared to the plastic waste collected",
+       subtitle = "Data expressed in number of item per 100 m\n",
+       x = "Beaches",
+       y = "Percentage of waste per 100 m", 
+       fill = "Type of waste") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.position="right",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.text=element_text(size = 16, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) 
+plot1 
+
+```
+
+
+```{r OSPAR vs PLasfito}
+
+OSPAR_minus_FG <- final_OSPAR %>% filter(Cat_code != c(13, 26, 27, 31, 32, 33, 34, 35, 37, 114, 115, 116))
+OSPAR_minus_FG
+
+OP_Season_Cat <- OSPAR_minus_FG %>% 
+  group_by(Season, Family) %>% 
+  summarise(total = sum(nb)) %>% 
+  mutate(Family = if_else(Family == "PAPEL / CARTÓN", "Papel", Family))
+  
+OP_Season_Cat
+
+P_Season_Cat <- season_FG %>% 
+  group_by(Season) %>% 
+  summarise(total = sum(total_FG)) %>% 
+  mutate(Family = "FG") 
+P_Season_Cat
+
+OSPAR_Plasfito <- bind_rows(P_Season_Cat, OP_Season_Cat) %>% 
+  rename(n = total) %>% 
+  arrange(Season)
+OSPAR_Plasfito
+
+Total_Season <- OSPAR_Plasfito %>%  group_by(Season) %>% summarise(total = sum(n, na.rm = TRUE))
+Total_Season
+
+OP_per <- OSPAR_Plasfito %>% left_join(Total_Season) %>% 
+  mutate(per = n*1/total*100)
+OP_per
+
+
+```
+
+```{r Radar plot}
+
+Radar1 <- OP_per %>% 
+  ggplot() +
+  geom_col(
+    aes(
+      x = reorder(str_wrap(Family, 4), per),
+      y = per,
+      fill = per
+    ),
+    width = 0.5,
+    position = "dodge2",
+    show.legend = TRUE
+  ) +
+  scale_fill_viridis_c() +
+  facet_wrap(~Season, nrow = 2) +
+  theme_bw() +
+  
+  # Make it circular!
+  coord_polar()
+
+Radar1 + scale_y_continuous(
+    limits = c(-5, 90),
+    expand = c(0, 0),
+    breaks = seq(0, 90, by = 10)
+  ) 
+```
+
+H0: (Hypothèse nulle) : Il n'y a pas de corrélation entre les déchets globaux et les déchets de pêche.
+H1: (Hypothèse alternative) : Il y a une corrélation significative entre les déchets globaux et les déchets de pêche. 
+
+H0: (Hypothèse nulle) : Il n'y a pas de corrélation entre les déchets globaux par saison et les déchets de pêche par saison.
+H1: (Hypothèse alternative) : Il y a une corrélation significative entre les déchets globaux par saison et les déchets de pêche par saison. 
+
+```{r Correlation}
+#Correlation
+
+#normality
+compa_season2 %>% ggplot(aes(x = total)) + geom_histogram() + geom_density()
+compa_season2 %>% ggplot(aes(x = total_FG)) + geom_histogram() + geom_density()
+
+correlation <- cor.test(compa_season2$total, compa_season2$total_FG, method = "spearman")
+correlation
+
+correlation_plas <- cor.test(compa_plas_season$total_plas, compa_plas_season$total_FG, method = "spearman")
+correlation_plas
+```
+
+

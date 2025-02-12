@@ -1,0 +1,1981 @@
+---
+title: "Analysis_IDKey"
+author: "Edgar Dusacre"
+date: "2023-10-03"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r package upload}
+library(patchwork)
+library(ggbreak)
+library(ggplot2)
+library(tidyr)
+library(forcats)
+library(dplyr)
+library(readxl) 
+library(readr)
+library(RColorBrewer)
+library(tidyverse)
+library(binom)
+library(lubridate)
+library(ade4)
+library(ggrepel)
+library(broom)
+library(ggpubr)
+library(rstatix)
+library(wesanderson)
+library(car)
+library(multcompView)
+library(rcompanion)
+library(writexl)
+library(gmodels)
+library(openxlsx)
+library(ggbreak)
+library(patchwork)
+library(boot)
+```
+
+```{r Charger les palettes de couleurs, include=FALSE}
+
+# Vecteur de niveaux
+FG <- c("Fishing bobber", "Foam fish box", "Foam float", "Gillnet", "Line", "Longline", 
+             "Mending pieces", "Mounting rope", "Octopus pot", "Rigid float", "Maritime rope", "Purse seine/Midwater trawl", "Trap", 
+              "Bottom Trawl/Seine", "Unidentified net", "Unidentified rope")
+
+# Vecteur de couleurs correspondant
+C <- c("#CAB2D6", "#E7298A", "#6A3D9A", 
+       "#B2DF8A", "#556B2F","#1B9E77", "#A6CEE3", "#1F78B4",    
+       "#B15928", "#FB9A99", "aquamarine", "#C6AF8D", 
+       "#E31A1C", "#E9CDCE", "#FF7F00", "#FDBF6F") 
+
+# Création d'une correspondance entre niveaux et couleurs
+FG_C <- setNames(C, FG)
+FG_C
+
+#Vecteur Polymer
+Pol_C <- c("PA" = "#B2DF8A", "PE" = "#1B9E77", "HPPE-PP" = "#1F78B4", "PET" = "#A6CEE3", "PP" = "#C6AF8D", "PS" = "#bbb3bc", "PU" = "#6A3D9A", "PVC" = "#FDBF6F", "Cellulose" = "#FB9A99")
+
+```
+
+```{r Data import}
+ID_Key_OSPAR_NOAA <- read_excel("Datasheets/Data_abundance_FG_plasfito.xlsx", 
+    sheet = "Data", na = "NA") %>% mutate(Weight = as.numeric(Weight)) 
+ID_Key_OSPAR_NOAA
+
+ID_Key_FTIR <- read_excel("Datasheets/Data_polymer_FG_plasfito.xlsx", na = "NA", sheet = "Sheet1")
+ID_Key_FTIR
+
+surface_beach <- read_excel("Datasheets/avg_for_join.xlsx")
+surface_beach
+```
+
+#Global 
+
+```{r Data Import}
+Global <- ID_Key_OSPAR_NOAA %>% mutate(Season_year = paste(Season, Year, sep = "_")) %>% 
+  filter(!is.na(N)) %>%  
+  mutate(FG = if_else(FG == "PS_float", "Foam float", 
+                      if_else(FG == "MR", "Mounting rope",
+                              if_else(FG == "HP_net_float", "Rigid float",
+                                      if_else(FG == "Octopus_pot", "Octopus pot", 
+                                              if_else(FG == "EPS_fish_box", "Foam fish box",
+                                                      if_else(FG == "Fishing_bobber", "Fishing bobber", 
+                                                              if_else(FG == "Seine_net", "Purse seine/Midwater trawl", 
+             if_else(FG == "Unidentified_rope", "Unidentified rope", 
+             if_else(FG == "Unidentified_net", "Unidentified net", 
+             if_else(FG == "Trawl_mending", "Mending pieces", 
+             if_else(FG == "Yellow_seine_float", "Seine foam float",
+             if_else(FG == "Ropes", "Maritime rope",
+             if_else(FG == "Trawl_net", "Bottom Trawl/Seine", 
+             if_else(FG == "HP_float", "Rigid float", FG)))))))))))))),
+         Site = if_else(Site == "FR4", "FR4", Site),
+         Season = if_else(Season == "winter", "S1", 
+                         if_else(Season == "spring", "S2", 
+                                 if_else(Season == "summer", "S3", 
+                                         if_else(Season == "autumn", "S4", Season)))),
+         Site = if_else(Site == "Lège", "FR1",
+                   if_else(Site == "Arguin", "FR2", 
+                           if_else(Site == "Wharf", "FR3",
+                                   if_else(Site == "tarnos", "FR4",
+                                           if_else(Site == "Murgita", "ES1",
+                                                   if_else(Site == "Orrua-zumaia", "ES2",
+                                                           if_else(Site == "Mutriku", "ES3",
+                                                                   if_else(Site == "Gorrondatxe", "ES4", Site)))))))))
+Global
+
+Global_2022 <- Global %>% filter(Year == "2022") %>% 
+  left_join(surface_beach, by = "Site") %>%
+  rename(Area = avg_surface_L) %>%
+  mutate(Conc_N_m2 = N/Area,
+         Conc_W_m2 = Weight/Area)
+Global_2022
+
+Global_2023 <- Global %>% filter(Year == "2023") %>% 
+  left_join(surface_beach, by = "Site") %>%
+  rename(Area = avg_surface_L) %>%
+  mutate(Conc_N_m2 = N/Area,
+         Conc_W_m2 = Weight/Area)
+Global_2023
+
+Glob_ftir_23 <- ID_Key_FTIR %>% filter(Year == "2023") %>% filter(!is.na(Poly_1)) %>% 
+  mutate(FG = if_else(FG == "PS_float", "Foam float", 
+                      if_else(FG == "MR", "Mounting rope",
+                              if_else(FG == "HP_net_float", "Rigid float",
+                                      if_else(FG == "Octopus_pot", "Octopus pot", 
+                                              if_else(FG == "EPS_fish_box", "Foam fish box",
+                                                      if_else(FG == "Fishing_bobber", "Fishing bobber", 
+                                                              if_else(FG == "Seine_net", "Purse seine/Midwater trawl", 
+             if_else(FG == "Unidentified_rope", "Unidentified rope", 
+             if_else(FG == "Unidentified_net", "Unidentified net", 
+             if_else(FG == "trawl_mending", "Mending pieces", 
+             if_else(FG == "Yellow_seine_float", "Seine foam float",
+             if_else(FG == "Ropes", "Maritime rope",
+             if_else(FG == "trawl_net", "Bottom Trawl/Seine", 
+             if_else(FG == "HP_float", "Rigid float", FG)))))))))))))),
+             Poly_1 = if_else(FG == "Foam float" & Poly_1 == "HPPE", "PP", Poly_1),
+             Poly_2 = if_else(Poly_1 == "PS" & Poly_2 == "PS", "PP", Poly_2),
+         Poly_1 = if_else(Poly_1 == "HPPE", "PE-PP", Poly_1),
+         Site = if_else(Site == "FR4", "FR4", Site),
+         Season = if_else(Season == "winter", "S1", 
+                         if_else(Season == "spring", "S2", 
+                                 if_else(Season == "summer", "S3", 
+                                         if_else(Season == "autumn", "S4", Season)))),
+         Site = if_else(Site == "Lège", "FR1",
+                   if_else(Site == "Arguin", "FR2", 
+                           if_else(Site == "Wharf", "FR3",
+                                   if_else(Site == "Tarnos", "FR4",
+                                           if_else(Site == "Murgita", "ES1",
+                                                   if_else(Site == "Orrua-zumaia", "ES2",
+                                                           if_else(Site == "Alkolea", "ES3",
+                                                                   if_else(Site == "Gorrondatxe", "ES4", Site)))))))))
+Glob_ftir_23
+
+
+```
+
+```{r Averages Abundance 2022}
+global_nb <- Global_2022 %>% filter(Site != "Le Teich") %>% 
+  group_by(Country, Site, Season, Region, Year) %>% 
+  summarize(sum_n = sum(N), sum_w = sum(Weight))
+global_nb
+
+per_globa_nb <- global_nb %>% 
+  group_by() %>% 
+  mutate(per_FG = (sum_w / sum(sum_w)) * 100) %>% 
+  arrange(desc(per_FG))
+per_globa_nb
+
+global_Season <- Global_2023 %>% filter(Site != "Le Teich") %>% group_by(Date, Site) %>% summarise(sum_FG = sum(N)) %>%  arrange(Site)
+global_Season
+
+#Mean quantity per country per Year
+glb_avg_nb <- Global_2022 %>% filter(Site != "Le Teich") %>% 
+  #filter(FG != "Unidentified rope", FG != "Unidentified net") %>% 
+  group_by(Year) %>% summarise(sum = sum(N),
+                                                                                          avg_n = mean(N, na.rm = T),
+                                                                                            sd_n = sd(N, na.rm = T),
+                                                                                          sum_w = sum(Weight),
+                                                                                          avg_weigth = mean(Weight, na.rm = T),
+                                                                                            sd_weigth = sd(Weight, na.rm = T)) 
+glb_avg_nb
+
+global_n <- glb_avg_nb  %>% group_by(Year) %>% summarise(mean_year = mean(sum),
+                                                            sd_year = sd(sum),
+                                                         median = median(sum))
+global_n
+
+
+#Mean annual quantity
+glb_avg_nb <- global_nb %>% filter(Site != "Le Teich") %>% group_by(Country, Season, Site, Region, Year) %>% summarise(avg_n = mean(sum_n, na.rm = T),
+                                                                                            sd_n = sd(sum_n, na.rm = T),
+                                                                                          avg_weigth = mean(sum_w, na.rm = T),
+                                                                                            sd_weigth = sd(sum_w, na.rm = T))
+glb_avg_nb
+
+global_n <- glb_avg_nb %>% group_by(Country) %>% summarise(sum = sum(avg_n))
+global_n
+
+#Mean seasonal quantity
+
+season_FG <- Global_2022 %>% group_by(Site, Season) %>% 
+  summarise(total_FG = sum(N)) %>% 
+  mutate(total_FG = if_else(is.na(total_FG), 0, total_FG))
+season_FG
+
+#Tot FG
+Tot_FG <- Global_2022 %>% filter(Site != "Le Teich") %>% 
+  #filter(FG != "Unidentified rope", FG != "Unidentified net") %>% 
+  group_by(FG) %>% 
+  summarise(total_FG = sum(N)) %>% 
+  mutate(total_FG = if_else(is.na(total_FG), 0, total_FG),
+         per_FG = (total_FG / sum(total_FG)) * 100) %>% arrange(desc(per_FG))
+Tot_FG
+
+Tot_FG_sector <- Tot_FG %>% filter(FG != "Unidentified rope", FG != "Ropes", FG != "Unidentified net") %>% 
+  group_by(FG) %>% summarise(sum_per_sector = sum(per_FG)) %>% arrange(desc(sum_per_sector))
+Tot_FG_sector
+
+##Number of FG
+# Calculer la variance pondérée pour chaque type de déchet par site
+variance_weighted <- glb_avg_nb %>%
+  group_by(Country, Region, Site) %>%
+  summarise(total_variance = sum((sd_n^2) * (n() - 1), na.rm = TRUE) / sum(n() - 1, na.rm = TRUE))
+variance_weighted
+
+# Si vous voulez obtenir l'écart type à partir de la variance totale pondérée
+
+var_W <- variance_weighted %>%
+  mutate(sd_total = sqrt(total_variance))
+var_W
+
+global_n <- glb_avg_nb %>% group_by(Year, Site) %>% summarise(sum = sum(avg_n))
+global_n
+
+#Join table
+var_W2 <- global_n %>% left_join(var_W) %>% dplyr::select(-Country, -Region, -total_variance)
+var_W2
+
+sum(var_W2$sd_total)
+
+##Weight of FG
+
+global_mass <- Global %>% filter(Year == 2022, Site != "Le Teich") %>% 
+  filter(FG != "Unidentified rope", FG != "Unidentified net") %>% 
+  group_by(Year) %>% 
+  summarise(sum_mass_800m = sum(Weight)/1000)
+global_mass
+
+global_mass_Site <- Global %>% filter(Year == 2022, Site != "Le Teich") %>% 
+  filter(FG != "Unidentified rope", FG != "Unidentified net") %>% 
+  group_by(Season, Site, Year) %>% summarise(sum_mass = sum(Weight)) %>% 
+  group_by(Year) %>%  summarise(mean_mass_100m = mean(sum_mass)/1000,
+                                IC5 = mean_mass_100m - 1.96*sd(sum_mass)/1000,
+                                IC95 = mean_mass_100m + 1.96*sd(sum_mass)/1000)
+global_mass_Site
+
+global_mass_seas <- Global %>% filter(Year == 2022) %>% group_by(Site, Year, Season) %>% summarise(sum_mass = sum(Weight))
+global_mass_seas
+
+#Tot FG per weight
+Tot_FG <- Global_2022 %>% filter(Site != "Le Teich") %>% 
+  #filter(FG != "Unidentified rope", FG != "Unidentified net") %>% 
+  group_by(FG) %>% 
+  summarise(total_FG = sum(Weight)) %>% 
+  mutate(total_FG = if_else(is.na(total_FG), 0, total_FG),
+         per_FG = (total_FG / sum(total_FG)) * 100) %>% arrange(desc(per_FG))
+Tot_FG
+
+#Global mass on the 800 m of beach btw nov2022 and nov2022 upscale to the coastline lentgh (~402.64 km)
+upscale <- global_mass %>%  
+  mutate(tot_coast = sum_mass_800m*700/0.8)
+upscale
+
+    #Total mass with Kucz estimation:
+    sum(c(22900+7290+14600+6990)) #= 51780 kg
+    11796/51780*100 #= 22.8% of the total mass
+    
+#Average mass per 100m m of beach btw nov2022 and nov2022 upscale to the coastline lentgh (~402.64 km)
+# Fonction pour calculer la moyenne
+    
+data_100m <- Global %>% filter(Year == 2022, Site != "Le Teich") %>% 
+  filter(FG != "Unidentified rope", FG != "Unidentified net") %>% 
+  group_by(Season, Site, Year) %>% summarise(sum_mass = sum(Weight)/1000) %>% 
+  rename(mass = sum_mass)
+data_100m
+    
+mean_fun <- function(data, indices) {
+  return(mean(data[indices]))
+}
+
+# Effectuer le bootstrap
+set.seed(123)  # Pour la reproductibilité
+bootstrap_results <- boot(data_100m$mass, mean_fun, R = 10000)
+
+# Calculer l'estimation pour tout le trait de côte
+trait_cote_100m <- 4026.4
+total_estimate <- bootstrap_results$t0 * trait_cote_100m
+
+# Calculer les intervalles de confiance
+ci <- boot.ci(bootstrap_results, type = "bca")
+total_ci <- ci$bca[4:5] * trait_cote_100m
+
+# Afficher les résultats
+print(paste0("Estimation de la masse totale de déchets sur le trait de côte de 402,64 km : ",
+             round(total_estimate, 2), " unités de masse",
+             " (IC 95% bootstrap : ", round(total_ci[1], 2), " - ", round(total_ci[2], 2), ")"))
+
+
+##To get the standard deviation in the graphs
+# Calculer la variance pondérée pour chaque type de déchet par site
+var_kg_W1 <- glb_avg_nb %>%
+  group_by(Country, Region, Site) %>%
+  summarise(total_variance = sum((sd_weigth^2) * (n() - 1), na.rm = TRUE) / sum(n() - 1, na.rm = TRUE))
+var_kg_W1
+
+# Si vous voulez obtenir l'écart type à partir de la variance totale pondérée
+var_kg_W <- var_kg_W1 %>%
+  mutate(sd_total = sqrt(total_variance))
+var_kg_W
+
+#Join table
+global_mass <- glb_avg_nb %>% group_by(Year, Site) %>% summarise(sum = sum(avg_weigth))
+global_mass
+
+var_kg_W2 <- global_mass %>% left_join(var_kg_W) %>% dplyr::select(-Country, -Region, -total_variance)
+var_kg_W2
+
+sum(var_kg_W2$sd_total)/1000
+
+df_div1 <- Global_2022 %>%
+  filter(Site != "Le Teich") %>%
+  dplyr::select(-Weight, -Season_year, -Date) %>%
+  pivot_wider(names_from = FG, values_from = N) 
+df_div1
+
+col_modif <- colnames(df_div1)
+
+# Calculer les proportions de chaque type de déchet par site
+df_div2 <- df_div1 %>%
+  mutate(across(all_of(col_modif),
+                ~ ifelse(. == "c(0, 0)", 0, .))) %>%
+  mutate(across(all_of(col_modif),
+                ~ ifelse(. == "NULL", 0, .))) %>% 
+  mutate_if(is.list, as.numeric) %>% 
+  #filter(rowSums(. == 0, na.rm = TRUE) <= 22) %>% 
+  arrange(Site) %>% 
+  dplyr::select(-Country, -Region, -Season,  -Year, -Used_proto, -Site)  
+df_div2
+
+```
+
+
+```{r Averages Abundance 2023}
+global_nb <- Global_2023 %>% filter(Site != "Le Teich") %>% group_by(Country, Site, Season, Region, Year) %>% summarize(sum_n = sum(N),
+                                                                                                          sum_w = sum(Weight))
+global_nb
+
+per_globa_nb <- global_nb %>% 
+  group_by() %>% 
+  mutate(per_FG = (sum_w / sum(sum_w)) * 100) %>% arrange(desc(per_FG))
+per_globa_nb
+
+global_Season <- Global %>% group_by(Site, Year, Date, Season) %>% summarise(sum_FG = sum(N))
+global_Season
+
+#Mean quantity per country per Year
+glb_avg_nb <- Global_2023 %>% filter(Site != "Le Teich") %>% 
+  #filter(FG != "Unidentified rope", FG != "Unidentified net") %>% 
+  group_by(Year) %>% summarise(sum = sum(N),
+                                                                                          avg_n = mean(N, na.rm = T),
+                                                                                            sd_n = sd(N, na.rm = T),
+                                                                                          sum_w = sum(Weight),
+                                                                                          avg_weigth = mean(Weight, na.rm = T),
+                                                                                            sd_weigth = sd(Weight, na.rm = T)) 
+glb_avg_nb
+
+global_n <- glb_avg_nb  %>% group_by(Year) %>% summarise(mean_year = mean(sum),
+                                                            sd_year = sd(sum),
+                                                         median = median(sum))
+global_n
+
+
+#Mean annual quantity
+glb_avg_nb <- global_nb %>% filter(Site != "Le Teich") %>% group_by(Country, Season, Site, Region, Year) %>% summarise(avg_n = mean(sum_n, na.rm = T),
+                                                                                            sd_n = sd(sum_n, na.rm = T),
+                                                                                          avg_weigth = mean(sum_w, na.rm = T),
+                                                                                            sd_weigth = sd(sum_w, na.rm = T))
+glb_avg_nb
+
+global_n <- glb_avg_nb %>% group_by(Country) %>% summarise(sum = sum(avg_n))
+global_n
+
+#Mean seasonal quantity
+
+season_FG <- Global_2023 %>% group_by(Site, Season) %>% 
+  summarise(total_FG = sum(N)) %>% 
+  mutate(total_FG = if_else(is.na(total_FG), 0, total_FG))
+season_FG
+
+#Tot FG
+Tot_FG <- Global_2023 %>% filter(Site != "Le Teich") %>% 
+  filter(FG != "Unidentified rope", FG != "Unidentified net", FG != "Maritime rope") %>% 
+  group_by(FG) %>% 
+  summarise(total_FG = sum(N)) %>% 
+  mutate(total_FG = if_else(is.na(total_FG), 0, total_FG),
+         per_FG = (total_FG / sum(total_FG)) * 100) %>% arrange(desc(per_FG))
+Tot_FG
+
+Tot_FG_sector <- Tot_FG %>% filter(FG != "Unidentified rope", FG != "Ropes", FG != "Unidentified net", FG != "Maritime rope") %>% 
+  group_by(FG) %>% summarise(sum_per_sector = sum(per_FG)) %>% arrange(desc(sum_per_sector))
+Tot_FG_sector
+
+##Number of FG
+# Calculer la variance pondérée pour chaque type de déchet par site
+variance_weighted <- glb_avg_nb %>%
+  group_by(Country, Region, Site) %>%
+  summarise(total_variance = sum((sd_n^2) * (n() - 1), na.rm = TRUE) / sum(n() - 1, na.rm = TRUE))
+variance_weighted
+
+# Si vous voulez obtenir l'écart type à partir de la variance totale pondérée
+
+var_W <- variance_weighted %>%
+  mutate(sd_total = sqrt(total_variance))
+var_W
+
+global_n <- glb_avg_nb %>% group_by(Year, Site) %>% summarise(sum = sum(avg_n))
+global_n
+
+#Join table
+var_W2 <- global_n %>% left_join(var_W) %>% dplyr::select(-Country, -Region, -total_variance)
+var_W2
+
+sum(var_W2$sd_total)
+
+##Weight of FG
+
+global_mass <- Global %>% filter(Year == 2023, Site != "Le Teich") %>% 
+  filter(FG != "Unidentified rope", FG != "Unidentified net") %>% 
+  group_by(Year) %>% 
+  summarise(sum_mass_800m = sum(Weight)/1000)
+global_mass
+
+global_mass_Site <- Global %>% filter(Year == 2023, Site != "Le Teich") %>% 
+  filter(FG != "Unidentified rope", FG != "Unidentified net") %>% 
+  group_by(Season, Site, Year) %>% summarise(sum_mass = sum(Weight)) %>% 
+  group_by(Year) %>%  summarise(mean_mass_100m = mean(sum_mass)/1000,
+                                IC5 = mean_mass_100m - 1.96*sd(sum_mass)/1000,
+                                IC95 = mean_mass_100m + 1.96*sd(sum_mass)/1000)
+global_mass_Site
+
+global_mass_seas <- Global %>% filter(Year == 2023) %>% group_by(Site, Year, Season) %>% summarise(sum_mass = sum(Weight))
+global_mass_seas
+
+#Tot FG per weight
+Tot_FG <- Global_2023 %>% filter(Site != "Le Teich") %>% 
+  #filter(FG != "Unidentified rope", FG != "Unidentified net") %>% 
+  group_by(FG) %>% 
+  summarise(total_FG = sum(Weight)) %>% 
+  mutate(total_FG = if_else(is.na(total_FG), 0, total_FG),
+         per_FG = (total_FG / sum(total_FG)) * 100) %>% arrange(desc(per_FG))
+Tot_FG
+
+#Global mass on the 800 m of beach btw nov2022 and nov2023 upscale to the coastline lentgh (~402.64 km)
+upscale <- global_mass %>%  
+  mutate(tot_coast = sum_mass_800m*700/0.8)
+upscale
+
+    #Total mass with Kucz estimation:
+    sum(c(22900+7290+14600+6990)) #= 51780 kg
+    11796/51780*100 #= 22.8% of the total mass
+    
+#Average mass per 100m m of beach btw nov2022 and nov2023 upscale to the coastline lentgh (~402.64 km)
+# Fonction pour calculer la moyenne
+library(boot)
+    
+data_100m <- Global %>% filter(Year == 2023, Site != "Le Teich") %>% 
+  filter(FG != "Unidentified rope", FG != "Unidentified net") %>% 
+  group_by(Season, Site, Year) %>% summarise(sum_mass = sum(Weight)/1000) %>% 
+  rename(mass = sum_mass)
+data_100m
+    
+mean_fun <- function(data, indices) {
+  return(mean(data[indices]))
+}
+
+# Effectuer le bootstrap
+set.seed(123)  # Pour la reproductibilité
+bootstrap_results <- boot(data_100m$mass, mean_fun, R = 10000)
+
+# Calculer l'estimation pour tout le trait de côte
+trait_cote_100m <- 4026.4
+total_estimate <- bootstrap_results$t0 * trait_cote_100m
+
+# Calculer les intervalles de confiance
+ci <- boot.ci(bootstrap_results, type = "bca")
+total_ci <- ci$bca[4:5] * trait_cote_100m
+
+# Afficher les résultats
+print(paste0("Estimation de la masse totale de déchets sur le trait de côte de 402,64 km : ",
+             round(total_estimate, 2), " unités de masse",
+             " (IC 95% bootstrap : ", round(total_ci[1], 2), " - ", round(total_ci[2], 2), ")"))
+
+
+##To get the standard deviation in the graphs
+# Calculer la variance pondérée pour chaque type de déchet par site
+var_kg_W1 <- glb_avg_nb %>%
+  group_by(Country, Region, Site) %>%
+  summarise(total_variance = sum((sd_weigth^2) * (n() - 1), na.rm = TRUE) / sum(n() - 1, na.rm = TRUE))
+var_kg_W1
+
+# Si vous voulez obtenir l'écart type à partir de la variance totale pondérée
+var_kg_W <- var_kg_W1 %>%
+  mutate(sd_total = sqrt(total_variance))
+var_kg_W
+
+#Join table
+global_mass <- glb_avg_nb %>% group_by(Year, Site) %>% summarise(sum = sum(avg_weigth))
+global_mass
+
+var_kg_W2 <- global_mass %>% left_join(var_kg_W) %>% dplyr::select(-Country, -Region, -total_variance)
+var_kg_W2
+
+sum(var_kg_W2$sd_total)/1000
+
+#df fort simpson index
+# Regrouper les données par site et type de déchet, puis compter le nombre total de chaque type de déchet
+
+df_div1 <- Global_2023 %>%
+  filter(Site != "Le Teich") %>%
+  dplyr::select(-Weight, -Season_year, -Date) %>%
+  pivot_wider(names_from = FG, values_from = N) 
+df_div1
+
+col_modif <- colnames(df_div1)
+
+# Calculer les proportions de chaque type de déchet par site
+df_div2 <- df_div1 %>%
+  mutate(across(all_of(col_modif),
+                ~ ifelse(. == "c(0, 0)", 0, .))) %>%
+  mutate(across(all_of(col_modif),
+                ~ ifelse(. == "NULL", 0, .))) %>% 
+  mutate_if(is.list, as.numeric) %>% 
+  #filter(rowSums(. == 0, na.rm = TRUE) <= 22) %>% 
+  arrange(Site) %>% 
+  dplyr::select(-Country, -Region, -Season,  -Year, -Used_proto, -Site)  
+df_div2
+
+```
+
+Une valeur plus faible de l'indice de Simpson indique une communauté moins diversifiée avec une ou plusieurs catégories de déchets dominant clairement.
+
+```{r Correlation waste vs. season}
+#Global correlation
+# Convertir les saisons en valeurs numériques
+global_nb$Season_numeric <- as.numeric(as.factor(global_nb$Season))
+
+# Calculer la corrélation de Spearman
+correlation_spearman <- cor.test(global_nb$sum_w, global_nb$Season_numeric, method = "spearman")
+print(correlation_spearman)
+
+#plot
+global_nb %>% ggplot(aes(sum_n, Season_numeric, color = Season)) + 
+  geom_point() +
+  geom_smooth(method = "lm", se = T, color = "black") + 
+  theme_bw()
+
+
+# Créer une base de données simulée
+set.seed(123) # Pour la reproductibilité
+data <- data.frame(
+  Season = rep(c("Winter", "Spring", "Summer", "Autumn"), each = 25),
+  sum_n = c(
+    rnorm(25, mean = 300, sd = 50),  # Hiver
+    rnorm(25, mean = 250, sd = 50),  # Printemps
+    rnorm(25, mean = 200, sd = 50),  # Été
+    rnorm(25, mean = 150, sd = 50)   # Automne
+  )
+)
+
+# Visualiser la distribution des déchets par saison
+boxplot(sum_n ~ Season, data = data, main = "Quantité de déchets par saison",
+        xlab = "Saison", ylab = "Quantité de déchets", col = c("blue", "green", "yellow", "orange"))
+```
+
+
+```{r Average Polymer}
+poly_FG_23 <- Glob_ftir_23 %>% filter(Site != "Le Teich") %>% dplyr::select(Year, Poly_1, FG)  %>% group_by(Poly_1, FG) %>% summarise(Polymer = length(Year)) 
+poly_FG_23
+
+mounting_ropes <- Glob_ftir_23 %>%
+  filter(FG == "Mounting rope")
+mounting_ropes
+
+poly_FG23_per <- poly_FG_23 %>%
+  #filter(FG == "Mounting rope") %>% 
+  group_by() %>%
+  mutate(Tot_poly = sum(Polymer)) %>%
+  mutate(Poly_per = (Polymer / Tot_poly) * 100) %>%
+  ungroup()
+poly_FG23_per
+
+poly_Site_23 <- Glob_ftir_23 %>% dplyr::select(Year, Poly_1, Site, Season) %>% group_by(Site, Season, Poly_1) %>% summarise(Polymer = length(Year))
+poly_Site_23
+
+poly_Site23_per <- poly_Site_23 %>%
+  group_by(Site, Season) %>%
+  mutate(Tot_poly = sum(Polymer)) %>%
+  mutate(Poly_per = (Polymer / Tot_poly) * 100) %>%
+  ungroup()
+poly_Site23_per
+
+CrossTable(poly_Site23_per$Site, poly_Site23_per$Season)
+
+global_ftir <- poly_Site23_per %>% group_by(Poly_1) %>% summarise(sum = sum(Polymer), per_sum = sum/1167*100) 
+global_ftir
+
+#Nb polymer by FG
+
+poly1 <- Glob_ftir_23 %>% dplyr::select(FG, Poly_1, Poly_2, Poly_3) %>% 
+  mutate(poly_nb = case_when(
+    rowSums(is.na(.)) == 3 ~ 0,  
+    rowSums(is.na(.)) == 2 ~ 1,  
+    rowSums(is.na(.)) == 1 ~ 2,  
+    rowSums(is.na(.)) == 0 ~ 3   
+  ))
+poly1
+
+CrossTable(poly1$poly_nb)
+
+poly_nb_FG <- poly1 %>% 
+  filter(FG != "Unidentified net", FG != "Unidentified rope") %>% 
+  group_by(FG) %>% 
+  summarise(poly_nb = n()) %>% 
+  filter(poly_nb == 2) %>% 
+  mutate(per_nb = (poly_nb / 28) * 100)
+poly_nb_FG
+
+#df percentage nb poly
+poly_nb_FG_count <- poly1 %>% 
+  group_by(poly_nb) %>% 
+  summarise(count = n()) %>% 
+  mutate(per_nb = (count / sum(count)) * 100)
+poly_nb_FG_count
+
+#Avg nb poly / FG 
+avg_color_FG <- poly1 %>% 
+  group_by() %>% 
+  summarise(poly_avg = mean(poly_nb, na.rm = T),
+            poly_sd = sd(poly_nb, na.rm = T))
+avg_color_FG
+
+#filter(rowSums(. == 0, na.rm = TRUE) <= 22) %>% 
+
+poly_Site23_per <- poly_Site_23 %>%
+  group_by(Site, Season) %>%
+  mutate(Tot_poly = sum(Polymer)) %>%
+  mutate(Poly_per = (Polymer / Tot_poly) * 100) %>%
+  ungroup()
+poly_Site23_per
+
+poly_Site23_per2 <- poly_Site_23 %>%
+  filter(Site == "FR4") %>%
+  ungroup %>% 
+  group_by(Site, Poly_1) %>%
+  summarise(Tot_poly = sum(Polymer)) %>%
+   mutate(Poly_per = (Tot_poly / sum(Tot_poly)) * 100) 
+poly_Site23_per2
+
+
+```
+
+
+```{r Correlation abundance vs. weight}
+#Global correlation
+abun_weight <- Global_2023 %>% 
+  filter(Site != "Le Teich") %>%
+  group_by(Site, Season) %>% 
+  summarise(sum_FG = sum(N),
+            sum_W = sum(Weight))
+abun_weight
+
+correlation <- cor.test(abun_weight$sum_W, abun_weight$sum_FG, method = "spearman")
+correlation
+
+abun_weight %>% ggplot(aes(sum_FG, sum_W, color = Site)) + 
+  geom_point() +
+  geom_smooth(method = "lm", se = T, color = "black") + 
+  theme_bw()
+```
+
+```{r Average Color}
+color1_FG_23 <- Glob_ftir_23 %>% filter(Site != "Le Teich", !is.na(Color_1)) %>% 
+  #filter(FG != "Unidentified net", FG != "Unidentified rope") %>% 
+  mutate(Color_1 = if_else(Color_1 == "O", "Or", Color_1),
+         Color_2 = if_else(Color_2 == "O", "Or", Color_2),
+         Color_3 = if_else(Color_3 == "O", "Or", Color_3)) %>% 
+  dplyr::select(Year, FG, Color_1, FG)  %>% 
+  group_by(Color_1) %>% 
+  summarise(value = length(Year)) %>% 
+  rename(Color = Color_1) %>% 
+  mutate(per = (value / sum(value)) * 100)
+color1_FG_23
+
+color1_FG_23_bis <- Glob_ftir_23 %>% filter(Site != "Le Teich", !is.na(Color_1)) %>% 
+  #filter(FG != "Unidentified net", FG != "Unidentified rope") %>% 
+  mutate(Color_1 = if_else(Color_1 == "O", "Or", Color_1),
+         Color_2 = if_else(Color_2 == "O", "Or", Color_2),
+         Color_3 = if_else(Color_3 == "O", "Or", Color_3)) %>% 
+  dplyr::select(Year, FG, Color_1, FG)  %>% 
+  group_by(FG, Color_1) %>% 
+  summarise(value = length(Year)) %>% 
+  rename(Color = Color_1) %>% 
+  group_by() %>% 
+  mutate(per = (value / sum(value)) * 100)
+color1_FG_23_bis
+
+color2_FG_23 <- Glob_ftir_23 %>% filter(Site != "Le Teich", !is.na(Color_2)) %>% 
+  #filter(FG != "Unidentified net", FG != "Unidentified rope") %>% 
+  mutate(Color_1 = if_else(Color_1 == "O", "Or", Color_1),
+         Color_2 = if_else(Color_2 == "O", "Or", Color_2),
+         Color_3 = if_else(Color_3 == "O", "Or", Color_3)) %>% 
+  dplyr::select(Year, Color_2, FG)  %>% 
+  group_by(Color_2) %>% 
+  summarise(value = length(Year)) %>% 
+  rename(Color = Color_2)
+color2_FG_23
+
+color3_FG_23 <- Glob_ftir_23 %>% filter(Site != "Le Teich", !is.na(Color_3)) %>% 
+  #filter(FG != "Unidentified net", FG != "Unidentified rope") %>% 
+  mutate(Color_1 = if_else(Color_1 == "O", "Or", Color_1),
+         Color_2 = if_else(Color_2 == "O", "Or", Color_2),
+         Color_3 = if_else(Color_3 == "O", "Or", Color_3)) %>% 
+  dplyr::select(Year, Color_3, FG)  %>% 
+  group_by(Color_3) %>% 
+  summarise(value = length(Year)) %>% 
+  rename(Color = Color_3)
+color3_FG_23
+
+color_all <- color1_FG_23 %>%
+  left_join(color2_FG_23, by = "Color") %>%
+  left_join(color3_FG_23, by = "Color") %>% 
+  mutate(value.x = if_else(is.na(value.x), 0, value.x),
+         value.y = if_else(is.na(value.y), 0, value.y),
+         value = if_else(is.na(value), 0, value)) %>%
+  mutate(value_all = value.x + value.y + value) %>% 
+  dplyr::select(Color, value_all)
+color_all
+
+color_FG23_per <- color_all %>%
+  group_by() %>%
+  mutate(Tot_color = sum(value_all)) %>%
+  mutate(color_per = (value_all / Tot_color) * 100) %>%
+  ungroup()
+color_FG23_per
+
+color_per_col <- color1_FG_23 %>%
+  left_join(color2_FG_23, by = "Color") %>%
+  left_join(color3_FG_23, by = "Color") %>% 
+  mutate(value.x = if_else(is.na(value.x), 0, value.x),
+         value.y = if_else(is.na(value.y), 0, value.y),
+         value = if_else(is.na(value), 0, value)) %>% 
+  rename(Color1 = value.x, Color2 = value.y, Color3 = value) %>% 
+  #add variable percent for each color
+  mutate(Tot_color1 = sum(Color1),
+        Tot_color2 = sum(Color2),
+        Tot_color3 = sum(Color3)) %>%
+  mutate(color1_per = (Color1 / Tot_color1) * 100,
+         color2_per = (Color2 / Tot_color2) * 100,
+         color3_per = (Color3 / Tot_color3) * 100) %>% 
+  dplyr::select(Color, color1_per, color2_per, color3_per)
+
+color_per_col
+
+
+#Nb color by FG
+
+color1 <- Glob_ftir_23 %>% 
+  filter(Site != "Le Teich", !is.na(Color_1)) %>% 
+  #filter(FG != "Unidentified net", FG != "Unidentified rope") %>% 
+  dplyr::select(FG, Color_1, Color_2, Color_3) %>% 
+  mutate(color_nb = case_when(
+    rowSums(is.na(.)) == 3 ~ 0,  
+    rowSums(is.na(.)) == 2 ~ 1,  
+    rowSums(is.na(.)) == 1 ~ 2,  
+    rowSums(is.na(.)) == 0 ~ 3   
+  ))
+color1
+
+#Avg nb color / FG 
+avg_color_FG <- color1 %>% 
+  group_by() %>% 
+  summarise(color_avg = mean(color_nb, na.rm = T),
+            color_sd = sd(color_nb, na.rm = T))
+avg_color_FG
+
+#df for correlation nb color vs nb poly
+color_nb_FG <- color1 %>% 
+  group_by(color_nb) %>% 
+  summarise(count = n()) %>% 
+  mutate(per_nb = (count / sum(count)) * 100)
+color_nb_FG
+
+
+```
+
+
+```{r Correlation nb color vs nb polymer, eval=FALSE, include=FALSE}
+
+poly1 <- poly_nb_FG_count %>% rename(nb = poly_nb) %>% 
+  mutate(type = "poly")
+color1 <- color_nb_FG %>% rename(nb = color_nb) %>% 
+  mutate(type = "color")
+
+nb <- rep(c("1", "2", "3"))
+poly <- c(1139, 28, 0)
+color <- c(601, 140, 27)
+per_poly <- c(97.6, 2.40, 0)
+per_colot <- c(78.3, 18.2, 3.52)
+
+df_corr <- tibble(nb, poly, color, per_poly, per_colot) 
+df_corr
+
+#Global correlation
+poly_color <-  bind_rows(poly1, color1) %>% 
+  pivot_wider(names_from = type, values_from = per_nb)
+poly_color
+
+#normality
+poly_color %>% ggplot(aes(x = poly_nb)) + geom_histogram() + geom_density()
+poly_color %>% ggplot(aes(x = color_nb)) + geom_histogram() + geom_density()
+
+correlation <- cor.test(df_corr$poly, df_corr$color, method = "spearman", na.rm = T)
+correlation
+
+df_corr %>% ggplot(aes(poly, color, color = as.factor(nb))) + 
+  geom_point() +
+  geom_smooth(method = "lm", se = T, color = "black") + 
+  theme_bw()
+
+```
+
+```{r Vizualization colors}
+
+# ggplotly(p)
+
+color1_FG_23_bis2 <- color1_FG_23_bis %>%
+  #change Color name with case when
+  mutate(Color_full = case_when(
+    Color == "Ba" ~ "Black",
+    Color == "Br" ~ "Brown",
+    Color == "Bu" ~ "Blue",
+    Color == "Ge" ~ "Green",
+    Color == "GE" ~ "Green",
+    Color == "Gy" ~ "Grey",
+    Color == "Or" ~ "Orange",
+    Color == "Re" ~ "Red",
+    Color == "Wh" ~ "White",
+    Color == "Ye" ~ "Yellow",
+    Color == "Pu" ~ "Purple",
+    Color == "Pi" ~ "Pink"))
+
+
+#order color vector Green, White, Blue, Orange, Black, Yellow, Grey, Purple, Red, Brown, Pink
+color1_FG_23_bis2$Color_full <- factor(color1_FG_23_bis2$Color_full, levels = c("Pink", "Brown", "Purple", "Red", "Yellow", "Grey", "Black", "Orange", "White", "Blue", "Green"))
+
+
+plot6 <- color1_FG_23_bis2 %>% 
+  ggplot(aes(x = Color_full, y= per, fill = FG)) + 
+  geom_col(width = 0.5) +
+  scale_y_continuous(limits = c(0, 50), breaks = seq(0, 50, by = 5)) +
+  scale_fill_manual(values = FG_C) +
+  theme_bw() + 
+  labs(#title = "Percentage of the polymer according to the FG",
+       #subtitle = "Data of the 8 sites and 4 seasons of 2023",
+       x = "Colors",
+       y = "Fishing gear percentage (%)", 
+       fill = "Fishing gear\ncategories") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 2, margin = margin(t = 0, r = 0, b = 0, l = 0), angle = 90),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        #strip.text = element_text(face = "bold", size = rel(2)),
+        #strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.spacing.y = unit(0.2, 'cm'),
+        legend.position="right",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.text=element_text(size = 16, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) +
+  guides(fill = guide_legend(byrow = TRUE))
+plot6 
+
+
+plot6 + 
+  coord_flip() #+
+  #scale_y_break(c(16, 52), scales = 1) 
+
+```
+
+
+```{r Visualization Total N & W}
+
+Global_2023$Site = factor(Global_2023$Site, levels=c('FR1', 'Le Teich', 'FR2','FR3','FR4', 
+                                                     "ES1", "ES2", "ES3", "ES4"))
+
+Global_2023$Season = factor(Global_2023$Season, levels=c('S1', 'S2', 'S3', 'S4'))
+
+#Total number of piece (4 seasons)
+plot1 <- Global_2023 %>% filter(Site != "Le Teich", grepl("FR", Site)) %>% 
+  #mutate(Season = fct_reorder(Season, -N, .fun='sum')) %>%
+  ggplot(aes(x = Season, y= N)) + 
+  geom_col(aes(fill=FG), width = 0.5) +
+  scale_y_continuous(limits = c(0, 635), breaks = seq(0, 635, by = 200)) +
+  scale_fill_manual(values = FG_C) +
+  theme_bw() + 
+  facet_wrap(~Site, scales = "free_x", nrow = 1, strip.position="top") +
+  labs(#title = "Total amount of fishing gear pieces collected by beach and by season",
+       x = "Seasons",
+       y = "Abundance of FG per 100 m", 
+       fill = "Fishing gear \ncategories") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.position="none",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) 
+plot1 
+
+
+plot2 <- Global_2023 %>% filter(Site != "Le Teich", grepl("ES", Site)) %>% 
+  #mutate(Season = fct_reorder(Season, -N, .fun='sum')) %>%
+  ggplot(aes(x = Season, y= N)) + 
+  geom_col(aes(fill=FG), width = 0.5) +
+  scale_y_continuous(limits = c(0, 28), breaks = seq(0, 28, by = 5)) +
+  scale_fill_manual(values = FG_C) +
+  theme_bw() + 
+  labs(#title = "Total amount of fishing gear pieces collected by beach and by season",
+       x = "Seasons",
+       y = "Abundance of FG per 100 m", 
+       fill = "Fishing gear \ncategories") +
+  facet_wrap(~Site, scales = "free_x", nrow = 1, strip.position="top") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.position="bottom",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.text=element_text(size = 16, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))  
+plot2 
+
+combined_plot <- plot1 + plot2  + plot_layout(ncol = 1, heights = c(1, 1), axes = "collect") & theme(plot.margin = margin(t = 10, r = 15, b = 10, l = 15, unit = "pt")) 
+combined_plot
+
+
+#Total number of piece (4 seasons)
+plot2 <- Global_2023 %>% filter(Site != "Le Teich") %>% 
+  #mutate(Season = fct_reorder(Season, -N, .fun='sum')) %>%
+  ggplot(aes(x = Season, y= Weight/1000, fill=FG)) + geom_col(width = 0.5) +
+  #scale_y_continuous(limits = c(0, 600), breaks = seq(0, 600, by = 100)) +
+  scale_fill_manual(values = FG_C) +
+  theme_bw() + 
+  facet_wrap(~Site, scales = "free_x", nrow = 2) +
+  labs(title = "Total weight of fishing gear pieces collected by site and by season\n",
+       x = "Seasons",
+       y = "Weight of FG per 100 m (kg)", 
+       fill = "Fishing gear \ncategories") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.position="bottom",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) +
+  rotate_x_text(angle = 30) 
+plot2
+
+#Weigth
+
+Global_2023$Site = factor(Global_2023$Site, levels=c('FR1', 'Le Teich', 'FR2','FR3','FR4', 
+                                                     "ES1", "ES2", "ES3", "ES4"))
+
+Global_2023$Season = factor(Global_2023$Season, levels=c('S1', 'S2', 'S3', 'S4'))
+
+#Total number of piece (4 seasons)
+plotw1 <- Global_2023 %>% filter(Site != "Le Teich", grepl("FR", Site)) %>% 
+  #mutate(Season = fct_reorder(Season, -N, .fun='sum')) %>%
+  ggplot(aes(x = Season, y= Weight/1000)) + 
+  geom_col(aes(fill=FG), width = 0.5) +
+  scale_y_continuous(limits = c(0, 3.2), breaks = seq(0, 3.2, by = 0.5)) +
+  scale_fill_manual(values = FG_C) +
+  theme_bw() + 
+  facet_wrap(~Site, scales = "free_x", nrow = 1, strip.position="top") +
+  labs(#title = "Total weight of fishing gear pieces collected by beach and by season",
+       x = "Seasons",
+       y = "Weight of FG per 100 m (kg)", 
+       fill = "Fishing gear \ncategories") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.position="none",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) 
+plotw1 
+
+
+plotw2 <- Global_2023 %>% filter(Site != "Le Teich", grepl("ES", Site)) %>% 
+  #mutate(Season = fct_reorder(Season, -N, .fun='sum')) %>%
+  ggplot(aes(x = Season, y= Weight/1000)) + 
+  geom_col(aes(fill=FG), width = 0.5) +
+  scale_y_continuous(limits = c(0, 0.95), breaks = seq(0, 0.95, by = 0.2)) +
+  scale_fill_manual(values = FG_C) +
+  theme_bw() + 
+  labs(y = "Weight of FG per 100 m (kg)",
+       x = "Seasons",
+       fill = "Fishing gear \ncategories") +
+  facet_wrap(~Site, scales = "free_x", nrow = 1, strip.position="top") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.position="bottom",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.text=element_text(size = 16, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))  
+plotw2 
+
+combined_plotw <- plotw1 + plotw2  + plot_layout(ncol = 1, heights = c(1, 1), axis_titles = "collect") & theme(plot.margin = margin(t = 10, r = 15, b = 10, l = 15, unit = "pt")) 
+combined_plotw
+
+```
+
+```{r Visualization Concen_m2 N & W}
+
+Global_2023$Site = factor(Global_2023$Site, levels=c('FR1', 'Le Teich', 'FR2','FR3','FR4', 
+                                                     "ES1", "ES2", "ES3", "ES4"))
+
+Global_2023$Season = factor(Global_2023$Season, levels=c('S1', 'S2', 'S3', 'S4'))
+
+#Total number of piece (4 seasons)
+plotC1 <- Global_2023 %>% filter(Site != "Le Teich", grepl("FR", Site)) %>% 
+  #mutate(Season = fct_reorder(Season, -N, .fun='sum')) %>%
+  ggplot(aes(x = Season, y= Conc_N_m2)) + 
+  geom_col(aes(fill=FG), width = 0.5) +
+  scale_y_continuous(limits = c(0, 0.0525), breaks = seq(0, 0.0525, by = 0.01)) +
+  scale_fill_manual(values = FG_C) +
+  theme_bw() + 
+  facet_wrap(~Site, scales = "free_x", nrow = 1, strip.position="top") +
+  labs(title = "Fishing gear pieces concentration collected by beach and by season",
+       x = "Seasons",
+       y = expression(bold(paste("FG items/", m^{2}))), 
+       fill = "Fishing gear \ncategories") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.position="none",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) 
+plotC1 
+
+
+plotC2 <- Global_2023 %>% filter(Site != "Le Teich", grepl("ES", Site)) %>% 
+  #mutate(Season = fct_reorder(Season, -N, .fun='sum')) %>%
+  ggplot(aes(x = Season, y= Conc_N_m2)) + 
+  geom_col(aes(fill=FG), width = 0.5) +
+  scale_y_continuous(limits = c(0, 0.0525), breaks = seq(0, 0.0525, by = 0.01)) +
+  scale_fill_manual(values = FG_C) +
+  theme_bw() + 
+  labs(y = expression(bold(paste("FG items/", m^{2}))),
+       x = "Seasons",
+       fill = "Fishing gear \ncategories") +
+  facet_wrap(~Site, scales = "free_x", nrow = 1, strip.position="top") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.position="bottom",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.text=element_text(size = 16, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))  
+plotC2 
+
+combined_plotC <- plotC1 + plotC2  + plot_layout(ncol = 1, heights = c(1, 1), axis_titles = "collect") & theme(plot.margin = margin(t = 10, r = 15, b = 10, l = 15, unit = "pt")) 
+combined_plotC
+
+
+#Weigth
+
+Global_2023$Site = factor(Global_2023$Site, levels=c('FR1', 'Le Teich', 'FR2','FR3','FR4', 
+                                                     "ES1", "ES2", "ES3", "ES4"))
+
+Global_2023$Season = factor(Global_2023$Season, levels=c('S1', 'S2', 'S3', 'S4'))
+
+#Total number of piece (4 seasons)
+plotCw1 <- Global_2023 %>% filter(Site != "Le Teich", grepl("FR", Site)) %>% 
+  #mutate(Season = fct_reorder(Season, -N, .fun='sum')) %>%
+  ggplot(aes(x = Season, y= Conc_W_m2)) + 
+  geom_col(aes(fill=FG), width = 0.5) +
+  scale_y_continuous(limits = c(0, 0.41), breaks = seq(0, 0.41, by = 0.05)) +
+  scale_fill_manual(values = FG_C) +
+  theme_bw() + 
+  facet_wrap(~Site, scales = "free_x", nrow = 1, strip.position="top") +
+  labs(title = "Fishing gear concentration collected by beach and by season",
+       x = "Seasons",
+       y = expression(bold(paste("FG weight (g/", m^{2}, ")"))), 
+       fill = "Fishing gear \ncategories") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.position="none",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) 
+plotCw1 
+
+
+plotCw2 <- Global_2023 %>% filter(Site != "Le Teich", grepl("ES", Site)) %>% 
+  #mutate(Season = fct_reorder(Season, -N, .fun='sum')) %>%
+  ggplot(aes(x = Season, y= Conc_W_m2)) + 
+  geom_col(aes(fill=FG), width = 0.5) +
+  scale_y_continuous(limits = c(0, 0.41), breaks = seq(0, 0.41, by = 0.05)) +
+  scale_fill_manual(values = FG_C) +
+  theme_bw() + 
+  labs(y = expression(bold(paste("FG weight (g/", m^{2}, ")"))),
+       x = "Seasons",
+       fill = "Fishing gear \ncategories") +
+  facet_wrap(~Site, scales = "free_x", nrow = 1, strip.position="top") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.position="bottom",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.text=element_text(size = 16, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))  
+plotCw2 
+
+combined_plotwC <- plotCw1 + plotCw2  + plot_layout(ncol = 1, heights = c(1, 1), axis_titles = "collect") & theme(plot.margin = margin(t = 10, r = 15, b = 10, l = 15, unit = "pt")) 
+combined_plotwC
+
+```
+
+
+
+```{r Vizualization average}
+#Mean quantity per country per Year
+glb_avg_nb <- Global_2023 %>% filter(Site != "Le Teich") %>% 
+  #filter(FG != "Unidentified rope", FG != "Unidentified net") %>% 
+  group_by(Year, Site, FG) %>% summarise(sum = sum(N),
+                                                                                          avg_n = mean(N, na.rm = T),
+                                                                                            sd_n = sd(N, na.rm = T),
+                                                                                          sum_w = sum(Weight),
+                                                                                          avg_weigth = mean(Weight, na.rm = T),
+                                                                                            sd_weigth = sd(Weight, na.rm = T)) 
+glb_avg_nb
+
+glb_avg_nb$Site = factor(glb_avg_nb$Site, levels=c('FR1', 'Le Teich', 'FR2','FR3','FR4', 
+                                                     "ES1", "ES2", "ES3", "ES4"))
+
+#Average number of piece (4 seasons) - stack bar
+G1 <- ggplot() + 
+  geom_col(data = glb_avg_nb, aes(x = Site, y = avg_n, fill = FG), width = 0.6) +
+  geom_errorbar(data = var_W2, aes(x = Site, ymin = sum, ymax = sum + sd_total), width = 0, linewidth = 1) +
+  scale_y_continuous(limits = c(0, 550), breaks = seq(0, 550, by = 50)) +
+  scale_fill_manual(values = FG_C) +
+  
+  labs(title = "Seasonal average sum of the collected fishing gear by site",
+       subtitle = "Sampling at the 4 seasons of 2023",
+       x = "Sites",
+       y = "Average number of pieces", 
+       fill = "Fishing gear \ncategories") +
+  theme_bw() + 
+  theme(
+    axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+    axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+    axis.text.x = element_text(size = 18, face = 'bold'),
+    axis.text.y = element_text(size = 18, face = 'bold'),
+    title = element_text(size = 22, face = "bold"),
+    strip.text = element_text(face = "bold", size = rel(2)),
+    strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+    legend.position = "bottom",
+    legend.title = element_text(size = 18, face = 'bold'),
+    legend.spacing.x = unit(0.5, 'cm'),
+    plot.margin = unit(c(1, 1, 1, 1), "cm")
+  ) +
+  rotate_x_text(angle = 45)
+G1
+
+#Average number of piece (4 seasons) - dodge bar
+G2 <- glb_avg_nb %>% ggplot(aes(x = Site, y= avg_n, fill=FG)) + 
+  geom_col(width = 0.8, position = position_dodge()) +
+  geom_errorbar(aes(ymin = avg_n, ymax = avg_n + sd_n), 
+                position = position_dodge(width = 0.8), width = 0.3) +
+  scale_y_continuous(limits = c(0, 380), breaks = seq(0, 380, by = 20)) +
+  scale_fill_manual(values = FG_C) +
+  theme_bw() + 
+  labs(title = "Seasonal average of the collected fishing gear by site",
+       subtitle = "Sampling at the 4 seasons of 2023",
+       x = "Sites",
+       y = "Average number of pieces", 
+       fill = "Fishing gear \ncategories") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.position="bottom",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) +
+  rotate_x_text(angle = 45) 
+G2
+
+#Weight
+
+#Average number of piece (4 seasons) - stack bar
+G4 <- ggplot() + 
+  geom_col(data = glb_avg_nb, aes(x = Site, y= avg_weigth/1000, fill=FG), width = 0.6) +
+  geom_errorbar(data = var_kg_W2, aes(x = Site, ymin = sum/1000, ymax = (sum + sd_total)/1000), 
+                width = 0, linewidth = 1) +
+  scale_y_continuous(limits = c(0, 3), breaks = seq(0, 3, by = 0.5)) +
+  scale_fill_manual(values = FG_C) +
+  theme_bw() + 
+  labs(title = "Seasonal average sum of the collected fishing gear by site",
+       subtitle = "Sampling at the 4 seasons of 2023",
+       x = "Sites",
+       y = "Fishing gear weight (kg)", 
+       fill = "Fishing gear \ncategories") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.position="bottom",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) +
+  rotate_x_text(angle = 45) 
+G4
+
+#Average number of piece (4 seasons) - dodge bar
+G3 <- glb_avg_nb %>% ggplot(aes(x = Site, y= avg_weigth/1000, fill=FG)) + 
+  geom_col(width = 0.8, position = position_dodge()) +
+  geom_errorbar(aes(ymin = avg_weigth/1000, ymax = avg_weigth/1000 + sd_weigth/1000), 
+                position = position_dodge(width = 0.8), width = 0.3) +
+  facet_wrap(~Site, scales = "free") +
+  #scale_y_continuous(limits = c(0, 5), breaks = seq(0, 5, by = 0.5)) +
+  scale_fill_manual(values = FG_C) +
+  theme_bw() + 
+  labs(title = "Seasonal average of the collected fishing gear by site",
+       subtitle = "Sampling at the 4 seasons of 2023",
+       x = "Sites",
+       y = "Fishing gear weight (kg)", 
+       fill = "Fishing gear \ncategories") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.position="bottom",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) 
+G3
+```
+
+```{r Visualization polymers}
+#Polymers
+poly_Site23_per$Site = factor(poly_Site23_per$Site, levels=c('FR1', 'Le Teich', 'FR2','FR3','FR4', 
+                                                     "ES1", "ES2", "ES3", "ES4"))
+
+poly_Site23_per$Season = factor(poly_Site23_per$Season, levels=c('S1', 'S2', 'S3', 'S4'))
+
+plot5 <- poly_Site23_per %>% 
+  filter(Site != "Le Teich") %>%
+  mutate(Poly_1 = if_else(Poly_1 == "PE-PP", "HPPE-PP", Poly_1)) %>%
+  ggplot(aes(x = Season, y= Poly_per, fill = Poly_1)) + 
+  geom_col(width = 0.5) +
+  #facet_wrap(~Site, scales = "free_x", nrow = 2) +
+  scale_fill_manual(values = Pol_C) +
+  theme_bw() + 
+  labs(title = "Percentage of the FG plastic polymer by site and season\n",
+       x = "Seasons",
+       y = "Polymer percentage (%)", 
+       fill = "Polymers") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.position="bottom",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) +
+  rotate_x_text(angle = 30) 
+plot5
+
+# ggplotly(p)
+
+plot6 <- poly_FG23_per %>% 
+  mutate(Poly_1 = if_else(Poly_1 == "PE-PP", "HPPE-PP", Poly_1)) %>%
+  ggplot(aes(x = reorder(Poly_1, Poly_per), y= Poly_per, fill = FG)) + geom_col(width = 0.5) +
+  scale_y_continuous(limits = c(0, 67), breaks = seq(0, 67, by = 2)) +
+  scale_fill_manual(values = FG_C) +
+  theme_bw() + 
+  labs(#title = "Percentage of the polymer according to the FG",
+       #subtitle = "Data of the 8 sites and 4 seasons of 2023",
+       x = "Polymers",
+       y = "Fishing gear percentage (%)", 
+       fill = "Fishing gear\ncategories") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 2, margin = margin(t = 0, r = 0, b = 0, l = 0), angle = 90),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        #strip.text = element_text(face = "bold", size = rel(2)),
+        #strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.spacing.y = unit(0.2, 'cm'),
+        legend.position="right",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.text=element_text(size = 16, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) +
+  guides(fill = guide_legend(byrow = TRUE))
+plot6 
+
+
+plot6 + 
+  coord_flip() +
+  scale_y_break(c(16, 52), scales = 1) 
+
+#Polymer FG ID KEY Guide
+
+poly_FG23_per_count <- poly_FG23_per %>%
+  group_by(FG) %>%
+  summarise(Total_Polymers = sum(Polymer))
+
+plot7 <- poly_FG23_per %>% 
+  mutate(Poly_1 = if_else(Poly_1 == "PE-PP", "HPPE-PP", Poly_1)) %>%
+  group_by(FG) %>%
+  mutate(Total_Polymer = sum(Polymer)) %>%
+  ungroup() %>%
+  mutate(FG_label = paste0(FG, " (n=", Total_Polymer, ")")) %>%
+  ggplot(aes(y = fct_rev(factor(FG_label)), fill = Poly_1)) + 
+  geom_col(aes(x = Poly_per), width = 0.7, position = "fill") +
+  scale_fill_manual(values = Pol_C) +
+  scale_x_continuous(labels = scales::percent_format()) +
+  theme_bw() + 
+  labs(title = "Percentage of the polymers according to the Fishing gear",
+       x = "Polymer percentage (%)",
+       y = "Fishing gear", 
+       fill = "Polymers") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0, margin = margin(t = 20, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 2, margin = margin(t = 0, r = 20, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.spacing.y = unit(0.2, 'cm'),
+        legend.position="right",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.text=element_text(size = 16, face = 'bold'),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) +
+  guides(fill = guide_legend(byrow = TRUE))
+
+plot7
+
+
+  
+```
+
+
+
+#Correlation FG and fishing effort data GFW
+
+Fishing fleet groups =  ID-K cat
+Trawls : danish seine, all trawls = Bottom trawl / seine, metal chain, rubber leg, rock hopper, mending pieces
+Purse Seine : purse seine, other purse seines = Purse seine, midwater trawl 
+Gillnets : set gillnets, drift gillnets
+Pots & traps : pots and traps = standard trap, Octopus pot
+Longlines : set longlines, drifting longlines = Longline
+Pole & lines : pole and line, trollers = Fishing line, lures, fishing bobber
+
+```{r data import}
+FE_2023 <- read_csv("Datasheets/GFW/public-gfw-v3.0-100924.csv")
+
+FE_2023_2 <- FE_2023 %>% 
+  rename(Time_range = `Time Range`,
+         Vessel_ID = `Vessel IDs`, 
+         Fishing_h = `Apparent Fishing Hours`,
+         FG = Geartype) %>% 
+  mutate(Month = month(Time_range, "month", label = F),
+         Week = week(Time_range),
+         Week_Year = as.Date(cut(Time_range, "week")),
+         Year = year(Time_range),
+         Month_Year = as.Date(format(Time_range, "%Y-%m-01"))) %>% 
+  #Spanish Pole and lines vessels are badly identified and should be "Purse seines" based on Spanish catch and landings reports
+  mutate(FG = if_else(Flag == "ESP" & FG == "pole_and_line", "purse_seines", FG)) %>% 
+  mutate(FG = if_else(Flag == "ESP" & FG == "trollers", "purse_seines", FG)) %>% 
+  mutate(FG = if_else(Flag == "ESP" & FG == "dredge_fishing", "set_gillnets", FG)) %>% 
+  mutate(FG = if_else(FG == "inconclusive" | FG == "fishing" | FG == "fixed_gear", "No specific", FG),
+         FG = if_else(FG == "tuna_purse_seines" | FG == "other_purse_seines" | FG == "purse_seines", "Purse seine", FG),
+         FG = if_else(FG == "set_longlines" | FG == "drifting_longlines", "Longlines", FG),
+         FG = if_else(FG == "trollers" | FG == "pole_and_line", "Pole & lines", FG),
+         FG = if_else(FG == "pots_and_traps", "Pots & traps", FG),
+         FG = if_else(FG == "trawlers" | FG == "seiners" | FG == "other_seines",  "Bottom Trawl/Seine", FG),
+         FG = if_else(FG == "set_gillnets", "Gillnets", FG),
+         FG = if_else(FG == "dredge_fishing", "Dredge fishing", FG)) 
+
+FE_2023_2
+
+# Fonction pour déterminer la saison
+get_season <- function(date) {
+  # Convertir la date en mois et jour
+  month_day <- format(date, "%m-%d")
+  
+  # Définir les bornes des saisons
+  S1_start <- "11-01"
+  S2_start <- "01-26"
+  S3_start <- "04-28"
+  S4_start <- "07-19"
+  
+  if (month_day >= S1_start || month_day < S2_start) {
+    return("S1")
+  } else if (month_day >= S2_start && month_day < S3_start) {
+    return("S2")
+  } else if (month_day >= S3_start && month_day < S4_start) {
+    return("S3")
+  } else {
+    return("S4")
+  }
+}
+
+FE_2023_3 <- FE_2023_2 %>%
+  mutate(Season = sapply(Time_range, get_season)) 
+FE_2023_3
+
+CrossTable(FE_2023_3$Season)
+
+FE_day <- FE_2023_3 %>% group_by(Week_Year, FG) %>% summarise(sum_FE = sum(Fishing_h)) 
+FE_day
+
+G <- FE_day %>% 
+  ggplot() + 
+  geom_line(aes(x = as.factor(Week_Year), y = sum_FE, group = 1)) + rotate_x_text(angle = 45) +
+  facet_grid(~FG)
+G
+
+
+```
+
+Need to regroup some fishing metier: based on the GFW's vessels type description (identity_vessels.pdf)
+inconclusive + fishing + fixed_gear = unknown
+tuna_purse_seines + other_purse_seine + purse_seines = purse_seines
+longlines + drifting_longlines = longlines
+trollers + pole_and_line = pole_lines
+seiners + other_seines = other_seiners
+
+```{r FG grouped by fleet Weight}
+global_Season_FM <- Global_2023 %>% 
+  filter(FG != "Unidentified rope", FG != "Unidentified net") %>% 
+  mutate(Family = if_else(FG == "HP_fish_box" | FG == "Foam fish box" | FG == "Foam float" | FG == "Rigid float" | FG == "Ropes" |  FG == "Inflatable_float" | FG == "HP_fish_box", "No specific",
+                                          if_else(FG == "Gillnet" | FG == "Set gillnets" | FG == "Mounting rope", "Gillnets",
+                                                  if_else(FG == "Line" | FG == "Fishing bobber" | FG == "Lures" , "Pole & lines",
+                                                          if_else(FG == "Longline", "Longlines",
+                                                                  if_else(FG == "Octopus pot", "Pots & traps",
+                                                                          if_else(FG == "Seine net" | FG == "Seine foam float" | FG == "Purse seine/Midwater trawl", "Purse seine",
+                                                                                  if_else(FG == "Trap", "Pots & traps",
+                                                                                          if_else(FG == "Trawl net" | FG == "RHB" | FG == "RLB" | FG == "SCB" | FG == "Mending pieces", "Bottom Trawl/Seine", FG))))))))) %>% 
+  group_by(Family) %>% 
+  summarise(sum_FG = sum(Weight)/1000) %>% 
+  na.omit() %>% 
+  filter(Family != "No specific", Family != "Maritime rope") 
+global_Season_FM
+
+per_FG_fleet <- global_Season_FM %>% 
+  group_by(Family) %>% 
+  mutate(per = sum_FG/sum(global_Season_FM$sum_FG)*100, 
+         data = "ALDFG") 
+per_FG_fleet
+```
+
+```{r FG grouped by fleet N}
+global_Season_FM1 <- Global_2023 %>% 
+  filter(FG != "Unidentified rope", FG != "Unidentified net") %>% 
+  mutate(Family = if_else(FG == "HP_fish_box" | FG == "Foam fish box" | FG == "Foam float" | FG == "Rigid float" | FG == "Ropes" |  FG == "Inflatable_float" | FG == "HP_fish_box", "No specific",
+                                          if_else(FG == "Gillnet" | FG == "Set gillnets" | FG == "Mounting rope", "Gillnets",
+                                                  if_else(FG == "Line" | FG == "Fishing bobber" | FG == "Lures" , "Pole & lines",
+                                                          if_else(FG == "Longline", "Longlines",
+                                                                  if_else(FG == "Octopus pot", "Pots & traps",
+                                                                          if_else(FG == "Seine net" | FG == "Seine foam float" | FG == "Purse seine/Midwater trawl", "Purse seine",
+                                                                                  if_else(FG == "Trap", "Pots & traps",
+                                                                                          if_else(FG == "Trawl net" | FG == "RHB" | FG == "RLB" | FG == "SCB" | FG == "Mending pieces", "Bottom Trawl/Seine", FG))))))))) 
+global_Season_FM1
+
+global_Season_FM <- global_Season_FM1 %>% 
+  group_by(Family) %>% 
+  summarise(sum_FG = sum(N)/1000) %>% 
+  na.omit() %>% 
+  filter(Family != "No specific", Family != "Maritime rope")
+global_Season_FM
+
+per_FG_fleet <- global_Season_FM %>% 
+  group_by(Family) %>% 
+  mutate(per = sum_FG/sum(global_Season_FM$sum_FG)*100, 
+         data = "ALDFG") 
+per_FG_fleet
+```
+
+
+```{r grouped fleets}
+
+FE_prepa <- FE_2023_3 %>% group_by(FG) %>% 
+  summarise(sum_FG = sum(Fishing_h)) %>% 
+  filter(FG != "No specific")
+FE_prepa
+
+FE_per <- FE_prepa %>% rename(Family = FG) %>% 
+  group_by(Family) %>% 
+  mutate(per = sum_FG/sum(FE_prepa$sum_FG)*100, 
+         data = "FE") 
+FE_per
+
+FE_sum <- FE_2023_3 %>% group_by(Week_Year, FG) %>% summarise(sum_FE = sum(Fishing_h))
+FE_sum
+
+#FE_day$Season = factor(FE_day$Season, levels=c('winter','spring','summer','autumn'))
+
+G <- ggplot() + 
+  geom_line(data = FE_sum,
+            aes(x = Week_Year, y = sum_FE, group =FG, color = FG), linewidth = 2) 
+G
+
+```
+
+```{r Visualization FG by fleet}
+
+df_FE_FG <- bind_rows(FE_per, per_FG_fleet)
+df_FE_FG
+
+plot10 <- df_FE_FG %>% 
+  ggplot(aes(x = reorder(Family, per), y= per, fill = data)) + 
+  geom_col(width = 0.5, position = "dodge") +
+  scale_y_continuous(limits = c(0, 95), breaks = seq(0, 95, by = 10)) +
+  scale_fill_manual(values = c("ALDFG" = "#36A7A7", "FE" = "#C6AF8D"),
+                    labels = c("ALDFG" = "Beached fishing gear", "FE" = "Fishing effort")) +
+  theme_bw() + 
+  labs(title = "Percentage of fishing gear and fishing effort according to the fleets",
+       subtitle = "Data for the southeastern BoB from November 2022 to November 2023",
+       x = "Fishing fleets",
+       y = "Percentage of FE & FG (%)", 
+       fill = "Data") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0, margin = margin(t = 10, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 2, margin = margin(t = 0, r = 10, b = 0, l = 0), angle = 90),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.spacing.y = unit(0.2, 'cm'),
+        legend.position="right",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.text=element_text(size = 16, face = 'bold'),
+        legend.spacing.x = unit(1, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) +
+  guides(fill = guide_legend(byrow = TRUE))
+plot10
+
+```
+
+
+```{r correlation FE FG Weight}
+
+#Global correlation
+ALDFG <- global_Season_FM1 %>% 
+  filter(Family != "No specific", Family != "Maritime rope") %>% 
+  dplyr::select(Country, Season, Family, N, Weight) %>% 
+  group_by(Season, Family) %>% 
+  summarise(sum_ALDFG = sum(Weight)/1000) %>% 
+  mutate(per_ALDFG = sum_ALDFG/sum(global_Season_FM$sum_FG)*100)
+ALDFG
+
+FE_prepa <- FE_2023_3 %>% group_by(FG, Season) %>% 
+  summarise(sum_FE = sum(Fishing_h)) %>% 
+  filter(FG != "No specific") %>% 
+  rename(Family = FG) %>% 
+  mutate(per_Family = sum_FE/sum(FE_prepa$sum_FE)*100)
+FE_prepa
+
+sum_FE_FG <- FE_prepa  %>% left_join(ALDFG) %>% 
+  na.omit() 
+sum_FE_FG
+
+correlation <- cor.test(sum_FE_FG$sum_FE, sum_FE_FG$sum_ALDFG, method = "spearman")
+correlation
+
+sum_FE_FG %>% 
+  mutate(sum_ALDFG = scale(sum_ALDFG), sum_FE = scale(sum_FE)) %>% 
+  ggplot(aes(sum_ALDFG, sum_FE, color = Family)) + 
+  geom_point() +
+  geom_smooth(method = "lm", se = T, color = "black") + 
+  theme_bw() +
+  labs(title = "Correlation between the fishing effort and the beach FG",
+       x = "Number of beached fishing gear",
+       y = "Fishing effort (hours)") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0, margin = margin(t = 10, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 2, margin = margin(t = 0, r = 10, b = 0, l = 0), angle = 90),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.spacing.y = unit(0.2, 'cm'),
+        legend.position="right",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.text=element_text(size = 16, face = 'bold'),
+        legend.spacing.x = unit(1, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 1/2) +
+  geom_text(aes(x = 0.9, y = 65000, label = paste("Corr. coeff.: ", round(correlation$estimate, 2), "\np-value: >0.05")), 
+                   size = 5, hjust = 0.5, vjust = 0.5, show.legend = F)
+
+
+#Correlation by FG
+# Fonction pour calculer la corrélation de Spearman et la valeur p
+spearman_cor <- function(data) {
+  result <- cor.test(data$sum_FE, data$sum_ALDFG, method = "spearman")
+  return(data.frame(
+    rho = result$estimate,
+    p_value = result$p.value
+  ))
+}
+
+# Calculer la corrélation pour chaque Family
+correlations <- sum_FE_FG %>%
+  group_by(Family) %>%
+  do(spearman_cor(.))
+
+# Afficher les résultats
+print(correlations)
+
+sum_FE_FG %>% mutate(sum_ALDFG = scale(sum_ALDFG), sum_FE = scale(sum_FE)) %>% ggplot(aes(sum_ALDFG, sum_FE, color = Family)) + 
+  geom_point() +
+  geom_smooth(method = "lm", se = T, color = "black") + 
+  facet_wrap(~Family, scales = "free") +
+  theme_bw() +
+  labs(title = "Correlation between the fishing effort and the beach FG",
+       x = "Number of beached fishing gear",
+       y = "Fishing effort (hours)") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0, margin = margin(t = 10, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 2, margin = margin(t = 0, r = 10, b = 0, l = 0), angle = 90),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.spacing.y = unit(0.2, 'cm'),
+        legend.position="right",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.text=element_text(size = 16, face = 'bold'),
+        legend.spacing.x = unit(1, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 1/2) 
+```
+
+```{r correlation FE FG N}
+
+#Global correlation
+ALDFG <- global_Season_FM1 %>% 
+  filter(Family != "No specific", Family != "Maritime rope") %>% 
+  dplyr::select(Country, Season, Family, N, Weight) %>% 
+  group_by(Season, Family) %>% 
+  summarise(sum_ALDFG = sum(N)) %>% 
+  mutate(per_ALDFG = sum_ALDFG/sum(global_Season_FM$sum_FG)*100)
+ALDFG
+
+FE_prepa <- FE_2023_3 %>% group_by(FG, Season) %>% 
+  summarise(sum_FE = sum(Fishing_h)) %>% 
+  filter(FG != "No specific") %>% 
+  rename(Family = FG) %>% 
+  mutate(per_Family = sum_FE/sum(FE_prepa$sum_FE)*100)
+  
+FE_prepa
+
+sum_FE_FG <- FE_prepa  %>% left_join(ALDFG) %>% 
+  na.omit() 
+sum_FE_FG
+
+correlation <- cor.test(sum_FE_FG$sum_FE, sum_FE_FG$sum_ALDFG, method = "spearman")
+correlation
+
+sum_FE_FG %>% ggplot(aes(sum_ALDFG, sum_FE, color = Family)) + 
+  geom_point() +
+  geom_smooth(method = "lm", se = T, color = "black") + 
+  theme_bw() +
+  labs(title = "Correlation between the fishing effort and the beach FG",
+       x = "Number of beached fishing gear",
+       y = "Fishing effort (hours)") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0, margin = margin(t = 10, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 2, margin = margin(t = 0, r = 10, b = 0, l = 0), angle = 90),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.spacing.y = unit(0.2, 'cm'),
+        legend.position="right",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.text=element_text(size = 16, face = 'bold'),
+        legend.spacing.x = unit(1, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 1/2) +
+  geom_text(aes(x = 350, y = 65000, label = paste("Corr. coeff.: ", round(correlation$estimate, 2), "\np-value: >0.05")), 
+                   size = 5, hjust = 0.5, vjust = 0.5, show.legend = F)
+
+
+#Correlation by FG
+# Fonction pour calculer la corrélation de Spearman et la valeur p
+spearman_cor <- function(data) {
+  result <- cor.test(data$sum_FE, data$sum_ALDFG, method = "spearman")
+  return(data.frame(
+    rho = result$estimate,
+    p_value = result$p.value
+  ))
+}
+
+# Calculer la corrélation pour chaque Family
+correlations <- sum_FE_FG %>%
+  group_by(Family) %>%
+  do(spearman_cor(.))
+
+# Afficher les résultats
+print(correlations)
+
+sum_FE_FG %>% ggplot(aes(sum_ALDFG, sum_FE, color = Family)) + 
+  geom_point() +
+  geom_smooth(method = "lm", se = T, color = "black") + 
+  facet_wrap(~Family, scales = "free") +
+  theme_bw() +
+  labs(title = "Correlation between the fishing effort and the beach FG",
+       x = "Number of beached fishing gear",
+       y = "Fishing effort (hours)") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0, margin = margin(t = 10, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 2, margin = margin(t = 0, r = 10, b = 0, l = 0), angle = 90),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.spacing.y = unit(0.2, 'cm'),
+        legend.position="right",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.text=element_text(size = 16, face = 'bold'),
+        legend.spacing.x = unit(1, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 1/2) 
+```
+
+```{r Correlation operated FG surface vs. ALDFG}
+ALDFG2 <- ALDFG %>% rename(FG = Family) %>% 
+  filter(FG != "No specific", FG != "Pole & lines", FG != "Pots & traps")
+ALDFG2
+
+AIS_FG_dep_season <- read_excel("Datasheets/AIS_FG_deployed_season.xlsx") %>% 
+  arrange(season)
+AIS_FG_dep_season
+
+FG_operated <- AIS_FG_dep_season %>% 
+  filter(Variable == "Deployed_FG") %>% 
+  dplyr::select(season, FG, Median) %>% 
+  rename(Season = season, sum_FG_ope = Median) %>% 
+  #filter(Time_range <= as.Date("2023-10-15")) %>% 
+  mutate(FG = if_else(FG == "inconclusive" | FG == "fishing" | FG == "fixed_gear", "No specific", FG),
+         FG = if_else(FG == "tuna_purse_seines" | FG == "other_purse_seines" | FG == "purse_seines" | FG == "Purse seines", "Purse seine", FG),
+         FG = if_else(FG == "set_longlines" | FG == "drifting_longlines"| FG == "LL_branch" | FG == "LL_main","Longlines", FG),
+         FG = if_else(FG == "trollers" | FG == "pole_and_line", "Pole & lines", FG),
+         FG = if_else(FG == "pots_and_traps", "Pots & traps", FG),
+         FG = if_else(FG == "trawlers" | FG == "seiners" | FG == "other_seines" | FG == "Bottom trawls",  "Bottom Trawl/Seine", FG),
+         FG = if_else(FG == "set_gillnets", "Gillnets", FG),
+         FG = if_else(FG == "dredge_fishing", "Dredge fishing", FG)) %>% 
+  group_by(Season, FG) %>%
+  summarise(sum_FG_ope = sum(sum_FG_ope))
+FG_operated
+
+ope_ALD_FG <- ALDFG2 %>% left_join(FG_operated) 
+ope_ALD_FG
+
+#Correlation by FG
+# Fonction pour calculer la corrélation de Spearman et la valeur p
+spearman_cor <- function(data) {
+  result <- cor.test(data$sum_FG_ope, data$sum_ALDFG, method = "spearman")
+  return(data.frame(
+    rho = result$estimate,
+    p_value = result$p.value
+  ))
+}
+
+# Calculer la corrélation pour chaque Family
+correlations <- cor.test(ope_ALD_FG$sum_FG_ope, ope_ALD_FG$sum_ALDFG, method = "spearman")
+
+# Afficher les résultats
+print(correlations)
+
+ope_ALD_FG %>% ggplot(aes(sum_ALDFG, sum_FG_ope, color = FG)) + 
+  geom_point() +
+  geom_smooth(method = "lm", se = T, color = "black") + 
+  #facet_wrap(~FG, scales = "free") +
+  theme_bw() +
+  labs(title = "Correlation between the fishing effort and the beach FG",
+       x = "Number of beached fishing gear",
+       y = "Fishing effort (hours)") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0, margin = margin(t = 10, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 2, margin = margin(t = 0, r = 10, b = 0, l = 0), angle = 90),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.spacing.y = unit(0.2, 'cm'),
+        legend.position="right",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.text=element_text(size = 16, face = 'bold'),
+        legend.spacing.x = unit(1, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 1/2) 
+```
+
+```{r Correlation lost FG surface vs. ALDFG}
+ALDFG2 <- ALDFG %>% rename(FG = Family) %>% 
+  filter(FG != "No specific", FG != "Pole & lines", FG != "Pots & traps")
+ALDFG2
+
+AIS_FG_lost_season <- read_excel("Datasheets/AIS_FG_deployed_season.xlsx") %>% 
+  arrange(season)
+AIS_FG_lost_season
+
+FG_lost <- AIS_FG_dep_season %>% 
+  filter(Variable == "Lost_FG") %>% 
+  dplyr::select(season, FG, Median) %>% 
+  rename(Season = season, sum_FG_lost = Median) %>% 
+  #filter(Time_range <= as.Date("2023-10-15")) %>% 
+  mutate(FG = if_else(FG == "inconclusive" | FG == "fishing" | FG == "fixed_gear", "No specific", FG),
+         FG = if_else(FG == "tuna_purse_seines" | FG == "other_purse_seines" | FG == "purse_seines" | FG == "Purse seines", "Purse seine", FG),
+         FG = if_else(FG == "set_longlines" | FG == "drifting_longlines"| FG == "LL_branch" | FG == "LL_main","Longlines", FG),
+         FG = if_else(FG == "trollers" | FG == "pole_and_line", "Pole & lines", FG),
+         FG = if_else(FG == "pots_and_traps", "Pots & traps", FG),
+         FG = if_else(FG == "trawlers" | FG == "seiners" | FG == "other_seines" | FG == "Bottom trawls",  "Bottom Trawl/Seine", FG),
+         FG = if_else(FG == "set_gillnets", "Gillnets", FG),
+         FG = if_else(FG == "dredge_fishing", "Dredge fishing", FG)) %>% 
+  group_by(Season, FG) %>%
+  summarise(sum_FG_lost = sum(sum_FG_lost))
+FG_lost
+
+lost_ALD_FG <- ALDFG2 %>% left_join(FG_lost) %>% 
+  #scaled numerical values
+  mutate(sum_ALDFG = scale(sum_ALDFG), sum_FG_lost = scale(sum_FG_lost))
+lost_ALD_FG
+
+#Correlation by FG
+# Fonction pour calculer la corrélation de Spearman et la valeur p
+spearman_cor <- function(data) {
+  result <- cor.test(data$sum_FG_lost, data$sum_ALDFG, method = "spearman")
+  return(data.frame(
+    rho = result$estimate,
+    p_value = result$p.value
+  ))
+}
+# Calculer la corrélation pour chaque Family
+correlations <- lost_ALD_FG %>%
+  group_by(FG) %>%
+  do(spearman_cor(.))
+correlations
+
+# Calculer la corrélation pour chaque Family
+correlations_sp <- cor.test(lost_ALD_FG$sum_FG_lost, lost_ALD_FG$sum_ALDFG, method = "spearman")
+correlations_sp
+correlations_ke <- cor.test(lost_ALD_FG$sum_FG_lost, lost_ALD_FG$sum_ALDFG, method = "kendall")
+correlations_ke
+
+lost_ALD_FG %>% ggplot(aes(sum_ALDFG, sum_FG_lost, color = FG)) + 
+  geom_point() +
+  geom_smooth(method = "lm", se = T, color = "black") + 
+  #facet_wrap(~FG, scales = "free") +
+  theme_bw() +
+  labs(title = "Correlation between the lost FG size and the beached FG",
+       x = "Number of beached fishing gear (au)",
+       y = "Size of fishing gear lost (au)") +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0, margin = margin(t = 10, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 2, margin = margin(t = 0, r = 10, b = 0, l = 0), angle = 90),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.spacing.y = unit(0.2, 'cm'),
+        legend.position="right",
+        legend.title=element_text(size = 18, face = 'bold'),
+        legend.text=element_text(size = 16, face = 'bold'),
+        legend.spacing.x = unit(1, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 1/2) +
+  geom_text(aes(x = 1.2, y = 1.2, label = paste("Corr. coeff.: ", round(correlations_ke$estimate, 2), "\np-value: <0.01")), 
+                   size = 5, hjust = 0, vjust = 0.05, show.legend = F, color = "black")
+
+##Using loess method
+ggplot(lost_ALD_FG, aes(x = sum_FG_lost[,1], y = sum_ALDFG[,1])) +
+  geom_point(aes(color = FG, shape = Season), size = 4) +  # Points colorés par type d'engin
+  geom_smooth(method = "loess", 
+              formula = y ~ x,
+              span = 0.8,    # Ajuster entre 0.3 (flexible) et 1.5 (lisse)
+              se = TRUE,     # Bande de confiance à 95%
+              color = "darkred",
+              linewidth = 1) +
+  labs(title = "Relation entre engins perdus et échoués",
+       subtitle = "Golfe de Gascogne (Sud-Est)",
+       x = "Engins perdus (standardisés)",
+       y = "Engins échoués (standardisés)") +
+  scale_color_brewer(palette = "Dark2") +  # Palette colorblind-friendly
+  theme_minimal() +
+  theme(legend.position = "bottom") + 
+  geom_text_repel(aes(label = paste(Season, FG)), 
+                  box.padding = 0.5, 
+                  max.overlaps = Inf) +
+
+# Comparer plusieurs modèles de lissage
+geom_smooth(method = "loess", span = 0.5, color = "blue", se = FALSE) +
+geom_smooth(method = "loess", span = 1.2, color = "green", se = FALSE)
+```
+
+

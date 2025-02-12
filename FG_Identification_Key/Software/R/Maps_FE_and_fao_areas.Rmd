@@ -1,0 +1,527 @@
+---
+title: "maps_FE"
+author: "Edgar"
+date: "2024-06-22"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r package upload}
+library(ggplot2)
+library(tidyr)
+library(forcats)
+library(dplyr)
+library(readxl) 
+library(readr)
+library(RColorBrewer)
+library(tidyverse)
+library(binom)
+library(lubridate)
+library(ade4)
+library(ggrepel)
+library(broom)
+library(ggpubr)
+library(rstatix)
+library(wesanderson)
+library(car)
+library(multcompView)
+library(rcompanion)
+library(writexl)
+library(gmodels)
+library(openxlsx)
+library(fmsb)
+
+
+#OFW
+library(maps)
+library(sf)
+library(furrr)
+library(raster)
+library(ggthemes)
+library(terra)
+library(ncdf4)
+library(marmap)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rnaturalearthhires)
+library(ggspatial)
+library(osmdata)
+library(grid)
+library(devtools)
+
+```
+
+
+```{r data import}
+FE_2023 <- read_csv("Datasheets/GFW/public-gfw-v3.0-100924.csv")
+
+FE_2023_2 <- FE_2023 %>% 
+  rename(Time_range = `Time Range`,
+         Vessel_ID = `Vessel IDs`, 
+         Fishing_h = `Apparent Fishing Hours`,
+         FG = Geartype) %>% 
+  mutate(Month = month(Time_range, "month", label = F),
+         Week = week(Time_range),
+         Week_Year = as.Date(cut(Time_range, "week")),
+         Year = year(Time_range),
+         Month_Year = as.Date(format(Time_range, "%Y-%m-01"))) %>% 
+  #Spanish Pole and lines vessels are badly identified and should be "Purse seines"
+  mutate(FG = if_else(Flag == "ESP" & FG == "pole_and_line", "purse_seines", FG)) %>% 
+  mutate(FG = if_else(Flag == "ESP" & FG == "trollers", "purse_seines", FG)) %>% 
+  mutate(FG = if_else(Flag == "ESP" & FG == "dredge_fishing", "set_gillnets", FG)) %>% 
+  mutate(FG = if_else(FG == "inconclusive" | FG == "fishing" | FG == "fixed_gear", "No specific", FG),
+         FG = if_else(FG == "tuna_purse_seines" | FG == "other_purse_seines" | FG == "purse_seines", "Purse seines", FG),
+         FG = if_else(FG == "set_longlines" | FG == "drifting_longlines", "Longlines", FG),
+         FG = if_else(FG == "trollers" | FG == "pole_and_line", "Pole & lines", FG),
+         FG = if_else(FG == "seiners" | FG == "other_seines", "Danish seines", FG), 
+         FG = if_else(FG == "pots_and_traps", "Pots & traps", FG),
+         FG = if_else(FG == "trawlers", "Trawls", FG),
+         FG = if_else(FG == "set_gillnets", "Gillnets", FG),
+         FG = if_else(FG == "dredge_fishing", "Dredge fishing", FG)) 
+
+FE_2023_2
+
+# World polygons from the maps package
+world_shp <- sf::st_as_sf(maps::map("world", plot = FALSE, fill = TRUE))
+
+# Get high-resolution data for Europe
+europe_high_res <- ne_countries(scale = "large", returnclass = "sf", continent = "Europe")
+# Get high-resolution coastline data
+coastline_high_res <- ne_coastline(scale = "large", returnclass = "sf")
+
+```
+
+
+```{r Aggregate data across all fleets and geartypes}
+
+effort_all <- FE_2023_2 %>% 
+  group_by(Lon,Lat, FG, Flag) %>% 
+  summarize(fishing_hours = sum(Fishing_h, na.rm = T),
+            log_fishing_hours = log10(sum(Fishing_h, na.rm = T)+1)) %>% 
+  ungroup() 
+effort_all
+
+effort_BC <- FE_2023_2 %>% 
+  filter(Lat >= 43.28 & Lat <= 43.75 & Lon >= -4.00 & Lon <= -0.90) %>%
+  group_by(Lon,Lat, FG) %>% 
+  summarize(fishing_hours = sum(Fishing_h, na.rm = T),
+            log_fishing_hours = log10(sum(Fishing_h, na.rm = T)+1)) %>% 
+  ungroup() 
+effort_BC
+```
+
+```{r interesting values}
+effort_avg <- effort_all %>% 
+  group_by(FG) %>% 
+  summarize(sum_fishing_hours = sum(fishing_hours, na.rm = T),
+            sum_log_fishing_hours = sum(log_fishing_hours, na.rm = T)+1) %>% 
+  ungroup() %>% 
+  arrange(desc(sum_fishing_hours)) %>% 
+  mutate(FE_day = sum_fishing_hours/24)
+effort_avg
+
+df_publi <- effort_all %>% 
+  group_by(FG) %>%
+  summarize(sum_hours = sum(fishing_hours, na.rm = TRUE)) %>% 
+  mutate(percent_hours = round(sum_hours/sum(sum_hours)*100, digits = 2))
+df_publi
+```
+
+
+```{r map studied area}
+#Bathymetry
+xlim <- c(-4.00, -0.90)
+ylim <- c(43.28, 46.30)
+
+bathy_data <- getNOAA.bathy(lon1 = xlim[1], lon2 = xlim[2],
+                            lat1 = ylim[1], lat2 = ylim[2],
+                            resolution = 1)
+
+bathy_df <- fortify(bathy_data)
+
+# Linear green color palette function
+effort_pal <- colorRampPalette(c('#074959', "aquamarine", '#EEFF00'), 
+                               interpolate = 'linear')
+
+effort_all$FG = factor(effort_all$FG, levels=c('Pole & lines', 'Dredge fishing',  
+                                               'Danish seines', 'No specific', 
+                                               'Purse seines', 'Longlines',  
+                                               'Gillnets', 'Trawls'))
+
+# Map fishing effort
+p1 <- effort_all %>%
+  ggplot() +
+  geom_contour(data = bathy_df, 
+               aes(x = x, y = y, z = z, color = after_stat(level)),
+               breaks = c(-200, -1000, -3000)) +
+  geom_sf(data = europe_high_res, 
+          fill = '#374a6d', 
+          color = '#0A1738',
+          size = 0.1) +
+  geom_tile(aes(x = Lon, y = Lat, fill = log_fishing_hours)) +  # Changé de geom_raster à geom_tile
+  scale_fill_gradientn(
+        "Fishing hours\n(log10 scale)",
+        na.value = NA,
+        limits = c(0, 3),
+        colours = effort_pal(5),
+        labels = c("0", "1", "2", "3"),
+        values = scales::rescale(c(0, 1))) +
+  scale_color_gradientn(name = "Depth (m)",
+                        colors = c("#256CB4", "#0096FC", "#A6CEE3"),
+                        breaks = c(-200, -1000, -3000),
+                        labels = c("200", "1000","3000")) +
+  labs(fill  = 'Fishing hours\n(log scale)',
+       #title = 'Fishing effort by fleet between November 2022 and November 2023',
+       x = "Longitudes",
+       y = "Latitudes") +
+  guides(fill = guide_colourbar(barwidth = 2, order = 1, title.vjust = -3, barheight = 7.5),
+         color = guide_legend(order = 2,
+                              override.aes = list(linewidth = 1),
+                              title.vjust = -3)) +
+  coord_sf(xlim = c(-3.9, -1), ylim = c(46.2, 43.28)) +
+  #facet_wrap(~FG, nrow = 2) +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = "#081028", color = NA),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+    axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+    axis.text.x = element_text(size = 12, face = 'bold'),
+    axis.text.y = element_text(size = 12, face = 'bold'),
+    title = element_text(size = 22, face = "bold", margin = margin(t = 10, r = 0, b = 20, l = 0)),
+    strip.text = element_text(face = "bold", size = rel(2)),
+    strip.background = element_rect(fill = "grey", color = "grey", linewidth = 0.1),
+    legend.position = "right",
+    legend.title = element_text(size = 18, face = 'bold'),
+    legend.text = element_text(size = 14, face = 'bold')
+  ) +
+  rotate_x_text(angle = 90)
+
+p1
+```
+
+```{r map studied area + FE + fishing area FAO}
+#Bathymetry
+xlim <- c(-4.00, -0.90)
+ylim <- c(43.28, 46.30)
+
+bathy_data <- getNOAA.bathy(lon1 = xlim[1], lon2 = xlim[2],
+                            lat1 = ylim[1], lat2 = ylim[2],
+                            resolution = 1)
+
+bathy_df <- fortify(bathy_data)
+
+# Linear green color palette function
+effort_pal <- colorRampPalette(c('#074959', "aquamarine", '#EEFF00'), 
+                               interpolate = 'linear')
+
+effort_all$FG = factor(effort_all$FG, levels=c('Pole & lines', 'Dredge fishing',  
+                                               'Danish seines', 'No specific', 
+                                               'Purse seines', 'Longlines',  
+                                               'Gillnets', 'Trawls'))
+
+# Map fishing effort
+p1 <- effort_all %>%
+  ggplot() +
+  geom_contour(data = bathy_df, 
+               aes(x = x, y = y, z = z, color = after_stat(level)),
+               breaks = c(-200, -1000, -3000)) +
+  geom_sf(data = europe_high_res, 
+          fill = '#374a6d', 
+          color = '#0A1738',
+          size = 0.1) +
+  geom_tile(aes(x = Lon, y = Lat, fill = log_fishing_hours)) +  # Changé de geom_raster à geom_tile
+  scale_fill_gradientn(
+        "Fishing hours\n(log10 scale)",
+        na.value = NA,
+        limits = c(0, 3),
+        colours = effort_pal(5),
+        labels = c("0", "1", "2", "3"),
+        values = scales::rescale(c(0, 1))) +
+  scale_color_gradientn(name = "Depth (m)",
+                        colors = c("#256CB4", "#0096FC", "#A6CEE3"),
+                        breaks = c(-200, -1000, -3000),
+                        labels = c("200", "1000","3000")) +
+  labs(fill  = 'Fishing hours\n(log scale)',
+       #title = 'Fishing effort by fleet between November 2022 and November 2023',
+       x = "Longitudes",
+       y = "Latitudes") +
+  guides(fill = guide_colourbar(barwidth = 2, order = 1, title.vjust = -3, barheight = 7.5),
+         color = guide_legend(order = 2,
+                              override.aes = list(linewidth = 1),
+                              title.vjust = -3)) +
+  coord_sf(xlim = c(-3.9, -1), ylim = c(46.2, 43.28)) +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = "#081028", color = NA),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+    axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+    axis.text.x = element_text(size = 12, face = 'bold'),
+    axis.text.y = element_text(size = 12, face = 'bold'),
+    title = element_text(size = 22, face = "bold", margin = margin(t = 10, r = 0, b = 20, l = 0)),
+    strip.text = element_text(face = "bold", size = rel(2)),
+    strip.background = element_rect(fill = "grey", color = "grey", linewidth = 0.1),
+    legend.position = "right",
+    legend.title = element_text(size = 18, face = 'bold'),
+    legend.text = element_text(size = 14, face = 'bold')
+  ) +
+  rotate_x_text(angle = 90)
+
+p1
+
+# Définir les coordonnées corrigées pour la zone de pêche 27.8.b
+coords_27_8_b <- data.frame(
+  lon = c(-4.00, -4.00, -3.00, -3.00, -3.00, -2.50, -2.00, -2.00, -1.00, -1.00, -4.00),
+  lat = c(46.00, 45.50, 45.50, 45.00, 44.50, 44.50, 44.50, 43.28, 43.28, 46.00, 46.00)
+)
+
+coords_27_8_c <- data.frame(
+  lon = c(-2.00, -2.00, -11.00, -11.00, -2.00),
+  lat = c(43.28, 44.50, 44.50, 43.00, 43.00)
+)
+
+# Ajouter les deux zones à votre carte ggplot existante
+p1_fao <- p1 +
+  geom_path(data = coords_27_8_b, aes(x = lon, y = lat), color = "red", linewidth = 1) +
+  geom_path(data = coords_27_8_c, aes(x = lon, y = lat), color = "red", linewidth = 1) +
+  labs(title = "Fishing Areas 27.8.b and 27.8.c")
+
+# Afficher la carte
+p1_fao
+
+
+```
+
+```{r calculate surface area 28.8.c all and plasfito}
+# Définir les coordonnées pour la zone 27.8.c complète avec une frontière plus précise
+coords_27_8_c_complete <- data.frame(
+  lon = c(-2.00, -2.00, -11.00, -11.00, -9.20, -8.30, -7.80, -7.40, -4.00, -2.00),
+  lat = c(43.28, 44.50, 44.50, 43.00, 43.00, 43.40, 43.80, 43.60, 43.35, 43.28)
+)
+
+# Définir les coordonnées pour la zone 27.8.c coupée
+coords_27_8_c_cut <- data.frame(
+  lon = c(-2.00, -2.00, -4.00, -4.00, -2.00),
+  lat = c(43.28, 44.50, 44.50, 43.35, 43.28)
+)
+
+# Convertir en polygones sf
+polygon_complete <- st_polygon(list(as.matrix(coords_27_8_c_complete)))
+polygon_cut <- st_polygon(list(as.matrix(coords_27_8_c_cut)))
+
+# Créer des objets sf avec le système de coordonnées approprié
+sf_complete <- st_sfc(polygon_complete, crs = 4326)
+sf_cut <- st_sfc(polygon_cut, crs = 4326)
+
+# Calculer les surfaces en km²
+area_complete <- st_area(sf_complete)/1000000
+area_cut <- st_area(sf_cut)/1000000
+
+# Calculer le pourcentage
+percentage <- (as.numeric(area_cut) / as.numeric(area_complete)) * 100
+percentage
+
+##PLOT
+# Définir les limites de la carte
+xlim <- c(-11.00, -2.00)
+ylim <- c(43.00, 44.50)
+
+# Créer une nouvelle carte avec les mêmes paramètres que p1 mais des limites différentes
+bathy_data_large <- getNOAA.bathy(lon1 = xlim[1], lon2 = xlim[2],
+                                 lat1 = ylim[1], lat2 = ylim[2],
+                                 resolution = 1)
+
+bathy_df_large <- fortify(bathy_data_large)
+
+# Créer la carte
+p_278c <- ggplot() +
+  geom_contour(data = bathy_df_large, 
+               aes(x = x, y = y, z = z, color = after_stat(level)),
+               breaks = c(-200, -1000, -3000)) +
+  geom_sf(data = europe_high_res, 
+          fill = '#374a6d', 
+          color = '#0A1738',
+          size = 0.1) +
+  scale_color_gradientn(name = "Depth (m)",
+                        colors = c("#256CB4", "#0096FC", "#A6CEE3"),
+                        breaks = c(-200, -1000, -3000),
+                        labels = c("200", "1000","3000")) +
+  geom_path(data = coords_27_8_c_complete, aes(x = lon, y = lat), 
+            color = "blue", linewidth = 1, linetype = "dashed") +
+  geom_path(data = coords_27_8_c_cut, aes(x = lon, y = lat), 
+            color = "red", linewidth = 1) +
+  coord_sf(xlim = c(-11.00, -2.00), ylim = c(43.00, 44.50)) +
+  labs(x = "Longitudes",
+       y = "Latitudes",
+       title = "Fishing Area 27.8.c (complete and cut)") +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = "#081028", color = NA),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text = element_text(size = 12, face = 'bold'),
+        axis.title = element_text(size = 20, face = "bold"))
+p_278c
+
+```
+
+```{r surface lost btw 46.3°N and 46.0°N}
+# Définir les coordonnées pour la grande zone
+coords_grande <- data.frame(
+  lon = c(-1.00, -4.00, -4.00, -1.00, -1.00),
+  lat = c(46.30, 46.30, 43.20, 43.20, 46.30)
+)
+
+coords_petite<- data.frame(
+  lon = c(-1.00, -4.00, -4.00, -3.00, -3.00, -4.00, -4.00, -1.00, -1.00),
+  lat = c(46.00, 46.00, 45.50, 45.50, 44.50, 44.50, 43.20, 43.20, 46.00)
+)
+
+# Convertir en polygones sf
+polygon_grande <- st_polygon(list(as.matrix(coords_grande)))
+polygon_petite <- st_polygon(list(as.matrix(coords_petite)))
+
+# Créer des objets sf avec le système de coordonnées approprié
+sf_grande <- st_sfc(polygon_grande, crs = 4326)
+sf_petite <- st_sfc(polygon_petite, crs = 4326)
+
+# Calculer les surfaces en km²
+area_grande <- st_area(sf_grande)/1000000
+area_petite <- st_area(sf_petite)/1000000
+
+# Calculer le pourcentage
+percentage <- 100-(as.numeric(area_petite) / as.numeric(area_grande)) * 100
+percentage #smaller
+
+#too know by how much I should multiple the small area. 
+m_factor <- area_grande/area_petite
+m_factor
+```
+
+
+```{r map studied coastline Basque country, eval=FALSE, include=FALSE}
+#Bathymetry
+xlim <- c(-4.00, -0.90)
+ylim <- c(43.28, 43.75)
+
+bathy_data <- getNOAA.bathy(lon1 = xlim[1], lon2 = xlim[2],
+                            lat1 = ylim[1], lat2 = ylim[2],
+                            resolution = 1)
+
+bathy_df <- fortify(bathy_data)
+
+# Linear green color palette function
+effort_pal <- colorRampPalette(c('#074959', "aquamarine", '#EEFF00'), 
+                               interpolate = 'linear')
+
+effort_all$FG = factor(effort_all$FG, levels=c('Pole & lines', 'Dredge fishing',  
+                                               'Danish seines', 'No specific', 
+                                               'Purse seines', 'Longlines',  
+                                               'Gillnets', 'Trawls'))
+
+# Map fishing effort Basque country
+p2 <- effort_BC %>%
+  ggplot() +
+  geom_contour(data = bathy_df, 
+               aes(x = x, y = y, z = z, color = after_stat(level)),
+               breaks = c(-200, -1000, -3000)) +
+  geom_sf(data = europe_high_res, 
+          fill = '#374a6d', 
+          color = '#0A1738',
+          size = 0.1) +
+  geom_tile(aes(x = Lon, y = Lat, fill = log_fishing_hours)) +  # Changé de geom_raster à geom_tile
+  scale_fill_gradientn(
+        "Fishing hours\n(log scale)",
+        na.value = NA,
+        limits = c(0, 3),
+        colours = effort_pal(5),
+        labels = c("0", "1", "2", "3"),
+        values = scales::rescale(c(0, 1))) +
+  scale_color_gradientn(name = "Depth (m)",
+                        colors = c("#256CB4", "#0096FC", "#A6CEE3"),
+                        breaks = c(-200, -1000, -3000),
+                        labels = c("200", "1000","3000")) +
+  labs(fill  = 'Fishing hours\n(log scale)',
+       title = 'Fishing effort by fleet between November 2022 and November 2023',
+       x = "Longitudes",
+       y = "Latitudes") +
+  guides(fill = guide_colourbar(barwidth = 2, order = 1, title.vjust = -3, barheight = 7.5),
+         color = guide_legend(order = 2,
+                              override.aes = list(linewidth = 1),
+                              title.vjust = -3)) +
+  coord_sf(xlim = c(-3.9, -1.5), ylim = c(43.75, 43.28)) +  
+  facet_wrap(~FG, nrow = 4) +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = "#081028", color = NA),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+    axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+    axis.text.x = element_text(size = 12, face = 'bold'),
+    axis.text.y = element_text(size = 12, face = 'bold'),
+    title = element_text(size = 22, face = "bold", margin = margin(t = 10, r = 0, b = 20, l = 0)),
+    strip.text = element_text(face = "bold", size = rel(2)),
+    strip.background = element_rect(fill = "grey", color = "grey", linewidth = 0.1),
+    legend.position = "right",
+    legend.title = element_text(size = 18, face = 'bold'),
+    legend.text = element_text(size = 14, face = 'bold'),
+    #aspect.ratio = 1,
+  ) +
+  rotate_x_text(angle = 90)
+
+p2
+
+# Map fishing effort
+p3 <- effort_BC %>%
+  ggplot() +
+  geom_contour(data = bathy_df, 
+               aes(x = x, y = y, z = z, color = after_stat(level)),
+               breaks = c(-200, -1000, -3000)) +
+  geom_sf(data = europe_high_res, 
+          fill = '#374a6d', 
+          color = '#0A1738',
+          size = 0.1) +
+  geom_tile(aes(x = Lon, y = Lat, fill = log_fishing_hours)) +  # Changé de geom_raster à geom_tile
+  scale_fill_gradientn(
+        "Fishing hours\n(log scale)",
+        na.value = NA,
+        limits = c(0, 3),
+        colours = effort_pal(5),
+        labels = c("0", "1", "2", "3"),
+        values = scales::rescale(c(0, 1))) +
+  scale_color_gradientn(name = "Depth (m)",
+                        colors = c("#256CB4", "#0096FC", "#A6CEE3"),
+                        breaks = c(-200, -1000, -3000),
+                        labels = c("200", "1000","3000")) +
+  labs(fill  = 'Fishing hours\n(log scale)',
+       title = 'Fishing effort by fleet between November 2022 and November 2023',
+       x = "Longitudes",
+       y = "Latitudes") +
+  guides(fill = guide_colourbar(barwidth = 2, order = 1, title.vjust = -3, barheight = 7.5),
+         color = guide_legend(order = 2,
+                              override.aes = list(linewidth = 1),
+                              title.vjust = -3)) +
+  coord_sf(xlim = c(-3.25, -2.3), ylim = c(43.75, 43.28)) +  
+  facet_wrap(~FG, nrow = 2) +
+  theme_classic() +
+  theme(panel.background = element_rect(fill = "#081028", color = NA),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+    axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+    axis.text.x = element_text(size = 12, face = 'bold'),
+    axis.text.y = element_text(size = 12, face = 'bold'),
+    title = element_text(size = 22, face = "bold", margin = margin(t = 10, r = 0, b = 20, l = 0)),
+    strip.text = element_text(face = "bold", size = rel(2)),
+    strip.background = element_rect(fill = "grey", color = "grey", linewidth = 0.1),
+    legend.position = "right",
+    legend.title = element_text(size = 18, face = 'bold'),
+    legend.text = element_text(size = 14, face = 'bold'),
+    #aspect.ratio = 1,
+  ) +
+  rotate_x_text(angle = 90)
+
+p3
+```
+

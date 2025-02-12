@@ -1,0 +1,822 @@
+---
+title: "Matching catch and effort with Perez Roda logical fishery groups"
+author: "Camila Vargas"
+date: "8/31/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+source(here::here("R/set_up.R"))
+
+source(here::here("R/fao.R"))
+
+source(here::here("R/discards.R"))
+
+
+```
+
+
+## Read and preparing data for analysis
+
+Note: Gibraltar has 1 ton landing each year but is  not within the fisheries mapping. GWF has "fishing" data for aprox 10 day a year.
+Monaco, Netherlands Antilles and Sudan (former) are in the fisheries mapping and not in FAO landings, but species do not have any fishery assign.
+
+```{r, echo=FALSE}
+##Countries' name map
+master_countries <- read_csv(here::here("mapping_tables/master_countries.csv"))
+
+####FAO landing data. 
+fao_22_23 <- get_fao_landings() %>% 
+  fao_all_names() %>%
+  select(fao_landing_c_name, year, species, fao_area_code, landings, iso3_code, spp_alpha = "3alpha_code") %>%
+  mutate_at("landings", replace_na, 0) %>% 
+  filter(landings != 0,
+         year %in% c(2022, 2023)) %>% 
+  mutate(spp_alpha = ifelse(spp_alpha == "mkg", "sox", spp_alpha),
+         spp_alpha = ifelse(spp_alpha == "guy", "gux", spp_alpha),
+         spp_alpha = ifelse(spp_alpha == "jcr", "cux", spp_alpha),
+         spp_alpha = ifelse(spp_alpha == "swm", "lio", spp_alpha),
+         spp_alpha = ifelse(spp_alpha == "ocm", "occ", spp_alpha),
+         spp_alpha = ifelse(spp_alpha == "vsc", "sce", spp_alpha),
+         spp_alpha = ifelse(spp_alpha == "vuc", "vnr", spp_alpha),
+         spp_alpha = ifelse(spp_alpha == "ttr", "myl", spp_alpha),
+         spp_alpha = ifelse(spp_alpha == "vev", "clx", spp_alpha),
+         spp_alpha = ifelse(spp_alpha == "mgs", "mul", spp_alpha),
+         spp_alpha = ifelse(spp_alpha == "gun", "gug", spp_alpha),
+         spp_alpha = ifelse(spp_alpha == "atp", "ane", spp_alpha),
+         spp_alpha = ifelse(spp_alpha == "scs", "sco", spp_alpha),
+         spp_alpha = ifelse(spp_alpha == "usi", "usb", spp_alpha),
+         spp_alpha = ifelse(spp_alpha == "bbs", "rse", spp_alpha)) %>%  
+  group_by(year, fao_landing_c_name, iso3_code, fao_area_code, spp_alpha) %>% 
+  summarise(landings_spc_area = sum(landings)) %>% 
+  ungroup() %>% 
+  mutate(fao_land_id = 1:n())
+  
+##Fao fisheries mapping 
+fisheries_norm <- read_csv(here::here("mapping_tables/fao_fisheries_norm.csv")) %>% 
+  mutate(country = case_when(country == "Cote d'Ivoire" ~ "Côte d'Ivoire",
+                            country == "Curacao" ~ "Curaçao",
+                            country == "Fiji, Republic of" ~ "Fiji",
+                            country == "Palestine, Occupied Tr." ~ "Palestine",
+                              T ~ country)) %>% 
+  filter(country %in% c("France", "Spain", "Belgium", "Ireland", "Portugal", "United Kingdom")) %>% 
+  select(fao_landing_c_name = country, spp_alpha, fao_area_code = fishing_area_code, fishery_name, fishery_id, gear, depth, location, vessel_length, catch_norm)
+```
+
+## Correcting fisheries_norm to get a better mapping about what we know from the BoB fisheries
+```{r}
+##Correcting fisheries_norm to get a better mapping about what we know from the BoB fishery
+
+automate_fishery_data <- function(df, fishery_id, original_spp, new_spp, new_countries) {
+  filtered_data <- df %>% 
+    filter(fishery_id == {{fishery_id}} & spp_alpha == {{original_spp}}) %>%
+    mutate(spp_alpha = {{new_spp}}) %>%
+    slice(rep(1, length(new_countries))) %>%
+    mutate(fao_landing_c_name = new_countries)
+  
+  bind_rows(df, filtered_data)
+}
+
+fishery_ids <- c("1616", 
+                 "502", 
+                 "1371", 
+                 "497",
+                 "497",
+                 "497",
+                 "497",
+                 "498",
+                 "1596",
+                 "1600",
+                 "497",
+                 "497",
+                 "497",
+                 "498",
+                 "1377",
+                 "1370","1373", "1376",
+                 "497",
+                 "1604",
+                 "1872",
+                 "1376",
+                 "498",
+                 "786",
+                 "1596",
+                 "497", "498", "499",
+                 "1372")  # Add all required fishery IDs
+
+species_pairs <- list(c("lez", "lez"), 
+                      c("mac", "vma"), 
+                      c("ank", "ank"), 
+                      c("squ", "sqz"),
+                      c("gug", "gug"),
+                      c("squ", "ill"),
+                      c("scr", "jdv"),
+                      c("scr", "jdv"),
+                      c("occ", "ocz"),
+                      c("occ", "ocz"),
+                      c("myl", "ska"),
+                      c("gug", "guu"),
+                      c("tsd", "tsd"),
+                      c("tsd", "tsd"),
+                      c("usb", "usb"),
+                      c("tri", "tri"),
+                      c("tri", "tri"),
+                      c("tri", "tri"),
+                      c("squ", "sqr"),
+                      c("sqc", "tdq"),
+                      c("boc", "boc"),
+                      c("asd", "shd"),
+                      c("tsd", "shd"),
+                      c("eqi", "eqk"),
+                      c("sqm", "sqm"),
+                      c("rju", "rju"),
+                      c("rju", "rju"),
+                      c("rju", "rju"),
+                      c("clj", "clj"))  # Add all required species pairs
+
+new_countries <- list(c("Belgium", "Portugal", "France"), 
+                      c("France", "Spain"), 
+                      c("Spain"), 
+                      c("France"),
+                      c("Spain"),
+                      c("France"),
+                      c("Spain"),
+                      c("Spain"),
+                      c("Spain", "Belgium"),
+                      c("Spain", "Belgium"),
+                      c("Spain"),
+                      c("Spain"),
+                      c("Spain"),
+                      c("Spain"),
+                      c("France"),
+                      c("France", "Spain"),
+                      c("France", "Spain"),
+                      c("France", "Spain"),
+                      c("France", "Spain"),
+                      c("Spain", "Portugal"),
+                      c("France", "Spain"),
+                      c("Spain"),
+                      c("France"),
+                      c("Spain"),
+                      c("Portugal"),
+                      c("Spain"),
+                      c("Spain"),
+                      c("Spain"),
+                      c("Spain"))  # Add all required country pairs
+
+result <- fisheries_norm
+for (i in seq_along(fishery_ids)) {
+  result <- automate_fishery_data(result, fishery_ids[i], species_pairs[[i]][1], species_pairs[[i]][2], new_countries[[i]])
+}
+
+fisheries_norm_corr1 <- result
+fisheries_norm_corr1
+
+#For bonite
+bon <- fisheries_norm %>% filter(fao_landing_c_name == "France" & spp_alpha == "bon" & grepl("Bay of Biscay", fishery_name)) %>%
+  mutate(fao_landing_c_name = c("Spain"),
+         catch_norm = c(0.08,0.05,0.01+0.11,0,0,0.23+0.07+0.45)) %>% 
+  filter(!gear %in% c("OTM", "FPO"))
+bon
+
+fisheries_norm_corr0 <- bind_rows(fisheries_norm_corr1, bon) 
+fisheries_norm_corr0
+
+fisheries_norm_corr_ok <- fisheries_norm_corr0 %>%
+  filter(!grepl("Other", fishery_name))
+fisheries_norm_corr_ok
+
+fisheries_norm_corr_ok27 <- fisheries_norm_corr0 %>%
+  filter(!grepl("Other", fishery_name), fao_area_code == 27)
+fisheries_norm_corr_ok27
+
+fisheries_norm_corr_mis <- fisheries_norm_corr0 %>%
+  filter(grepl("Other", fishery_name), fao_area_code == 27)
+fisheries_norm_corr_mis
+
+#I would like to know for each spp_alpha of fisheries_norm_corr_mis if fisheries_norm_corr_ok has a same spp_alpha and fao_landing_c_name but a different fishery_name
+match_mis_ok <- fisheries_norm_corr_mis %>%
+  inner_join(fisheries_norm_corr_ok27, 
+             by = c("fao_landing_c_name", "spp_alpha"),
+             suffix = c("_mis", "_ok"))
+match_mis_ok
+
+# Perform an anti-join to find rows in fisheries_norm_corr_mis that have no match in fisheries_norm_corr_ok27
+no_match <- fisheries_norm_corr_mis %>%
+  anti_join(fisheries_norm_corr_ok27, 
+            by = c("fao_landing_c_name", "spp_alpha"))
+no_match
+
+mis_corr <- match_mis_ok %>%
+  group_by(fao_landing_c_name, spp_alpha) %>%
+  mutate(
+    total_catch_norm_ok = sum(catch_norm_ok),
+    total_catch_norm_mis = first(catch_norm_mis),
+    catch_norm_corr = case_when(
+      total_catch_norm_ok > 0 ~ 
+        (catch_norm_ok / total_catch_norm_ok) * total_catch_norm_mis,
+      TRUE ~ catch_norm_ok
+    )
+  ) %>%
+  select(-total_catch_norm_ok, -total_catch_norm_mis) %>%
+  ungroup() %>% 
+  select(fao_landing_c_name, spp_alpha, fao_area_code_mis, 
+         fishery_name_ok, fishery_id_ok, gear_ok, 
+         depth_ok, location_ok, vessel_length_ok, catch_norm_corr) %>% 
+  rename(fao_area_code = fao_area_code_mis, 
+         fishery_name = fishery_name_ok, 
+         fishery_id = fishery_id_ok, 
+         gear = gear_ok, 
+         depth = depth_ok, 
+         location = location_ok, 
+         vessel_length = vessel_length_ok, 
+         catch_norm = catch_norm_corr)
+mis_corr
+
+fisheries_norm_corr2 <- bind_rows(fisheries_norm_corr_ok27, mis_corr, no_match) %>% 
+  group_by(fao_landing_c_name, spp_alpha, fao_area_code, fishery_name, fishery_id, gear, depth, location, vessel_length) %>% 
+  summarise(catch_norm = sum(catch_norm)) 
+fisheries_norm_corr2
+  
+fisheries_norm_corr3 <- fisheries_norm_corr2 %>% 
+  ungroup() %>% 
+  mutate(fishery_nb = as.numeric(1:n())) %>% 
+  #for FRA change some LL fisheries in GN fisheries because error of the data or correction of catch_norm
+  mutate(catch_norm = if_else(fishery_nb == 1025, catch_norm+0.14102564, catch_norm),
+         catch_norm = if_else(fishery_nb == 1054, catch_norm+0.67647059, catch_norm),
+         catch_norm = if_else(fishery_nb == 783, catch_norm+0.20731707, catch_norm)) %>% 
+  filter(!fishery_nb %in% c(1026,
+                            1053,
+                            784)) %>% 
+  mutate(fishery_name = if_else(fishery_nb == 661, "Bay of Biscay gillneters", fishery_name),
+         fishery_id = if_else(fishery_nb == 661, 498, fishery_id),
+         fishery_name = if_else(fishery_nb == 841, "Bay of Biscay gillneters", fishery_name),
+         fishery_id = if_else(fishery_nb == 841, 498, fishery_id)) 
+fisheries_norm_corr3
+
+alpha_spp_alone <- fisheries_norm_corr3 %>%
+  group_by(fao_landing_c_name, spp_alpha) %>%
+  filter(n() == 1) %>%
+  ungroup() %>% 
+  mutate(catch_norm = 1)
+alpha_spp_alone
+
+fisheries_norm_corr <- fisheries_norm_corr3 %>% 
+  group_by(fao_landing_c_name, spp_alpha) %>%
+  filter(n() != 1) %>%
+  ungroup() %>% 
+  bind_rows(alpha_spp_alone) %>% 
+  group_by(fao_landing_c_name, spp_alpha) %>%
+  mutate(
+    sum_catch_norm = sum(catch_norm),
+    difference = 1 - sum_catch_norm,
+    catch_norm = catch_norm + (catch_norm / sum_catch_norm) * difference
+  ) %>%
+  ungroup() %>%
+  select(-sum_catch_norm, -difference, -fishery_nb)
+fisheries_norm_corr
+
+##Verif if it worked
+
+# fisheries_norm_corr4 <- fisheries_norm_corr5 %>%
+#   #verify the catch norm by spp_alpha, fao_code_area
+#   filter(fao_area_code == 27) %>%
+#   group_by(fao_landing_c_name, spp_alpha, fao_area_code) %>%
+#   summarise(total_catch_norm = sum(catch_norm)) %>%
+#   filter(total_catch_norm > 1.01 | total_catch_norm < 0.999) ##grouped by country, species, area, all pass the test!
+# fisheries_norm_corr4
+```
+
+
+```{r, echo=FALSE}
+##test: catch_norm =1 
+# test_catch_norm <- fisheries_norm %>%
+#   group_by(fao_landing_c_name, spp_alpha, fao_area_code) %>%
+#   summarise(total_catch_norm = sum(catch_norm)) %>%
+#   filter(total_catch_norm > 1.01 | total_catch_norm < 0.999) ##grouped by country, species, area, all pass the test!
+
+##countries and territories that are out of the Gilman's data scope - there are 28 countires/territories that are not included in the Gilman / Perez Roda database 
+setdiff(fao_22_23$fao_landing_c_name, fisheries_norm$fao_landing_c_name)
+
+
+## Discards data
+discard_data <- get_discard_data() %>% 
+  discards_all_names() %>% 
+    mutate(scaleup_fac = total_catch/landings)
+
+##Note: There are cases that the same fishery is twice for one country (see for example Italy	Adriatic bottom trawls	OTB). This means there are two observations for this fishery they have different landings and apparently different management Type. To solve this issue we are going to be joining and identifying each fishery by the fishery id.
+
+## Fishery info: vesel length, fao area, location of fishery
+fisheries_info <- fisheries_norm_corr %>%
+  select(-catch_norm,-spp_alpha) %>%
+  distinct() %>%
+  left_join(master_countries, by = "fao_landing_c_name") %>% 
+  mutate(
+    productive_sector = case_when(
+      str_detect(fishery_name, "Industrial") ~ "industrial",
+      str_detect(fishery_name, "Artisanal") ~ "small_scale",
+      str_detect(fishery_name, "industrial") ~ "industrial",
+      str_detect(fishery_name, "artisanal") ~ "small_scale",
+      T ~ "none")) %>% 
+  mutate_at(c("location", "vessel_length"), replace_na, "none") %>%
+  mutate(fisheries_sector = case_when(
+    productive_sector == "small_scale" ~ "non-industrial",
+    vessel_length %in% c("<10 m", "<10m") & productive_sector == "none" ~ "non-industrial",
+    location == "Inshore" & productive_sector == "none" ~ "non-industrial",
+    vessel_length == "No Vessels" ~ "non-industrial",
+    vessel_length %in% c("10-24 m", "10 - 24 m", "10- 24 m") & productive_sector == "none" & location =="none" ~ "non-industrial",
+    gear == "MIS" ~ "non-industrial",
+    TRUE ~ "industrial"))
+
+##Load Gear master table
+master_gear <- read_csv(here::here("mapping_tables/master_gear_mapping.csv"))
+
+
+##Discard Gear to GFW categories
+master_gear_discard <- master_gear %>% 
+  distinct(GilmanGear25Code, .keep_all = TRUE) %>% ##note: keep all variables in data. If a combination is not distinct, this keeps the first row of values.
+  select(gear = GilmanGear25Code,GilmanGear25Description, GFWClass, GFWCategory)
+
+master_gear_gilman <- master_gear %>%
+  select(gear =GilmanGear25Code, GilmanGear25Description, GilmanGear8Code, GilmanGear8Name, GFWCategory) %>% 
+  distinct(gear, .keep_all = TRUE) %>% 
+  filter(!is.na(gear)) %>% 
+  clean_names()
+
+
+```
+
+
+
+## Matching FAO landings with fishery map
+
+Match with inner_join, this means only data recods that are the same in both data sets will match (same country, species and area).
+
+Then we calculate the total landing for 2017 and 2018 per country, species and fishery
+
+
+Note: The FAO area allocation between the two data sat is a little different. We have to look into that closer. See example Bermuda FishStat only has landings for area 31 but fistat_codes have information for fao area 21 and 31.
+```{r}
+
+fao_fisheries0 <-  fao_22_23 %>% 
+  inner_join(fisheries_norm_corr, by = c("fao_landing_c_name", "fao_area_code", "spp_alpha"), 
+             relationship = "many-to-many") %>% 
+  #modify OTM fishery of Spain --> data GFW & Euopean union validated it
+  mutate(gear = if_else(fao_landing_c_name == "Spain" & gear == "OTM", "PS_", gear),
+         fishery_name = if_else(fao_landing_c_name == "Spain" & gear == "PS_", "Bay of Biscay purse seines", fishery_name),
+         fishery_id = if_else(fao_landing_c_name == "Spain" & gear == "PS_", 502, fishery_id)) %>%
+  mutate(catch_fishery_area_spc = landings_spc_area*catch_norm) 
+
+#export corrected fisheries_norm_corr2
+#write_csv(fao_fisheries_miss, here::here("output/fao_mis.csv"))
+
+```
+
+```{r}
+#Find the best option based on fishing catching report (EU, France, Spain, Basque Country) to replace undetailed fishing fleet
+
+fao_fisheries_miss <- fao_fisheries0 %>% 
+  filter(gear == "MIS") 
+
+fao_fisheries_miss_corr <- fao_fisheries_miss %>%
+  mutate(gear = case_when(
+    fao_landing_c_name == "France" & spp_alpha == "alb" & fishery_name == "French NEAO other gear fishery" ~ "PS_",
+    fao_landing_c_name == "France" & spp_alpha == "agn" & fishery_name == "French NEAO other gear fishery" ~ "GNS",
+    fao_landing_c_name == "France" & spp_alpha == "bet" & fishery_name == "French NEAO other gear fishery" ~ "PS_",
+    fao_landing_c_name == "France" & spp_alpha == "clx" & fishery_name == "Other French fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "France" & spp_alpha == "sco" & fishery_name == "Other French fisheries in NE Atlantic" ~ "GNS",
+    fao_landing_c_name == "France" & spp_alpha == "skj" & fishery_name == "French NEAO other gear fishery" ~ "PS_",
+    fao_landing_c_name == "Ireland" & spp_alpha == "alb" & fishery_name == "Irish other gear NEAO fishery" ~ "PS_",
+    fao_landing_c_name == "Spain" & spp_alpha == "agn" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "GNS",
+    fao_landing_c_name == "Spain" & spp_alpha == "amb" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "arg" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "bar" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "LTL",
+    fao_landing_c_name == "Spain" & spp_alpha == "bsh" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "LLP",
+    fao_landing_c_name == "Spain" & spp_alpha == "bsx" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "LLB",
+    fao_landing_c_name == "Spain" & spp_alpha == "bux" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "bxd" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "bys" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "cdx" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "cgx" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "clu" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "PS_",
+    fao_landing_c_name == "Spain" & spp_alpha == "clx" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "crg" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "FPO",
+    fao_landing_c_name == "Spain" & spp_alpha == "cru" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "FPO",
+    fao_landing_c_name == "Spain" & spp_alpha == "crw" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "FPO",
+    fao_landing_c_name == "Spain" & spp_alpha == "ctg" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "cut" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "dcp" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "don" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "DRB",
+    fao_landing_c_name == "Spain" & spp_alpha == "dgx" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "LLB",
+    fao_landing_c_name == "Spain" & spp_alpha == "ele" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "FPO",
+    fao_landing_c_name == "Spain" & spp_alpha == "eqi" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "gad" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "gas" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "gep" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "PS_",
+    fao_landing_c_name == "Spain" & spp_alpha == "gpa" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "gpd" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "gro" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "grx" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "hkw" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "hmm" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "PS_",
+    fao_landing_c_name == "Spain" & spp_alpha == "hom" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "PS_",
+    fao_landing_c_name == "Spain" & spp_alpha == "inv" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "jaa" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "jrs" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "ldb" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "lec" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "lee" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "lox" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "meg" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "mnz" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "mol" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "DRB",
+    fao_landing_c_name == "Spain" & spp_alpha == "mon" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "mui" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "oct" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "oil" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "PS_",
+    fao_landing_c_name == "Spain" & spp_alpha == "oyg" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "DRB",
+    fao_landing_c_name == "Spain" & spp_alpha == "pcb" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "pel" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTM",
+    fao_landing_c_name == "Spain" & spp_alpha == "qsc" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "raz" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "DRB",
+    fao_landing_c_name == "Spain" & spp_alpha == "rjc" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "rje" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "rjh" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "rji" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "rjm" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "rjn" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "rjo" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "scx" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "DRB",
+    fao_landing_c_name == "Spain" & spp_alpha == "six" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "PS_",
+    fao_landing_c_name == "Spain" & spp_alpha == "skh" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "MIS",
+    fao_landing_c_name == "Spain" & spp_alpha == "sli" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "LLB",
+    fao_landing_c_name == "Spain" & spp_alpha == "slx" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "GNB",
+    fao_landing_c_name == "Spain" & spp_alpha == "sma" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "LLB",
+    fao_landing_c_name == "Spain" & spp_alpha == "smd" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "GNS",
+    fao_landing_c_name == "Spain" & spp_alpha == "sor" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "LLB",
+    fao_landing_c_name == "Spain" & spp_alpha == "spr" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "PS_",
+    fao_landing_c_name == "Spain" & spp_alpha == "stu" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "GNS",
+    fao_landing_c_name == "Spain" & spp_alpha == "stt" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "trc" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "OTB",
+    fao_landing_c_name == "Spain" & spp_alpha == "whe" & fishery_name == "Other Spanish fisheries in NE Atlantic" ~ "FPO",
+    TRUE ~ "Unknown"
+  )) %>% 
+  filter(gear != "Unknown")
+
+fao_fisheries_miss_corr
+
+fao_fisheries <- fao_fisheries0 %>% 
+  filter(gear != "MIS") %>% 
+  bind_rows(fao_fisheries_miss_corr)
+fao_fisheries
+
+  
+```
+
+There are certian species that are not considered in the Gilman fisheries classification. 
+For further invastigation:
+- Rationale behind leaving some species out? - Yes see FAO Discard report for details in Annex A1.
+- Somehow identify how much of these species are industrial catch? If all is artisanal/small-scale then its not a problem when matching catch to effort - probably most of them are inland waters or small-scale.
+
+- Calculate % of catch per country - see below fao_total_country
+## Test: How much of FAO catch is mapped to Gilman fisheries?
+
+```{r}
+##there are 173 Fisheries that did not have a mutual match
+no_landing_fisheries <- setdiff(fisheries_norm_corr$fishery_name, fao_fisheries$fishery_name)
+
+id_with_fishery <- fao_fisheries %>%
+  distinct(fao_land_id) %>%
+  pull()
+
+id_no_fishery <- fao_22_23 %>% 
+  filter(!fao_land_id %in% id_with_fishery) #295 spp. that are not in the fisheries mapping because the species fished in the fao_landing_c_name doesn't exist in the fisheries_norm df
+
+
+##how much of FAO catch is mapped to Gilman fisheries?
+catch_coverage_metric <- fao_22_23 %>% 
+  mutate(fishery_map = ifelse(fao_land_id %in% id_with_fishery, "yes", "no")) %>%
+  group_by(year, fishery_map) %>% 
+  summarise(total_land = sum(landings_spc_area)) %>% 
+  group_by(year) %>% 
+  mutate(total_land_yr = sum(total_land)) %>% 
+  ungroup() %>% 
+  mutate(catch_cov_pct = (total_land/total_land_yr)*100)
+  
+
+```
+
+
+```{r}
+
+##Test catch sum to 1. 
+
+allocation_test <- fao_fisheries %>%
+  group_by(fao_land_id) %>%
+  summarise(total_allocation = sum(catch_norm)) %>%
+  filter(total_allocation < 0.99999 | total_allocation > 1.01) ## All pass the test
+
+```
+
+
+## Test: Comparing total landings from original data and from joint data frame
+
+- Reasoning: total by country - year calculated from fao_clean should be the same than total country year calculated from fao_fishery.
+- If there is a difference it would mean we are double accounting or under accounting for some countries and the reason this can happen is becasue the match between the two data set is not correct.
+
+```{r}
+
+##Calculating total of country per year from fao_clean of all the species that have been assigned to a fishery
+fao_total_w_fishery <- fao_22_23 %>%
+  filter(fao_land_id %in% id_with_fishery) %>% ## this are all the fao observations that have been assign a fishery.
+  group_by(year, iso3_code) %>%
+  summarise(total_catch_fishery_fao = sum(landings_spc_area)) %>% 
+  ungroup()
+
+##Calulating totals country-year for all species in the catch_by_fishery
+total_catch_by_fishery <- fao_fisheries %>%
+  group_by(year, iso3_code) %>%
+  summarise(total_catch_match_map = sum(catch_fishery_area_spc)) %>% 
+  ungroup()
+
+##calculating the total landings per country-year to estimate percentage of landing per country that has been assing a fishery and then comparing numbers from the two data frames above
+test_fao_totals_country <- fao_22_23 %>%
+  group_by(year, iso3_code) %>%
+  summarise(total_catch = sum(landings_spc_area)) %>%
+  left_join(fao_total_w_fishery, by = c("year", "iso3_code")) %>%
+  mutate_if(is.numeric, replace_na, 0) %>%
+  mutate(fishery_pct = (total_catch_fishery_fao/total_catch)*100) %>%
+  left_join(total_catch_by_fishery, by = c("year", "iso3_code")) %>%
+  mutate_if(is.numeric, replace_na, 0) %>%
+  mutate(fishery_dif =  total_catch_match_map - total_catch_fishery_fao) %>% ## If fisheries mapping was done correctly difference should be 0
+  arrange(desc(fishery_dif)) %>% 
+  mutate(ratio = total_catch_fishery_fao/total_catch_match_map) ##ratio should be 1
+test_fao_totals_country
+##All countries pass the test
+
+
+```
+
+
+## Scale up by discards
+To sacale up by the discard factor we have to calculate total catch by fishery. This mean sum all the catch of each species that belongs to the same fishery.
+
+```{r}
+
+##sum all species in each fishery by country
+total_catch_fishery <- fao_fisheries %>% 
+  group_by(year,iso3_code, fishery_id, fishery_name, gear, fao_area_code) %>% 
+  summarize(total_catch_fishery = sum(catch_fishery_area_spc)) %>% 
+  ungroup()
+
+##Fisheries that are not in the discard data (3) - We asume these fisheries do not have discards
+setdiff(total_catch_fishery$fishery_name, discard_data$fishery_name)
+
+##Sacale up by discard scalaup factor. 
+discard_scaleup <- total_catch_fishery %>% 
+  left_join(discard_data, by = c("iso3_code", "fishery_id", "fishery_name", "gear")) %>% 
+  mutate_at("scaleup_fac", replace_na, 1) %>% ## all fisheries not considered in the discard data are assume to have have no discards
+  mutate(catch_w_discard = total_catch_fishery*scaleup_fac) %>% 
+  select(year, iso3_code, fishery_name, fishery_id, fao_area_code, gear, total_catch_fishery, catch_w_discard) %>% 
+  mutate(scaleup_id = 1:n())
+
+#data observation of the fisheries that are not in the discard data
+obs_catch <- discard_scaleup %>% 
+  # filter(gear %in% c("GNB", "LLB", "LLP", "GNS", "LL_"), year == 2023) %>% 
+  group_by(year, iso3_code, gear) %>% 
+  summarise(total_catch_fishery = sum(total_catch_fishery),
+            total_catch_w_discard = sum(catch_w_discard))
+obs_catch
+
+# ##Test: Discard per year are about 12%?
+# years <- c(2017, 2018)
+# fao_total_landing <- c(82347320, 85376219)
+##total_land_fishery per year has to be less than total_fao_landing (above) becasue we are only scaling up a % of the total landing. Some species were excluded when mapping into fishery.
+
+test_discard <- discard_scaleup %>%
+  group_by(year) %>%
+  summarise(total_w_discard_yr = sum(catch_w_discard),
+            total_land_fishery = sum(total_catch_fishery)) %>%
+  mutate(pct = ((total_w_discard_yr - total_land_fishery)/total_land_fishery)*100) ## Discard pct is ~20%!! a bit high --> can be explained by the small scale fishery that have less quota and therefore discard more.
+
+```
+
+
+## Identify Industrial fisheries
+We determine all industrial and non-industrial fisheries in the fisheries_info data frame. Based mainly on Fiheries name and vessel length. All miscelanous gear where classified as non-industrial
+
+```{r}
+
+## According to Watson data ~64% of the total annual catch on 2015 is industrial and ~36% is non- industrial
+total_catch_sector <-  discard_scaleup %>% 
+  left_join(fisheries_info, by = c("iso3_code", "fishery_name", "fao_area_code", "fishery_id", "gear")) %>%
+  left_join(master_gear_discard, by = "gear")
+
+
+## test: How much of the total annual catch we are assigning as industrial?
+test_pct_sector <- total_catch_sector %>%
+  group_by(year, fisheries_sector) %>%
+  summarise(total_total = sum(catch_w_discard)) %>% 
+  group_by(year) %>% 
+  mutate(total_year = sum(total_total),
+         pct = (total_total/total_year)*100)
+##Note that these percetanges are only over the landings that match with on of the fisheries. 
+
+industrial_fisheries <- total_catch_sector %>% 
+  filter(fisheries_sector == "industrial")
+
+
+#write_csv(total_catch_sector, here::here("output/total_catch_gear_sector.csv"))
+
+```
+
+
+
+
+## Match gear to GFW vessel class
+
+```{r}
+
+industrial_catch_gfw_cat <- industrial_fisheries  %>% 
+  group_by(year, iso3_code, fao_area_code, GFWCategory) %>% 
+  summarise( total_catch_gfw_cat = sum(catch_w_discard),
+             total_catch_fishery = sum(total_catch_fishery)) %>% 
+  ungroup()
+
+all_catch_gfw_cat <- total_catch_sector  %>%
+  group_by(year, iso3_code, fao_area_code, GFWCategory) %>%
+  summarise( total_catch_gfw_cat = sum(catch_w_discard),
+             total_catch_fishery = sum(total_catch_fishery)) %>%
+  ungroup()
+
+
+
+##TEST with out filtering for industrial fisheries
+# catch_gfw_cat <- discard_scaleup %>%
+#   left_join(master_gear_discard, by = "gear") %>%
+#   group_by(year, iso3_code, fao_area_code, GFWCategory) %>%
+#   summarise( total_catch_gfw_cat = sum(catch_w_discard))
+
+##csv that contains info of which fishery goes to each GFW gear category
+#write_csv(all_catch_gfw_cat, here::here("output/fisheries_in_gfw_cat.csv"))
+```
+
+
+# Effort estimates
+
+```{r, echo=FALSE}
+
+effort_bins <- read_csv(here::here('data/gfw/Fleet_Plasfito.csv'))
+
+```
+
+
+## Matching catch and effort
+
+pole_and_line for France --> 51 hours of fishing effort that is not accounted because this fisherman does not have another fishing metier and any species was matched with pole and lines for France. 
+
+
+```{r, echo=FALSE}
+
+catch_effort_ind <- all_catch_gfw_cat %>% 
+  mutate(GFWCategory = if_else(GFWCategory != "trawlers" & iso3_code == "PRT", "set_longlines", GFWCategory),
+         GFWCategory = if_else(GFWCategory == "trollers" & iso3_code == "ESP", "pole_and_line", GFWCategory),
+         GFWCategory = if_else(GFWCategory == "driftnets" & iso3_code == "ESP", "set_gillnets", GFWCategory),
+         GFWCategory = if_else(GFWCategory != "trawlers" & iso3_code == "BEL", "trawlers", GFWCategory)) %>% 
+  group_by(year, iso3_code, fao_area_code, GFWCategory) %>%
+  summarise(total_catch_gfw_cat = sum(total_catch_gfw_cat),
+            total_catch_fishery = sum(total_catch_fishery)) %>%
+  full_join(effort_bins, by = c("year", "iso3_code", "fao_area_code", "GFWCategory")) %>% 
+  mutate(GFWCategory = if_else(GFWCategory == "set_longlines", "drifting_longlines", GFWCategory)) %>% 
+  group_by(year, iso3_code, fao_area_code, GFWCategory) %>% 
+  summarise(total_catch_gfw_cat = sum(total_catch_gfw_cat),
+            total_catch_fishery = sum(total_catch_fishery),
+            total_f_hours_length = sum(total_f_hours_length),
+            total_f_hours_tonnage = sum(total_f_hours_tonnage),
+            total_f_hours_kw = sum(total_f_hours_kw),
+            total_f_hours = sum(total_f_hours),
+            total_hours = sum(total_hours),
+            total_days = sum(total_days),
+            n_vessel = sum(n_vessel)) %>% 
+  na.omit(GFWCategory)
+
+#write_csv(catch_effort_ind, here::here("output/catch_effort_ind.csv"))
+
+##test matching all and no filtered by industrial
+# catch_effot <- catch_gfw_cat %>% 
+#   full_join(effort_bins, by = c("year", "iso3_code", "fao_area_code", "GFWCategory"))
+
+```
+
+Catch with no effort
+
+```{r, echo=FALSE}
+catch_no_effort <- catch_effort_ind %>%
+  mutate(effort_value = case_when(is.na(total_f_hours_length) ~ "no",
+                                 T ~ "yes")) %>%
+  group_by(year, effort_value) %>%
+  summarise(total_catch = sum(total_catch_gfw_cat, na.rm = T)) %>%
+  group_by(year) %>%
+  mutate(total_year = sum(total_catch),
+         pct = (total_catch/total_year)*100)
+
+```
+
+
+Effort no catch
+
+
+```{r, echo=FALSE}
+effort_no_catch <- catch_effort_ind %>%
+  mutate(catch_value = case_when(is.na(total_catch_gfw_cat) ~ "no",
+                                 T ~ "yes")) %>%
+  group_by(year, catch_value) %>%
+  summarise(total_effort = sum(total_f_hours_kw, na.rm = T)) %>%
+  group_by(year) %>%
+  mutate(total_year = sum(total_effort),
+         pct = (total_effort/total_year)*100) %>%
+  ungroup()
+```
+
+
+## Data to plot
+
+```{r, echo=FALSE}
+catch_effort_long <- catch_effort_ind %>% 
+  pivot_longer(cols = c(total_f_hours_length, total_f_hours_tonnage, total_f_hours_kw),
+               names_to = "effort_type",
+               values_to = "effort") %>% 
+  filter(!is.na(GFWCategory),
+         !is.na(total_catch_gfw_cat)) %>% 
+  mutate(slope = effort/total_catch_gfw_cat,
+         slope_log = log10(effort/total_catch_gfw_cat),
+         effort_moment = effort/total_f_hours) %>% 
+  ungroup()
+
+#write_csv(catch_effort_long, here::here("output/catch_effort_long.csv"))
+
+```
+
+
+
+### Results Paper - Table 1 MFA Results
+
+Here we want to gather up information from each step of the process and group it 
+together into a single table.  I came up with one loopy way to do this in tidy, 
+but there are surely better ways.
+
+Columns: years 2017, 2018
+
+Rows to include:
+ - total FAO catch (from fao_22_23)
+ - Perez Roda catch +
+ - Perez Roda capture (catch + discard adjusted) +
+ - industrial fraction + from total_catch_sector
+ - industrial catch by GFW Category
+ - total (Perez Roda) catch by GFW category for set_gillnets, pots_and_traps????
+
+```{r, echo=FALSE}
+table_gfw_categories <- c('seiners', 'trawlers', 'drifting_longlines', 'set_gillnets', 'pots_and_traps', 'driftnets')
+
+summ_fao <- fao_22_23 %>% group_by(year) %>% summarise(catch = sum(landings_spc_area)) %>% ungroup()
+
+summ_match <- total_catch_sector %>% group_by(year) %>% 
+  summarise(pr_catch = sum(total_catch_fishery), pr_capture = sum(catch_w_discard)) %>%
+  ungroup()
+
+summ_sector <- total_catch_sector %>% group_by(year, fisheries_sector) %>% 
+  summarise(pr_catch = sum(total_catch_fishery), pr_capture = sum(catch_w_discard)) %>% ungroup() %>% 
+  pivot_wider(names_from=fisheries_sector, values_from=c(pr_catch, pr_capture))
+  
+summ_gear <- total_catch_sector %>% filter(fisheries_sector == 'industrial', 
+                                           GFWCategory %in% table_gfw_categories) %>% 
+  group_by(GFWCategory, year) %>% 
+  summarise(catch_gear = sum(catch_w_discard)) %>% 
+  ungroup() %>%
+  arrange(-catch_gear)
+
+
+#summ_proxy <- total_catch_sector %>% filter(GFWCategory %in% c('set_gillnets', 'pots_and_traps', 'driftnets')) %>%
+#  group_by(GFWCategory, year) %>%
+#  summarise(catch_proxy = sum(catch_w_discard)) %>% 
+#  ungroup() %>%
+#  arrange(-catch_proxy) %>%
+#  pivot_wider(names_from=GFWCategory, values_from=catch_proxy)
+
+total_summ <- summ_fao %>% 
+  left_join(summ_match, by="year") %>%
+  left_join(summ_sector, by="year") %>%
+  left_join(summ_gear %>% pivot_wider(names_from=GFWCategory, values_from=catch_gear), by="year") %>%
+#  left_join(summ_proxy, by="year") %>%
+  column_to_rownames("year") %>% t 
+
+# total_summ %>% as_tibble(rownames="Observation") %>% 
+#   write_csv(here::here("output/results_catch_flows.csv"))
+  
+
+
+```
+

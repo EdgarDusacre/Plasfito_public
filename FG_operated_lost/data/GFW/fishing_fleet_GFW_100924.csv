@@ -1,0 +1,819 @@
+dataset,flag,geartype,hours,mmsi,shipName,vesselId,vesselType,value,activityDatasetId,flagTranslated
+public-global-vessel-identity:v3.0,ESP,Trawler,4983.7535194444445,224105000,F/V ANTIUKO AMA,608d8eaf7-7017-8f73-cb52-48e69d552a29,FISHING,4983.7535194444445,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,4516.237847777777,224265000,F/V EGUZKI LORE,af1d576b7-7ce5-f804-6366-4997148994be,FISHING,4516.237847777777,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,4210.706666666667,228357700,F/V LE SOLITAIRE 2,7147e634b-b748-6e98-9da9-5ddc5a70fdc5,FISHING,4210.706666666667,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,4075.187465277778,224130870,HERMANOS BUSTO,d4b077a63-38d9-7def-4334-02f6e1b3722d,FISHING,4075.187465277778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Fishing,4067.1889416666663,228185800,F/V-AUSTRAL,3ecc4e63f-f2a0-5148-b9ac-ab4d3a2ee92e,FISHING,4067.1889416666663,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,4019.9757383333335,228107000,F/V L`AS DES AS,42ab6fc93-3c80-e128-cb52-614290f3af65,FISHING,4019.9757383333335,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,3979.343646944445,228178000,F/V CAP HORN 2,62d191095-57f3-5502-cb86-5f30da385451,FISHING,3979.343646944445,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Trawler,3830.343295,224087530,F/V AKETXE,63b4bfdf3-3329-005f-4357-34669087db78,FISHING,3830.343295,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,3821.611666666666,224139000,F/V INTXORTA MENDI,3d4583bc3-36fa-4383-dcdd-b0d91b85d4f3,FISHING,3821.611666666666,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,3812.3971244444447,224073390,F/V GAZTELUGATXE,1dc2190a3-3156-8838-2ae7-66763ec1fc4c,FISHING,3812.3971244444447,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,3761.578792777777,227977000,F/V ROSEAU DU LAC,0793bd984-4c81-81f0-8157-068f89f8f941,FISHING,3761.578792777777,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,3750.568604166666,228113000,F/V LE MEDELUC,3f818502f-f81b-88dd-99da-9d4c67141a7c,FISHING,3750.568604166666,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,3625.8722222222223,227834000,F/V CALEBARIAN,5d4b74621-1aa6-fb9b-4dd3-bafd73567c21,FISHING,3625.8722222222223,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,3571.227079166667,227100500,F/V LE CHAT,3f2a8df32-2233-7524-b178-997a80fba32d,FISHING,3571.227079166667,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Trawler,3544.140405277778,224361000,F/V KAXARRA,732f5272d-db8d-747d-0dde-20f001508049,FISHING,3544.140405277778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,3538.3122222222223,227424000,F/V JOHAN-JE II,0f86e9b7c-cb17-5a9d-05c8-101dc9adf886,FISHING,3538.3122222222223,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,3510.680482777777,228101000,F\V L`ORA MARITIMA,39642f896-6f84-a35f-6435-80ff2a738d6a,FISHING,3510.680482777777,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,3449.8063230555563,224076440,HNOS.RAINA,a69148706-6cf6-82ea-e5d6-43ce289b179a,FISHING,3449.8063230555563,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,3317.876558333333,224404000,GURE GASKUNA,ca2551145-5759-957f-701f-599b600fe706,FISHING,3317.876558333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,3198.993888888889,228249000,F/V EXCALIBUR 2,45ce8ed50-09e8-ac1b-7ca6-669c04fb891e,FISHING,3198.993888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,3177.2457091666665,228224900,F/V L'INSOLITE,59d30cc2e-e1ef-6d39-d16d-a7a7a87f1b55,FISHING,3177.2457091666665,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,3177.1044444444437,227589000,F/V LE SPHINX,d3c207859-9dee-2a02-3197-ddad8ec4c7f9,FISHING,3177.1044444444437,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,3175.198559444444,227928000,F/V LA PASTENAGUE,c558a86de-e330-910b-67b3-b0a850837c16,FISHING,3175.198559444444,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Trawler,3121.391388888889,224315000,F/V KAXU,70b6a5032-2df9-1ca7-10a9-4f9b34e514fc,FISHING,3121.391388888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,3064.9822136111106,224139890,MADRE PILAR,6254a7783-354e-016a-3df7-cc8aef5af041,FISHING,3064.9822136111106,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,3053.442273333333,228036700,F/V PETIT LOIC,b3dfd83f6-69a6-c636-626a-cb396d29ccdb,FISHING,3053.442273333333,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,3031.016766111111,224025230,ATAIN,cb4d0b271-13dd-3f68-c916-8413cb9d1c5f,FISHING,3031.016766111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,2973.1422222222222,227875000,F/V OCEANE III,26b1bb6c2-2d03-d3af-a3c0-d76cf9189ec3,FISHING,2973.1422222222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fishing,2971.9265377777774,228362700,F/V ILE VERTIME,65376b22a-a5e2-5f34-fdec-8a2a0c0a63f2,FISHING,2971.9265377777774,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,2890.866427222222,225361000,F/V MATALENAS 2,980ecf951-1c24-b08b-5f11-bd7f39ebb444,FISHING,2890.866427222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,2807.5813888888893,227878000,F/V OUTSIDER,d674df79b-ba21-4230-e418-0f6563a4e293,FISHING,2807.5813888888893,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,2715.1117494444443,228117000,F/V FRISBY,a4443dd48-8ea5-0755-d7ef-707677dc66a0,FISHING,2715.1117494444443,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,2704.847503333333,224024000,NUEVO EBENEZER,39d69f01f-f196-62f2-ddcb-647dba153d30,FISHING,2704.847503333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,2609.01533888889,228087700,FV HOLLANDAIS VOLANT,79bbd1f56-663c-05e6-55eb-0349491c3769,FISHING,2609.01533888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,2573.249444444444,228301000,F/V SHERPA,e7d02e63b-ba76-d9cc-132d-b9c48efe2ce9,FISHING,2573.249444444444,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,2564.906868333334,227806000,F/V KRAKEN,6ee4a2ac5-509e-465a-f3a6-0c3b94e142a3,FISHING,2564.906868333334,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set longline,2421.7822222222217,228082700,F/V CARMINCHIN,f833674a0-0fb4-a663-0c4b-2d92705cd5db,FISHING,2421.7822222222217,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,2415.549722222222,227582000,F/V VENT DU LARGE,5da6bcda3-3b7a-1508-c786-31768de71c68,FISHING,2415.549722222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,2409.219722222221,227319630,F/V LE YETI,6047d0305-593b-cd73-7afd-e9267a3e72e0,FISHING,2409.219722222221,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Other seines,2298.5022188888884,228033600,F/V CAYOLA,dc4f1f39a-a73a-c6af-5cf6-caca35b54596,FISHING,2298.5022188888884,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,2289.1247222222228,228253000,F/V YANN DEVI II,e07b96001-14bc-8bfd-18ed-c8557a30b066,FISHING,2289.1247222222228,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,2261.418888888889,228101600,F/V POSEIDON,a65f51b21-1d21-231f-1640-c31f2cf104d5,FISHING,2261.418888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,2175.2239080555546,228110800,F/V LAGARDERE II,1a9871a55-5e39-7ae8-b003-17b9af9b26ee,FISHING,2175.2239080555546,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,2128.764722222222,227418000,F/V SERTAN,4f60e6d31-1daf-0f0e-23b6-f7a7a9ae49f2,FISHING,2128.764722222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,2094.504256666666,228979000,F/V LA NIOULARGUE,7f034c052-2723-14f8-82e0-3a805efc6aae,FISHING,2094.504256666666,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,2059.67,224012690,F/V TOBALINA,219405484-424f-8685-58d4-204952ec87d8,FISHING,2059.67,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Fishing,2032.176205555556,228141000,CRESUS,fb0fc7647-7f10-6be7-91bc-c0bcc0f64200,FISHING,2032.176205555556,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,2025.1573727777775,227146400,F/V SAINT-JEAN PPN,ba82c5446-6a59-ba93-4a8a-e89db63cc6c9,FISHING,2025.1573727777775,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,2004.2532061111106,227425000,F/V SANAGA,6464ee0d5-5804-ead5-cb73-7951ba8908c4,FISHING,2004.2532061111106,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,1999.1663888888884,227876000,F/V LE GAMIN,43ce8e596-6340-e638-96de-4bce8ab0f96c,FISHING,1999.1663888888884,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fixed gear,1964.9097222222233,224067170,ARLANPI,84bc17b0b-bce0-bdab-3720-02ae3687b867,FISHING,1964.9097222222233,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,1883.7161111111118,224123720,SAINAS,c9bc25e56-6cbc-5cc5-958f-3909c0f7bb7d,FISHING,1883.7161111111118,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Other seines,1860.368440277778,228367000,F/V ANTHINEAS,e339a317b-b85e-32ef-9431-6d7357c26e5a,FISHING,1860.368440277778,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,1818.8996449999993,227442000,F/V SI,3be9b900c-c2ff-629a-102d-d038bf7b8232,FISHING,1818.8996449999993,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Drifting longline,1810.428361388889,224138280,SAN PRUDENCIO,e290ec2c0-0c92-6ead-958a-de2be3984cd0,FISHING,1810.428361388889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Fixed gear,1795.1655924999998,228099900,F/V ROUANEZ AN ARVOR,f11f18663-32d9-f697-4416-c0d6ad3bf73d,FISHING,1795.1655924999998,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fishing,1714.5936111111112,228904000,F/V MARIA REINA MADR,fc01b4126-694b-1f14-a8d8-2cc92105e6cb,FISHING,1714.5936111111112,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,1711.6103483333331,228184600,F/V MAILO,76b3a92d8-8fec-6856-eb0c-632dd5278674,FISHING,1711.6103483333331,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fixed gear,1676.993714722222,224017830,BETI MAURIXIO,2e524e568-8c0a-3c2e-ee9f-b1d348977570,FISHING,1676.993714722222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,1669.817222222222,224067130,VILLASELAN,06810a5b7-78aa-6762-55b6-2cec5dc3b16a,FISHING,1669.817222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,1662.7938888888893,228097600,F/V CAP FINISTERE,b515ff107-7f27-aa5e-bba4-c8ab033fd294,FISHING,1662.7938888888893,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Trawler,1629.4818538888887,224010730,HNOS. SAN SALVADOR,6c54901a9-9538-c475-6460-a66290848f57,FISHING,1629.4818538888887,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,1596.5582116666665,227480000,F\V L'ACCENT D'ICI,ea133d2bc-c039-da01-af8d-22a7ba27025d,FISHING,1596.5582116666665,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fishing,1583.036451666667,226150000,F/V BLACK PEARL,e01ffbc22-2d7c-679a-54c8-0f22855521dd,FISHING,1583.036451666667,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,1560.1128241666668,228173000,F/V LA GALERE 2,6837a97a7-76c6-cd26-bc4d-cc008887a044,FISHING,1560.1128241666668,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Other purse seines,1556.3732047222218,228216600,F/V RENAISSANCE II,576a8c3c5-523d-53cb-ceb3-6b8bfe330db8,FISHING,1556.3732047222218,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,1548.3486111111113,228131600,F/V LE NATIF 2,480a760c2-26cc-cbb7-2a43-d2a97e91c225,FISHING,1548.3486111111113,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Trawler,1520.4019080555554,224169000,KALAMENDI,23a884eeb-b7c3-7f09-99d9-822d8bba98d2,FISHING,1520.4019080555554,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,1502.5993277777775,224005590,F/V ANDREKALA BERRIA,3996f8625-5eb9-ae12-aea3-1a4846dd925c,FISHING,1502.5993277777775,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,1479.955833333333,224940000,CRISTO DEL SOCORRO,cddef39b3-3a8e-345c-5afe-dd39e51eb391,FISHING,1479.955833333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,1460.454118888889,228358600,F/V ARCADIA,d675f8e49-953a-cf57-ff8f-aa9a0acb1228,FISHING,1460.454118888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,1453.7803772222223,224152340,F/V XUAN MONCHO,11a6517bc-c6e5-0710-8438-d29085ad4915,FISHING,1453.7803772222223,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,1447.926388888889,224213860,NUEVO HORIZONTE TXIK,8392439f4-43a7-a83d-4724-2f8045a49c93,FISHING,1447.926388888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Seiners,1435.2507644444445,228229900,F/V MANBRISA,7b945563c-c9fe-ecff-068c-4ca34148af52,FISHING,1435.2507644444445,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,1402.622015,224026880,MOISES DANIEL,c5872fa62-29df-bcc4-2d45-638b02f6a55b,FISHING,1402.622015,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,1401.2351386111118,227319630,YETI,44a57ec3c-ce1a-45ad-7ed1-11706f68ad4e,FISHING,1401.2351386111118,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,1400.3375,228211000,F/V ATALANTE,cb212c0fb-b9e8-a96e-e805-ee8255a86c02,FISHING,1400.3375,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Trawler,1388.2303741666667,224005540,F/V ARRETXU BERRIA,21febfc81-1105-4958-5b70-c9ebb2155af2,FISHING,1388.2303741666667,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,1383.1854111111106,224074730,ITOITZ,4a81479cc-c1af-515f-88d8-78753645cb8b,FISHING,1383.1854111111106,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,1365.7360858333334,227922000,F/V BIEN FAIRE II,ce7f869cc-c811-47b7-78ab-692142dcef74,FISHING,1365.7360858333334,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,1343.9065991666666,228951000,F/V ULTIME EPREUVE,81dbce293-388d-abce-9e1a-960c283001e3,FISHING,1343.9065991666666,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,1318.0488888888892,224075650,GURE NAIARA,d00dc9c21-1826-4112-b640-3acadbc9c6ac,FISHING,1318.0488888888892,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,1317.1427777777772,225986575,F/V BRESO UNO,2a92749ce-e16f-c6b4-b1cd-73eb0ea3e5da,FISHING,1317.1427777777772,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,1295.0383333333332,224297950,NUEVO ABELAN,1db833279-9d78-86ec-1893-7c7ae7987fe4,FISHING,1295.0383333333332,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,1288.0352777777778,224038000,O`XAN,0f03aea25-5e31-89ef-4cae-efc23e5bda56,FISHING,1288.0352777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set longline,1248.2838888888891,228339000,F/V VIRIATO PRIMERO,a0169b374-4070-afef-fc9e-9a1b2abb46fb,FISHING,1248.2838888888891,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,1234.4961111111108,224261580,PYSBE BAT,7342fa89c-c7da-3325-ac11-a46027329a97,FISHING,1234.4961111111108,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,1233.1147222222226,225458000,IXKIRI,207fb4bbf-f716-6f51-943e-55e58b7a9d43,FISHING,1233.1147222222226,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,1232.9175,227315980,GUEVELLEZED,97a09cebf-faf8-6d4f-2f62-ed4b1638b630,FISHING,1232.9175,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,1232.3530555555556,227118900,F/V LA LAMBADA,54b8ffa01-195a-6503-00a9-ace3174cb09d,FISHING,1232.3530555555556,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fishing,1223.3737519444442,227409000,F/V TALION,21096504d-dbca-c874-8843-d2e6ed708632,FISHING,1223.3737519444442,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Other seines,1212.6189180555557,228209700,F/V ARUNDEL,139f2728f-f5ee-3b66-62dc-1e37c8a38964,FISHING,1212.6189180555557,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,1197.3102777777776,228364800,F/V LA SAMBA,51b8374e2-231c-544d-e362-a7933f9286fc,FISHING,1197.3102777777776,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,1195.13347,228883000,F/V LE VIRGINIE,ccf468362-2bd3-3eac-ca1e-50adcfc9fd6a,FISHING,1195.13347,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,1152.5583333333332,228123600,F/V L`APPEL DU LARGE,64a812a12-2e81-5475-4aaa-1eb59c5c466c,FISHING,1152.5583333333332,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,1149.5872222222224,224102740,TONINO SEGUNDO,99835ea6d-d297-5bb4-bfaa-344379f163be,FISHING,1149.5872222222224,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,1136.8241666666668,225986696,ELEUTERIO J BALAYO,40e6240d8-8778-7233-55b6-c4be1a6410c9,FISHING,1136.8241666666668,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,1120.624722222222,227321340,MAJOUB II,b42792e21-1294-b66c-13fc-42d15c357517,FISHING,1120.624722222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set longline,1119.379606388889,227300000,F/V MIREN,b02190d3a-a730-d0e2-4c30-41d57e01cc8e,FISHING,1119.379606388889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Trawler,1102.2852777777778,224096160,ASTISOL,e32ead480-0da2-b71a-e2f2-882801630b43,FISHING,1102.2852777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,1097.0247222222222,227643640,F/V BLACK PEARL II,b18df27df-f89a-3956-a3d3-6b2840d02468,FISHING,1097.0247222222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,1087.0722208333334,228396800,F/V LES CHIGNOLLES,88587aac5-5823-9b21-2947-e10ff8f986ba,FISHING,1087.0722208333334,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,1069.9711883333334,228920000,F/V VILLE CROISIC 5,721133429-94bf-303f-a380-fe0f2c8c3cb2,FISHING,1069.9711883333334,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,1058.3541666666665,224384000,FARO SILLEIRO DOS,bd71d2b79-9328-04e4-2b30-0e692f969511,FISHING,1058.3541666666665,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,1055.170005,224057830,IZURDIA MAITEA,8817f5082-2f0d-1046-07c5-efc9a808561b,FISHING,1055.170005,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,1050.5994444444445,224313950,BETI SALADA SEGUNDO,e218084a4-4388-4632-4ab5-6491e217834f,FISHING,1050.5994444444445,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,1049.0888877777777,224012280,VILABOA UNO,1c340abeb-b83c-fb92-25b5-768f31c84f52,FISHING,1049.0888877777777,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,1047.5566666666668,224283330,ALAIN BI,9f638c2bc-c28c-f29b-d129-bff3e0e8a52c,FISHING,1047.5566666666668,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Other seines,1033.9872005555558,228042600,F/V MABON III,fade29aef-f8e3-01d0-a6a1-2a782463a3b8,FISHING,1033.9872005555558,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,1018.4463888888895,227577000,F/V JUDINE,fa84990ba-a172-d71c-163c-4cc21bf9ee05,FISHING,1018.4463888888895,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,1016.7128966666664,227602960,F/V L`UNIVERS,0a8995464-4017-5cda-20af-54676a451648,FISHING,1016.7128966666664,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,1009.4071391666669,228404600,F/V PAPY CHICHI,4be197437-75f0-57df-4224-f7ead6e782fe,FISHING,1009.4071391666669,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,993.5790572222223,224050450,BORRASCA PRIMERO,62ca5a2fc-c475-37b3-cfc7-fbd1410f000e,FISHING,993.5790572222223,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,987.8675000000001,228312000,F\V DESPERADO,5e1ac7182-23b0-065a-0ca5-f4015676ae54,FISHING,987.8675000000001,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,982.4908333333334,227531000,F/V ILLUNBE,693e03541-114a-2bd2-6fc8-ff95c5fc3248,FISHING,982.4908333333334,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,981.0879561111112,227595150,F/V MAYFLOWER,cec43f815-5338-5eb1-3039-608a59eccc84,FISHING,981.0879561111112,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,961.8811111111113,228393000,F/V ANNA MAMM MARI,c4e5d2073-39e5-8e9c-a859-61eaa7995779,FISHING,961.8811111111113,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,951.1363855555553,224082460,PLAYA DE LUARCA,e1ebd96df-f99e-927a-a8de-4b92b6b1b52e,FISHING,951.1363855555553,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,947.5134088888889,227310640,F/V EOLE III,8c2707487-7df4-a684-19d1-2a7c41630eb4,FISHING,947.5134088888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fixed gear,937.037222222222,227894000,F/V MELODIE,1d25d1548-8e21-76ec-4cca-2e9a2e1b0af1,FISHING,937.037222222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set longline,931.9944444444443,228195800,F/V GLORIEUSE IMMACU,c7bf8cd21-1686-8843-11a6-d94f4ab71280,FISHING,931.9944444444443,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,916.449444444444,227424000,F\V JOHANJE2  FILE,a093cf456-6503-5031-a02f-50253099f844,FISHING,916.449444444444,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,889.4605555555555,228262700,F/V URTXINTXA,e4844e713-3543-6b41-b03d-371f438372b3,FISHING,889.4605555555555,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,887.7737597222223,224312790,MAR DE LLANES,d243f4a4d-d7de-6c4a-6098-3655c04943f3,FISHING,887.7737597222223,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Troller,879.0425000000002,224011530,SIEMPRE RUFO,3aafed7dc-c0c8-7df5-549f-c268a8f2a249,FISHING,879.0425000000002,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,876.0393161111111,224087830,CASTILLO ANAIAK,661c00db3-3564-2c21-4c12-55f8eadee21d,FISHING,876.0393161111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set longline,867.8472222222222,227389000,F/V LANDORA,74b6fb8cb-b623-7d76-e658-744a7402d3e5,FISHING,867.8472222222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,866.6541666666668,224052970,SUKARI PRIMERO,805865e51-1ca0-26a4-a01f-c5052cfb59eb,FISHING,866.6541666666668,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,864.6283333333333,224040260,SANTANA BERRIA,19370ed9e-e3fb-9fe3-8546-bd388f05a619,FISHING,864.6283333333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,848.1361558333335,224085260,MATER BI,1365a9bc3-3ed5-1c8f-1496-08c7bacfdec7,FISHING,848.1361558333335,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,846.2058580555556,228207000,F/V FLEUR DE SEL,ed06d6dd4-497d-3195-5ad0-3e999a542df9,FISHING,846.2058580555556,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,846.1782138888888,227563000,F/V MARIAL,422280f7c-ca10-39f2-d7da-c3fd128fa092,FISHING,846.1782138888888,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fixed gear,840.2825000000004,227513000,F/V OKATA,8b1fbe711-1001-55dd-bf82-623bd15d9c03,FISHING,840.2825000000004,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,838.2088872222223,224050570,BUSTILLO DONOSTI,3a4749152-2b0a-3c7d-7800-44046c04d754,FISHING,838.2088872222223,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,831.4740477777777,228184000,F/V ARMANDECHE,0b90118a8-8df4-0fd4-8134-ba5b75c2e2cf,FISHING,831.4740477777777,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,827.8411111111112,228253000,Unknown vessel,f82526ed1-17f7-7c69-c06d-56e25483bff7,FISHING,827.8411111111112,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,822.3213888888888,224141980,F/V IDURRE BERRIA,5be7b24be-e551-8b10-5526-41aafe569f26,FISHING,822.3213888888888,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Fishing,817.4420477777778,227337000,F/V L`AIGUILLON,cbbd3636b-bb60-1150-82b5-4093dfac41c7,FISHING,817.4420477777778,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,816.795081111111,225986575,F/V BRESO UNO,10782ee65-5e5c-19a4-dd41-bcc637701cdc,FISHING,816.795081111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,816.0026586111112,227479000,F/V LE REQUIN BLEU,5b03fc623-3dfd-81f5-048f-ab9d9503fc7a,FISHING,816.0026586111112,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,812.7447222222222,227574000,F/V FILLE DU SUET,ba42c2059-9353-361f-62cc-3cbf6364a672,FISHING,812.7447222222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Pole and line,805.6119444444446,224019470,LUIS BARRANKO,8925d3158-8f91-932f-ae3f-715246d59d65,FISHING,805.6119444444446,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,802.6758333333333,224176380,ITSASOAN,2e56a064d-d5f3-a983-fe06-2a885f80afe8,FISHING,802.6758333333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,799.2197613888892,224064850,AITANA DEL MAR,0d1ae6947-7107-8cf6-37b4-2c5ad97e1c8b,FISHING,799.2197613888892,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,785.5213888888887,224213850,CLEMENTINA,73d0d5856-6f39-4073-f634-7bdec000ff7f,FISHING,785.5213888888887,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,784.5897205555555,224103820,HIRU ANAIAK,c4aa81557-7926-1588-7e9f-1660268488af,FISHING,784.5897205555555,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,783.7758333333335,224217130,JESUS NAZARET BERRIA,64f2efff1-1158-e41a-cb56-d8023a3b7c97,FISHING,783.7758333333335,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,782.6191666666666,224073460,NVO HORIZONTE ABIERT,1bae78bec-cfb6-959e-db8e-4052d5a0e959,FISHING,782.6191666666666,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,770.203888888889,227967830,L ESTRELLA,86216583c-cf0e-a786-9ebe-ca1d1300e9a0,FISHING,770.203888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Pole and line,768.0766666666666,224010590,GURE AMUITZ,12e417de7-7ec6-fbd5-7d49-ca95603aac68,FISHING,768.0766666666666,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,766.3743708333333,224021460,MADRE LITA,ce82a9907-793a-ed20-68bc-020725267ff1,FISHING,766.3743708333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,764.7211111111112,224938000,PLAYA DE ARBEYAL,fad7735f5-50d9-af54-3b74-b04c2c3aabc5,FISHING,764.7211111111112,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,763.4252777777775,224074890,BERRIZ KUKUARRI,5453a2b61-16c7-c8e5-752f-800b8a6638e6,FISHING,763.4252777777775,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,759.4516666666668,224079440,TXINGUDI,3cc35216c-c35c-2027-57cf-854365e4d26a,FISHING,759.4516666666668,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,756.4881841666665,224460000,NUEVO COLLADO LINDO>,1c7d9cab5-53d1-22d7-9b84-723b33e5fc6e,FISHING,756.4881841666665,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,752.7400113888888,224004720,ITSAS EDER,1bfd2c60a-a68a-5505-8ef2-698c91fb4ad9,FISHING,752.7400113888888,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,752.6878255555556,227673970,F/V TIPTOP,16d7c4984-4de5-942c-af80-a60fa537bcfd,FISHING,752.6878255555556,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Pole and line,748.6963888888887,224128930,GURE GOGOA,9dbebfe38-8f0a-1743-4495-222415300da2,FISHING,748.6963888888887,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,743.5861111111113,228219900,F/V KALIMERO,687a5d6eb-b775-8333-9ce6-3d7b7d6dc606,FISHING,743.5861111111113,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,736.725,227814000,F/V MARAUDEUR,6d9b630c5-51ba-d437-c82f-cf66200f754d,FISHING,736.725,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Pole and line,735.7605555555556,224065290,ARRANTZALE,d22b3f090-045f-fecd-e0e5-89aa446abd1d,FISHING,735.7605555555556,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,735.6575,227748550,F/V CYCNOS,96664e278-8248-3e30-9db1-e07868221ab5,FISHING,735.6575,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,732.9868016666666,224088740,BRAULIN,47372af38-892f-fdd3-8d6c-16891f38d182,FISHING,732.9868016666666,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,732.7602777777779,228240600,F/V QUENTIN GREGOIRE,679fefae3-3ca7-43b7-6b3e-fe23fa9ce990,FISHING,732.7602777777779,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fixed gear,729.7263738888889,224944000,SEGMON,8b874ba89-969d-14dd-8367-aa2fbe38e48c,FISHING,729.7263738888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,728.7579147222223,224056190,F/V AGUSTIN DEUNA,7f6f18671-19bd-c580-b506-b9f61cae0ff8,FISHING,728.7579147222223,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,720.3677777777776,225988373,BRISAS PIXUETINAS,f098ce9ce-eef4-ca23-6702-5e29390b1104,FISHING,720.3677777777776,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,BEL,Fishing,717.995,205127000,FRANSON Z91,de550a92c-c557-1ddd-2594-a56868aba871,FISHING,717.995,public-global-fishing-effort:v3.0,Belgium
+public-global-vessel-identity:v3.0,ESP,Pole and line,714.4230555555557,224134520,ONGI ETORI,1de2dd67a-afbb-d265-7fe1-17553480fce1,FISHING,714.4230555555557,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,714.3777777777777,227879000,F/V IRIS PASCAL,bda1072c0-0a91-bd13-7e57-2f3a6c669b78,FISHING,714.3777777777777,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Pole and line,713.5711111111111,224059860,F/V BETI AINGERU,1887f0830-0364-d97a-5425-a2f2b7508f59,FISHING,713.5711111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,705.8930349999994,228374700,F/V SKETAN,16f5ad734-47e9-e4bd-bd81-f6ae089edbd9,FISHING,705.8930349999994,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,701.4039883333332,227512000,F/V ALBATOR II,fef9bb426-69b2-9ea0-7c0e-bd90bf18012d,FISHING,701.4039883333332,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,701.091388888889,228239000,F/V FISHER GOLF,eac935e82-27e2-0d16-be96-d8e7b3a40cb5,FISHING,701.091388888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,697.1852816666667,224136470,MADRE LUCIA,fd03a54e9-9624-97a7-41da-8ac38a612b91,FISHING,697.1852816666667,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,BEL,Trawler,694.274722222223,205333000,Z548 FLAMINGO,95577c2c0-0f01-00d2-6fae-a1cd9f65a019,FISHING,694.274722222223,public-global-fishing-effort:v3.0,Belgium
+public-global-vessel-identity:v3.0,ESP,Other purse seines,678.9406747222222,224100920,SIEMPRE LANDERA,8ca21c13b-b788-6857-981b-16d398c7a7c5,FISHING,678.9406747222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,678.8222222222222,224052460,F/V PEDRO JOSE BERRI,f1897ec8b-bcdf-7c1f-91d4-88cb2537e7f2,FISHING,678.8222222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,676.9230555555556,224097640,URDAIBAI BAT,ee79357c3-3544-0beb-3178-e417be1cbaa6,FISHING,676.9230555555556,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,675.8363888888891,228083700,F/V LE BREIZH,6c45c3655-5395-91c1-4d43-4ee065f8c8ff,FISHING,675.8363888888891,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,668.6521783333335,228018700,F/V PETIT GAEL 2,c37a22451-1d82-272d-6014-244bd4ef8a95,FISHING,668.6521783333335,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,668.3494533333335,227855000,F/V VOLUNTAS DEI,8dc29c7d7-7a10-b062-188f-c7539408488c,FISHING,668.3494533333335,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,667.0686111111111,227532000,F/V L`ESPOIR II,5ab85e64b-b29a-4f5d-8b4f-bb79538a57b7,FISHING,667.0686111111111,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set longline,666.2383333333333,227338000,F/V AGORRETA,388a365f5-5196-3a3e-c130-cbf6e641ca76,FISHING,666.2383333333333,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,659.0908333333335,225988106,CARMINCHIN,4e0e1a6ad-d6ed-d833-4fb3-18c67b0f8f05,FISHING,659.0908333333335,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,654.7622222222222,228301900,F/V MAMMOUTH,6120ee016-6169-6c86-ad20-b7a5cb19fadf,FISHING,654.7622222222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,651.3844444444444,228193000,Unknown vessel,d806191d7-7e2d-f068-985d-2586364c1519,FISHING,651.3844444444444,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,647.2991666666666,224069850,TUKU TUKU,2a7e618e6-6236-512e-4270-deb4a2a052f4,FISHING,647.2991666666666,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,646.6601127777778,224134940,GURE IMANOL,1215aa5c9-9765-5759-3eb0-be8bf0e05455,FISHING,646.6601127777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,642.5800000000002,227426000,F/V MARE LIBERUM,92572b00e-e65a-a275-61ff-854fe8fef648,FISHING,642.5800000000002,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,641.2003272222223,224033380,NUEVO AIRES ASON,5330526f9-9751-2aa3-f9bc-a9a7a380678c,FISHING,641.2003272222223,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,637.2571658333333,224074650,NUEVO TERRENO,148ce5ebd-d639-972f-c31a-e81cec13dc97,FISHING,637.2571658333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,635.4593577777778,224050560,MANUEL PADRE SEGUNDO,ff3e63db2-20da-dc68-2e40-37f3fe5c7d6d,FISHING,635.4593577777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,626.6650000000003,227416000,LE BATTANT,a86112eba-a94d-5692-f8db-6a4d050fe1cc,FISHING,626.6650000000003,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,626.1486752777778,225988268,PLAYA BLANCA,23bcf9efc-c86d-205e-68c7-e206a23e32c0,FISHING,626.1486752777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,624.1875,224018260,NUEVO LIBE,6f852ccde-e8be-1b7c-84c7-f49b6e3c262f,FISHING,624.1875,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fixed gear,622.5949011111111,224016730,CU-CA,dfcedd95f-fa2c-b30a-290a-3e16a9e56495,FISHING,622.5949011111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,620.311933888889,224041990,SIEMPRE TORROPI,dd01fe9e7-73d1-93a2-13e3-2c1f19be87cd,FISHING,620.311933888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,BEL,Trawler,614.6419444444446,205321000,Z333 AVATAR,f23e98814-4a88-9445-0634-091b625fe0c9,FISHING,614.6419444444446,public-global-fishing-effort:v3.0,Belgium
+public-global-vessel-identity:v3.0,ESP,Pole and line,613.1044677777779,224075190,F/V SAN PRUDENTZIO B,e5a8a7949-96c9-1177-1d3e-5df036fec871,FISHING,613.1044677777779,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,611.4808333333335,224004800,F/V BETI SAN LUIS,dbfbf5bb5-5ee1-1283-453d-d60933e45072,FISHING,611.4808333333335,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,609.2328172222221,224279660,NUEVO SALVADOR PADRE,a33f6a0c3-346d-587f-ec6a-737d137c690a,FISHING,609.2328172222221,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,604.6805555555555,224138660,F/V GOROSTIAGA HNOS,e03bf013f-f0c6-6574-1fc1-152e19f85f5b,FISHING,604.6805555555555,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,599.0647222222221,224022490,F\V GOROSTIAGA HNOS2,70aa978b8-8945-4489-5fd1-f68f8d3b4062,FISHING,599.0647222222221,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,594.7374999999998,228345000,Unknown vessel,e03e58d93-395a-fe1c-f3b4-3ab4b39ef5b6,FISHING,594.7374999999998,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,590.3586111111111,224021640,DEMAR,7a89ac015-500b-2c4a-8c30-7eb872f10cf4,FISHING,590.3586111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,589.3886111111112,224025280,BETI ZERUKO IZARRA,3e9e7cf14-4f2c-1fe6-9ffa-ac31044c157f,FISHING,589.3886111111112,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,588.3263888888888,224010730,HNOS. SAN SALVADOR,50eb60c0d-d43a-7a32-5fb9-fcdcd02121a5,FISHING,588.3263888888888,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,583.7607844444444,224102000,CREADOR,b3d346ed2-2cdf-1c20-45b7-d90a75383326,FISHING,583.7607844444444,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,583.4466666666665,224096770,ALMIRANTE BERRIA,87e4acb95-5929-26de-20a7-37f4d703422b,FISHING,583.4466666666665,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,582.1148052777779,224219670,NUEVO CHUCHI,1d5ef2345-5ba4-2ac1-144b-519aaf417864,FISHING,582.1148052777779,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,578.9430555555555,224141970,BERRIZ MATUTINA,c073f3354-4e26-d9ca-2e65-de0f72364c94,FISHING,578.9430555555555,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,578.2477777777779,224052360,KALAMUA BI,787adb20e-ea33-5535-f99d-4be89aa5ed04,FISHING,578.2477777777779,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,575.1374738888888,224113270,NUEVO MADRE ROSAURA,51b748eb2-28b8-821e-749b-51545211d5f3,FISHING,575.1374738888888,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,570.3591666666667,224050280,OSTARTE,e26e7823b-bf21-9266-7c0f-f934f286f867,FISHING,570.3591666666667,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,568.5302777777779,224056170,F/V SAN ANTONIO BERR,95f4928be-e8d2-3717-3013-50423ab3b834,FISHING,568.5302777777779,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,567.901111111111,224157840,ITSAS LAGUNAK,d6c8d29c6-601f-2230-6960-e43d9be02810,FISHING,567.901111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,567.0249016666666,227123700,F/V LA ROUMASSE,14c7b899f-ff4e-cfb3-67e1-44e1c5bfc20d,FISHING,567.0249016666666,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,564.758313611111,228114000,F/V AZKARRA,ae676ddae-e96a-8f4b-3bf6-122ace9ce078,FISHING,564.758313611111,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fixed gear,564.2922222222222,228201000,Unknown vessel,0be58d269-9d39-9d19-6a7f-4ec395b80b26,FISHING,564.2922222222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,563.6230555555555,228008900,F/V SOUVENIR,24b67f614-415c-f101-19d6-d90f0166ae7c,FISHING,563.6230555555555,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,559.463746111111,224050850,ESTRELLAPOLARPRIMERO,b5189ab1f-f4c5-395e-6b5a-793f9d3c9730,FISHING,559.463746111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,556.450277777778,224063680,F/V BETI PIEDAD,65d6d8f49-9ef5-cca9-867b-b8e7dcca91c5,FISHING,556.450277777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Fishing,555.647108888889,227309000,F/V ABLETTE,373f106e0-0a65-6d6a-3521-d74336092791,FISHING,555.647108888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fixed gear,555.1886111111111,228201000,F/V MAJOUB,21e2ba6ce-e5b0-12c7-1dd1-0ba34bb61979,FISHING,555.1886111111111,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,554.0383333333334,224006570,PEDRINA BLANCA,262fa8c11-19ea-c6fa-8c13-3bf95e129328,FISHING,554.0383333333334,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,553.743611111111,224004770,IRIGOIEN BERRIA,1ba435faf-f41d-1adf-09c5-778adec5203b,FISHING,553.743611111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,553.6186111111111,224104450,NUESTRO PADRE TONINO,652c596b9-9d34-992f-aa65-acdaa2ee496c,FISHING,553.6186111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,553.185,224104820,PADRE JOAQUIN,a3e2a687f-fa15-464e-3530-18de3a6d9111,FISHING,553.185,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,553.1278774999998,227536000,F/V DAMAFRAN,f85ccb81e-e0d9-e902-fd9f-c4ff70236cd5,FISHING,553.1278774999998,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,551.9466686111111,224049650,SAN ROQUE DIVINO,eaf7b6353-3a37-b55d-1541-9f27a2acc154,FISHING,551.9466686111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,BEL,Trawler,551.6927777777776,205133000,Z26 AVANTI,c0f937bae-e54c-9e1c-0f2f-c4171efa998e,FISHING,551.6927777777776,public-global-fishing-effort:v3.0,Belgium
+public-global-vessel-identity:v3.0,BEL,Trawler,551.351111111111,205198000,FV Z60 BLUE ANGEL,6a7556f4b-bdcb-3cf5-8c74-4d3c5a5d0dc7,FISHING,551.351111111111,public-global-fishing-effort:v3.0,Belgium
+public-global-vessel-identity:v3.0,ESP,Set gillnet,550.7058333333333,224300560,NUEVO MAXI Y MARIO,9d234e866-69a8-02b8-179a-5056007b906a,FISHING,550.7058333333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,549.0563888888889,224005870,F/V MONTSERRAT BERR,c38335d1c-c7da-953b-975c-b9f31810b1a7,FISHING,549.0563888888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,543.6736111111112,227640970,F/V LES CHIGNOLLES,ace12391b-b239-baf2-c8a3-754c5e6ed1fa,FISHING,543.6736111111112,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,535.5380555555555,224780000,BREOGAN UNO,c6b63f2a2-2296-69e6-c1e7-23eb1b274902,FISHING,535.5380555555555,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,532.293291388889,224028250,ERMITA PILAR,143856c4b-bbf5-1ffd-f62b-12a0aa8d576b,FISHING,532.293291388889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,528.4894444444444,224020340,VERA,8912624e4-43f8-7878-652b-b619c84112c2,FISHING,528.4894444444444,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,527.8327777777779,224103970,RAUL PRIMERO,962329076-63de-4a6a-6fe1-66bfbddb3f2c,FISHING,527.8327777777779,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,525.9079094444445,227802000,F/V NOUVELLE VAGUE,c3db87e79-9cf2-2e19-36b8-2a88d7b2ab9d,FISHING,525.9079094444445,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,525.5344444444444,224103750,ALBO PUERTAS,d6389a5fe-ea0b-6181-faf3-8be96d9287ae,FISHING,525.5344444444444,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,519.6470488888888,224019420,ABRA DE MUXIA,3b6d23126-65d4-beb9-633d-fc406fe9557c,FISHING,519.6470488888888,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,515.3733333333332,224070000,AITA FRAXKU,d294eb77f-f23e-e659-0ca3-5e08b2801b08,FISHING,515.3733333333332,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,514.1837300000001,224086790,F/V IZASKUN BERRIA,1d8e0e550-0c69-be26-5e11-c1c4b8ba998b,FISHING,514.1837300000001,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Dredge fishing,513.7627777777778,224907820,URREBURU PRIMERO,b6cdf3497-7cbe-87ed-204d-b528d711d524,FISHING,513.7627777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,513.0877777777779,224086780,F/V AZKOITIA,06c7478ce-e684-e8e8-8f44-ac6e07c13416,FISHING,513.0877777777779,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,512.3151588888888,227436000,F/V LE BARON,afa9889ba-ab6d-eee9-b80c-7a3f24fa0b49,FISHING,512.3151588888888,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Trawler,510.8098738888889,224181000,GURE KANTABRIKO,4a0f40952-2972-9f0f-6689-81bf1bcbaafd,FISHING,510.8098738888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,504.8037127777778,224627380,PLAYA DEL ASTILLERU,e2781bbbc-c6e8-3144-9d04-003666e5b622,FISHING,504.8037127777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,495.35944444444436,224050450,BORRASCA PRIMERO,af81c1e30-0066-42fd-cd4d-1c4a42f439e9,FISHING,495.35944444444436,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,494.66694444444454,228428700,F/V KITTARA II,80b8502bb-be46-f6bb-c528-108d817ee090,FISHING,494.66694444444454,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,493.51077833333346,224175430,ADVIENTO UNO,145876a6e-e741-d4e7-67c9-0e7be0ff33b7,FISHING,493.51077833333346,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set longline,492.1125083333332,228394000,F/V KEROULAN,cc4015224-4b35-2109-cb93-54095f0588a2,FISHING,492.1125083333332,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,478.3441286111111,224101860,NUEVO CREADOR,472fe51ed-d4a0-d6bc-a16d-b246420a9488,FISHING,478.3441286111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,475.5858333333335,224087790,ATTONA DOMINGO,55bed9435-5526-b70a-3bb2-320a90027833,FISHING,475.5858333333335,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,474.18888888888864,228355800,F/V LUANTSA,9b9c5298d-d55b-ec82-0404-bd2f91c6eedf,FISHING,474.18888888888864,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,471.1169444444444,225985384,KANTAURI,b95e32108-8349-2e77-40c5-4cac4ba374f0,FISHING,471.1169444444444,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,470.8427777777777,224254750,AMETS,c1f5ce25d-d360-589f-f1e3-865379f6c7de,FISHING,470.8427777777777,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,469.9080555555555,227625350,F/V SOURIRE DE L`ILE,efc23bb7f-fcf9-64e7-083f-aae21857eea7,FISHING,469.9080555555555,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,469.1927777777778,224086130,NVO VIRGEN PODEROSA,d6e16c9c6-694d-77cc-850e-d0557b7bb542,FISHING,469.1927777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fixed gear,462.71916666666664,224250590,MARINEL,829158e43-3956-45a4-b624-0ade5e62d946,FISHING,462.71916666666664,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fixed gear,462.5683333333333,224097980,GURE AMETXA,eeb4a64e4-43fe-22db-9c0a-7371f49ef111,FISHING,462.5683333333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,461.2333333333333,224081840,GURE FATIMA,62b19c5d6-61ac-deb4-e1e7-d8389bd5f547,FISHING,461.2333333333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,460.6086541666666,228133000,F/V LES VIKINGS 2,ff5112117-77ce-8b15-847c-94af137d92cd,FISHING,460.6086541666666,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,452.62570583333337,227561000,F/V STERNE III,10f726a8e-ef89-154c-ace0-9d4ae99b1c7e,FISHING,452.62570583333337,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,445.2391666666667,224063730,BIHOTZ ALAI,a8e0f8196-644c-c9ec-e89b-b8187ef8fd7c,FISHING,445.2391666666667,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,444.51500000000004,227303130,F/V ZEPHIR III,4b03882b4-4d7a-ef08-4de8-a735768be3db,FISHING,444.51500000000004,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,443.2133333333336,228364700,F/V MARIE LOU,4f887dbd8-8060-7a16-aa78-35ab7ac26e15,FISHING,443.2133333333336,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,443.1122222222223,227317000,F/V SAMANA,c82d30319-9879-f982-29e5-e4be98ec0f14,FISHING,443.1122222222223,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,BEL,Trawler,441.11999999999983,205237000,O 231 DEN HOOPE,5a6ae6f3f-f834-e303-912d-5b933682de0a,FISHING,441.11999999999983,public-global-fishing-effort:v3.0,Belgium
+public-global-vessel-identity:v3.0,FRA,Set gillnet,440.96083333333337,228222600,F/V JUPITER,18c5c25b0-0fd7-f77f-204f-d4b0813aedb0,FISHING,440.96083333333337,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,435.4958333333335,224228670,ITXASOKO LOREA DOS,6cb0eb8ec-c53c-b467-3077-1ac7986980c0,FISHING,435.4958333333335,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,435.433611111111,224271000,NOCHE DE PAZ,9a060fabf-ff75-24f8-ce2d-b5628e8bcac3,FISHING,435.433611111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,428.37305555555554,224075180,F/V SANTA LUZIA HIRU,41930dcd6-6bfb-8723-f096-b7d3eef3c717,FISHING,428.37305555555554,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,422.34191611111123,227989000,F/V AURORE BOREALE 1,63feb60ad-de4e-13dc-10d5-6b04f8db11d5,FISHING,422.34191611111123,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,421.5413888888889,227315730,F/V POINT FINAL,1319a72a5-5930-ccd2-6c3a-c4f8b6f0e1e6,FISHING,421.5413888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,418.25999999999993,227981000,F/V VIVALDI,22b2b17aa-a28a-6f80-3335-3e20c95d5fdc,FISHING,418.25999999999993,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,411.25472222222226,224046360,ARELA,bd1d27d9a-ab74-0473-e60f-ba2ffab2475c,FISHING,411.25472222222226,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,408.40694444444443,224018460,BERRIZ IRIGOIEN,2db748cf2-22b6-5675-6fa7-6e8b13b617e5,FISHING,408.40694444444443,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,404.19277777777774,224060680,KAXIMIRONA,9539f504f-fd1b-2adb-38fc-3dec219d4bc5,FISHING,404.19277777777774,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,402.7736111111111,224004680,PITTAR,b519f3305-5967-5ee3-9967-3dfbb2b30f8c,FISHING,402.7736111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,398.08527777777783,227595150,Unknown vessel,91ea6085d-dd35-9daa-50d3-22d29608ccd1,FISHING,398.08527777777783,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Other,397.22916666666663,227316650,Unknown vessel,b9f8b1d17-79c2-66c2-9c3e-ce71ab925c4d,FISHING,397.22916666666663,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fixed gear,394.263888888889,228108900,F/V OLGA,295b292c3-343c-1b9f-e08c-95d59e36c119,FISHING,394.263888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,394.02583333333337,224152140,ANSIA,9fbe3052f-f420-24e3-3162-b8df6c848fa8,FISHING,394.02583333333337,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,390.28000000000003,228219900,Unknown vessel,bb3be0ae9-9732-6570-e257-4c3db7dcfd87,FISHING,390.28000000000003,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,388.0916666666667,224051560,BETI ITXAS ARGI,98657e131-16ad-b1aa-3c91-fd849d16381c,FISHING,388.0916666666667,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Fishing,387.5974999999999,227643210,NEREE2,dc90e447a-a600-b5c0-1fca-fe80325028c0,FISHING,387.5974999999999,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,385.75583333333327,224104960,OSKARBI,0cd8a0984-4014-1cc5-aaf4-eca95d086c6c,FISHING,385.75583333333327,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Troller,384.9141666666667,224011830,ANDUIZA ANAIAK,cf788a318-8596-979d-db10-fdc8ee11f234,FISHING,384.9141666666667,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,384.8616666666667,224355430,BETI GURE ISKANDER,ccdbeeb1e-e4ab-948f-45ae-b9a16be46e77,FISHING,384.8616666666667,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,382.806388888889,224050270,VERONICA DEL MAR,6e5eb1f9e-eedd-92cf-3e7a-81e0f5be807f,FISHING,382.806388888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,377.84861111111115,227570000,F/V IBARDIN,fbba3caf3-33e7-7e3f-f0a5-bb6c11e69934,FISHING,377.84861111111115,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,377.39333333333343,224076190,PANELO VILLA,b2efca593-3aad-b0dd-39a9-2e34a0fccc08,FISHING,377.39333333333343,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,376.2966666666667,224192570,ABRA DE AGUINO,7f0ba038a-ab03-9656-7426-e1e188799e3f,FISHING,376.2966666666667,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,369.9094444444445,227926000,F/V ARMOR II,e6a839a9c-ca92-7e71-2699-130463747b9a,FISHING,369.9094444444445,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,366.1552777777779,228248000,F/V LA MORDOREE,b29251e9d-dfe0-5602-5f16-31caaf5dc256,FISHING,366.1552777777779,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,361.0816666666666,224129190,SIEMPRE NECORA,af144f6da-a153-b8a0-45e2-07964c741689,FISHING,361.0816666666666,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,360.9682147222223,224106940,BRISAS DOS,bb3c7e045-506b-20ee-08a5-457276548dc8,FISHING,360.9682147222223,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,359.27666666666664,228194000,F/V LA GWERZ,6f4e88a50-07b6-9a3c-aa02-d6cd1b9553bf,FISHING,359.27666666666664,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,357.1141666666666,224114650,SAN FERMIN BERRIA,5c479eb98-8407-f76e-93bf-5568e59e052c,FISHING,357.1141666666666,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,353.1669444444445,224061430,F/V BERRIZ AVE MARIA,0d5eba759-98af-376e-9f83-39b5b5a534bf,FISHING,353.1669444444445,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,350.5566666666668,224083650,BEREZMAR,d84f9f417-70fb-351e-ac52-e3b3397d50fb,FISHING,350.5566666666668,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set longline,344.28638888888884,227385000,F/V CROIX MORAND,da90d1b86-62b2-ed76-4f54-f1950c05568a,FISHING,344.28638888888884,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,344.14555555555546,228223000,F/V L`ARLEQUIN II,d38122930-0810-391a-f35f-9001776bb6fb,FISHING,344.14555555555546,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,341.61361111111125,228840000,F/V CORTO MALTESE II,c459c71e1-1cb1-246f-3cda-3a66cb19219c,FISHING,341.61361111111125,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,333.32431555555564,225993605,DAMAR,961f8d189-92f7-0a44-aceb-7496aa27b913,FISHING,333.32431555555564,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Other purse seines,328.90666666666664,228315000,F/V ATTALAYA BERRIA,0029df049-94e4-9264-ac54-99fe454a3d26,FISHING,328.90666666666664,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,328.87158861111106,225990490,PASA AQUI,d58d01c41-1016-a639-3e7b-4a49a7adf7ab,FISHING,328.87158861111106,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,BEL,Trawler,328.2852777777778,205227000,Z45 JERKI,8274c42b9-9819-b5db-8556-7c292f2e55e9,FISHING,328.2852777777778,public-global-fishing-effort:v3.0,Belgium
+public-global-vessel-identity:v3.0,FRA,Set gillnet,328.0436111111111,227378000,F/V SAINT GOTHARD,74c627dfa-ab22-11b1-9a1c-f38b80d640d3,FISHING,328.0436111111111,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,327.4786111111111,227892000,F/V CLARWAN,16707449c-ce1f-d94a-e385-b9e1088e9272,FISHING,327.4786111111111,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,327.06083333333333,224185220,BETI LAGUN BI,124fffb9f-f9ac-5508-148f-c0b2566dc419,FISHING,327.06083333333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,323.6897222222223,227304010,F/V ALCATRAZ,bf565d13a-a56b-25a7-7f2b-1d8eb898b744,FISHING,323.6897222222223,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,322.12248694444446,224106650,PORTO DE AGUINO,01b78dace-edd3-03d6-feeb-fa588851155a,FISHING,322.12248694444446,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,319.3838888888889,224108670,LEKANDA,01d3c5d29-966e-2339-f397-a9b5dc3e9bba,FISHING,319.3838888888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,316.6075,228174600,FV/LA PEROUSE,c2a908ef9-9606-a704-aef8-7ae69b044f89,FISHING,316.6075,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,314.4027777777779,224055660,GURE AMA MARTINA,410dbfca7-7cdc-d633-068a-936ce0d02e83,FISHING,314.4027777777779,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,314.2944444444444,224077240,ROMINA SEGUNDO,6d0e301e5-5b38-0b8b-4300-d9c59e3e15e7,FISHING,314.2944444444444,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Purse seine,313.23333333333335,224041540,AITA RAMON,9f972420e-e5d4-164c-7fdf-8b5ed705e1e7,FISHING,313.23333333333335,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,309.58944444444455,224045260,F/V CANTO NUEVO,1c3f7347d-d605-dae0-7594-ce5c20d5e273,FISHING,309.58944444444455,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,308.57500000000005,224025280,BETI ZERUKO IZARRA,c144b5761-142a-d549-09c8-e80207b82e6d,FISHING,308.57500000000005,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,307.3127777777778,224041480,COSTA CORDAL,a0a6f0c66-66b7-2d98-c993-8013fc7a99eb,FISHING,307.3127777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Drifting longline,305.7391666666667,224170000,ISAMI,ee7bcc7e7-7661-5c6d-2273-722ee31adc33,FISHING,305.7391666666667,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,305.6675000000001,228190600,F/V BOUGAINVILLE,1a6080335-57e9-612d-3c3f-0646a81dd83f,FISHING,305.6675000000001,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,304.5930555555556,224046190,SIN QUERER TRES,b0f4a17ae-e896-ce6b-1ff6-a5f6c280ea50,FISHING,304.5930555555556,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,303.74194444444447,224936000,SIEMPRE REVUELTA,0986edd25-5cd2-395f-0757-0c2306103fa1,FISHING,303.74194444444447,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,300.60560027777785,224055790,BEDIA,449e9c462-2731-fd18-8e49-e6444c16f217,FISHING,300.60560027777785,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,299.28000000000003,224011990,GALIANA SEGUNDO,08dfeddd3-3574-7f21-5c21-45eaa7b5f6b0,FISHING,299.28000000000003,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,298.99777777777774,224009840,SIEMPRE URBEGI,e398b22e0-08d3-c6b8-615d-ae680118b96f,FISHING,298.99777777777774,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,298.88241666666676,224046790,FRESAN,48b292146-6c42-6510-ff60-a7ea3840947b,FISHING,298.88241666666676,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,297.2122222222222,224021580,NUEVO ROBER,d9e77e841-17d5-d390-329c-e72eed5fa123,FISHING,297.2122222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set longline,294.0075,227344000,F/V NOTREDAMECEDEIRA,193c66d3d-dcce-f03c-349d-8fe71743bf5d,FISHING,294.0075,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,292.1350000000001,224090990,ARANTZAZUKO IZARRA,d9ad63a3b-bd41-ac46-a1b9-b51b5dc0bdb0,FISHING,292.1350000000001,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,290.38694444444445,227308170,PIPACH 2,bb0c1f9f0-0bb7-1f31-b7b4-aff2e493b498,FISHING,290.38694444444445,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,290.18888888888887,224022810,BERRIZ AMATXO,7c2142220-0c4d-493a-3d91-e7d28fbe99bf,FISHING,290.18888888888887,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,288.51389472222223,227595000,F/V LES MISERABLES,2ee5f1190-0e6b-d3bb-a422-da30e1e32852,FISHING,288.51389472222223,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,286.39666666666676,228239900,F/V MOOREA,bf8ea5a6d-da08-eb91-ddff-987067ab047f,FISHING,286.39666666666676,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,284.94027777777774,228435600,F/V CAMELYS,e1c0f330c-c483-50a0-798d-a3ebc7d4f2ad,FISHING,284.94027777777774,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,284.33277777777784,224222760,CAPRICHO CAMBADOS,e46ebc162-22a8-46d2-86a2-d1955c02b0ce,FISHING,284.33277777777784,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,282.9136111111111,224229960,AVE FENIX,7ae7baaed-dbfe-6f28-6bc7-ff38d5ae2b1d,FISHING,282.9136111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,281.3997222222222,224222770,CAPRICHO DE PERCEB.,ad89882a7-72f6-e4e7-0d2e-58b4d69e8293,FISHING,281.3997222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,281.19750000000005,224161140,MATXAKU,bb9dd9957-7c4b-0805-a7fb-cb4b08e64011,FISHING,281.19750000000005,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,279.59805555555556,227124200,L'ENFANT TERRIBLE,dec96a653-3799-d789-6678-2ffdb8c86858,FISHING,279.59805555555556,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,279.5616666666666,224176270,ALEXANDRE,a5615ec78-8ce9-0488-34e9-b243361dc4b5,FISHING,279.5616666666666,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,276.4850822222222,228258000,F/V MANATHIA,8186b7449-91dd-27d7-6827-80b3481ca59b,FISHING,276.4850822222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fixed gear,275.26472222222225,224220760,NUEVO MARGARITA,64c40dfe0-0e5a-b29e-0b1a-1dd5bc965808,FISHING,275.26472222222225,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,274.88108750000004,225992777,BI AHIZPAK,f17bdcc7a-acfb-60a9-4783-4ac647b9da60,FISHING,274.88108750000004,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,273.20611111111106,224132850,SEMPRE GALAICO,e2ddc79e0-0a48-5a9b-d9a4-efbd779b8b54,FISHING,273.20611111111106,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,273.07141444444443,224084990,F/V SAN R0MAN,cdd073d9f-f989-abe9-b6c8-8046627c0b8b,FISHING,273.07141444444443,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,271.9752777777778,224100180,PLAIA DE RUETA,107f7b8f5-58d0-6736-d3fd-671905d69607,FISHING,271.9752777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,271.7583333333334,224022380,MANILO,47f9c8142-26e8-ebf8-1f88-e1362d92202e,FISHING,271.7583333333334,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,271.5347222222222,224085120,MIRANDO O MAR,52dde4ed1-1c82-4976-ef58-98b83503764b,FISHING,271.5347222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,271.10972222222216,224315860,SEGUNDA ROMINA,ae39fc868-8afc-c0a7-4068-a7c957cf3fce,FISHING,271.10972222222216,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,270.9855555555556,224082870,NOVO  CAZADOR,d344cd3a0-0261-6dce-092a-d8648a52460f,FISHING,270.9855555555556,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,270.55583333333334,224141830,MI NOMBRE CINCO,4d4ee452a-ad3d-42e4-51ec-da8f96f23f16,FISHING,270.55583333333334,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,268.85416666666663,224050140,CHONO SEGUNDO,8a77a2d58-8d6b-dc34-1e87-c65b70afaf49,FISHING,268.85416666666663,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Dredge fishing,266.7338888888889,227992610,AINHARA,b1598a955-5519-793c-bd3f-1490cf00de56,FISHING,266.7338888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,266.19401583333337,224222120,VILLA SUANCES I,632c75eb0-0b75-abe4-eff5-eb8cb438d788,FISHING,266.19401583333337,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,264.4622222222222,224042130,PESCALEMA,7b6858881-1969-15b4-b6ef-4315b25df275,FISHING,264.4622222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,261.8886111111112,224215890,NUEVO TURRI,9008d9454-4017-eaff-cd12-d1988343d1f8,FISHING,261.8886111111112,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,260.2997222222223,227603670,F/V L IMAGINE,5883c98c1-1ac5-8544-6656-7781fd5578e7,FISHING,260.2997222222223,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,260.04749999999996,227852000,F/V KEFELEG AR MOR,a8d2cf4f3-3749-4e43-13a2-705d735d6523,FISHING,260.04749999999996,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,258.17527777777775,224138330,BETI BEGONIAKO AMA,75d6bd5b5-56e9-ca99-ef2f-88d4347a3e7a,FISHING,258.17527777777775,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,257.1263888888889,225985739,O TITAN,4e1a932f8-8086-a763-c586-6f9e51f2a24b,FISHING,257.1263888888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,256.9238888888888,228364000,F/V PAPI PAUL,f21cbdc50-06fa-a3d9-cc71-9c9aa3acf794,FISHING,256.9238888888888,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,256.8919863888889,228298000,F/V LE PTIT BOGUESE,2dbdf233e-ea1f-8a29-97e0-f2d9af3a14ff,FISHING,256.8919863888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,255.11972222222224,224059790,CACHARULO,2d312c399-9e2f-d119-bc1d-7ea3ddd1dd14,FISHING,255.11972222222224,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,252.99069138888885,224155960,MIRANDA DB,2b0131433-3e54-9a2a-8bbf-27d3d7502bd3,FISHING,252.99069138888885,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,251.75277777777777,224137140,GUK,bf586de11-195e-e7ec-ba63-9d16a76df1f9,FISHING,251.75277777777777,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,251.485,224225380,BETI AURRERA,3b77b48ef-f1df-caac-6316-def08c36d3ed,FISHING,251.485,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,249.9427777777778,228288000,F/V LOLA JULIA,6dd7d6cff-f142-2510-a3f4-82158e541134,FISHING,249.9427777777778,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Troller,246.34666666666672,224112290,NUEVO CHISU,737009bb7-77bf-fe5a-91f4-4a263b525fea,FISHING,246.34666666666672,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,BEL,Trawler,245.7927777777777,205243000,Z.48DE MARIA ANTONIA,6a4f382df-f9fb-3501-4f27-9d3ca868e3c5,FISHING,245.7927777777777,public-global-fishing-effort:v3.0,Belgium
+public-global-vessel-identity:v3.0,FRA,Trawler,245.40027777777783,228929000,F/V ADELINE STEPHEN,c4028defe-e3b3-8b4f-c1b1-23424a70b978,FISHING,245.40027777777783,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,245.07305555555553,224218930,CANALECHEVARRIA,fce6732bb-b832-31ce-800b-858102de9b8d,FISHING,245.07305555555553,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,243.675,225993058,CARMEN DOS,8b93a8ede-e149-1a39-08cd-5c3354b1b4c5,FISHING,243.675,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,243.3561111111111,224117130,MONTSERRAT MORENITA,16be88f6a-adb0-5b67-6ce1-12ff3245ec08,FISHING,243.3561111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,242.0891666666667,224139780,XIANA E ANXO,fc2db23bc-c438-1c06-95e3-7e7de8206d4a,FISHING,242.0891666666667,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,240.51277777777776,224223470,JON KURTZIO,0afc5a61f-ffbf-6915-9792-d8aedc69fbe4,FISHING,240.51277777777776,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,240.37833333333333,224096830,MARUXIA SEGUNDO,fa9d8060b-bed2-a83a-f333-884f774fea86,FISHING,240.37833333333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,239.8675,224174930,BETI EUSKAL HERRIA,7b4780298-8562-f500-0901-16bfc6ea7167,FISHING,239.8675,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,239.59694444444443,224081790,F/V ALMIKEKO AMA,d96f63a12-2a75-1a79-e13e-5ebd71ffc2c1,FISHING,239.59694444444443,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,238.14666666666662,224021340,OLLO DO MAR,615cff297-7b57-5e51-e527-082767cf48ad,FISHING,238.14666666666662,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,236.7236111111112,224051160,MARIA DIGNA DOS,d9e96f9b6-667f-af25-85d1-b088f9e06701,FISHING,236.7236111111112,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Drifting longline,236.60361111111106,224290000,LEPORRE ANAIAK,b718cf738-8ad7-35f7-0f4c-732cb9fc2b43,FISHING,236.60361111111106,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,235.45361111111112,224103760,MARCELINA LECUE,1883b71dd-dc37-4f0a-73ab-d8892b4b125e,FISHING,235.45361111111112,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,232.4261111111111,227602960,Unknown vessel,ff8e88145-5746-93b4-90f5-03e6d9660ee7,FISHING,232.4261111111111,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,232.39166666666665,224019680,SALETA,66ff42edd-d7a1-83ce-feac-b56f04dd10b1,FISHING,232.39166666666665,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Fishing,231.4880555555555,227917000,F/V R0NSARD,9674402a0-025d-f65a-3240-0b52302f8711,FISHING,231.4880555555555,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,231.02750000000003,227410000,F/V TANGAROA,f99fde007-7754-7f06-d75e-85cf4cc5fa5d,FISHING,231.02750000000003,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,228.59138888888884,227643640,Unknown vessel,02e305820-0285-1dc5-a08f-4a708225607d,FISHING,228.59138888888884,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,228.4808333333333,224012850,PLAYA DE COVAS,12e483dd1-1e71-1b16-2bc8-00e65928f8cd,FISHING,228.4808333333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,227.91583333333332,224100590,ARDORAN,5d264886a-af66-2466-9aea-157da9ca97a2,FISHING,227.91583333333332,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,226.93360388888885,224063940,F/V NUEVO LIBERTAD,467271205-5103-8957-2276-f0951e185f6b,FISHING,226.93360388888885,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,226.11861111111108,228345000,F/V LE TRAPPEUR,2c19a660d-de22-0355-3fc7-2cb06d3f9721,FISHING,226.11861111111108,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,,Fishing,226.06166666666664,109060146,BOUEE ORION 4,5383477fa-ab47-855b-705b-4809afdd4d2f,FISHING,226.06166666666664,public-global-fishing-effort:v3.0,
+public-global-vessel-identity:v3.0,FRA,Trawler,223.68888888888893,228224900,F/V INSOLITE,2d51d03a4-4c5b-1e03-5e64-5a5cf747db3f,FISHING,223.68888888888893,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,223.6255555555556,224618000,PUNTA CANDIEIRA,d2bbfb07f-f918-5e6b-7515-d0b4ae0a2a29,FISHING,223.6255555555556,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,223.47111111111113,224157000,BASALDUA,4013ae9f6-6402-6e0f-41fa-a7b71f62ecae,FISHING,223.47111111111113,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,223.31833333333338,224057370,KOROKO,81e36d16b-b001-a805-49c1-4f7998eb56c1,FISHING,223.31833333333338,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,222.04416666666665,228390000,F/V CAP NO,a64825c52-22d9-1a94-3fd2-dc474ec897d5,FISHING,222.04416666666665,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,218.87027777777783,224042160,O`ORIENTE,ace2a0c69-92c5-6265-13d6-76df3552df60,FISHING,218.87027777777783,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,217.54222222222216,224146950,O SUBRIDO,ed671e763-3477-4b25-7cb8-b792224849a5,FISHING,217.54222222222216,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,216.8844444444444,224198440,NUEVO TRES COSTAS,325430b77-7baa-105d-82a6-73888b481d13,FISHING,216.8844444444444,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,215.99583333333337,224279660,NUEVO SALVADOR PADRE,5c6ad9b00-0d92-56c4-2d02-6ee476bff2d9,FISHING,215.99583333333337,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fixed gear,215.9891666666666,224030940,ARADON BERRIA,fa24ddd4e-e1c2-b9dc-49ee-a537998aa0b1,FISHING,215.9891666666666,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,215.81111111111102,224658000,GALIANA PRIMERO,01391741c-c59b-35ae-f379-b2c85545c693,FISHING,215.81111111111102,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,215.34638888888884,224093330,ARGOTE DOS,a080c2c60-00f8-9199-4097-4617691336d4,FISHING,215.34638888888884,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,215.1525,224015440,MARUXIA,5e5c56040-0e67-ebff-1d99-5ea6ddb57ad2,FISHING,215.1525,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,214.27277777777778,224101980,PORTOSIN DOS,3a3fbb57a-ab8f-293e-5413-7f78d7e229bb,FISHING,214.27277777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,213.95166666666665,227316490,F/V LE CROISICAIS,29cbcbf59-97ad-3f6f-3e00-82796ad6419c,FISHING,213.95166666666665,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Pole and line,212.8361111111111,224082580,EL MACIZO,d703a7d32-2b3a-fb34-8509-63944dee0ad9,FISHING,212.8361111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,211.7044444444444,224119550,FARO SISARGAS,ec7040b5d-ddb4-e55f-e80b-0cd553f0c3c1,FISHING,211.7044444444444,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,210.07722222222222,224108450,MAYAD0R UNO,1942192ef-fa38-b197-d975-2e47b7b11116,FISHING,210.07722222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,209.1702777777778,225362000,FARO DE BURELA,969dfc1db-bb14-a27e-c84e-2b4109e21fdb,FISHING,209.1702777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Purse seine,208.3702777777778,224073630,PLAYA DE CESANTES,ec7ddd427-72da-ca6e-cf52-c8e1441b94d0,FISHING,208.3702777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,205.52944444444444,225988667,OPRONTO,b27d12f88-8ecb-1e3c-f183-c94714a3ae67,FISHING,205.52944444444444,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,204.91138888888892,224232360,CASTRO VERDE,9a35afadc-c413-622a-5a03-f90ea07560bc,FISHING,204.91138888888892,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,204.00222222222226,224005830,O CAPRICHO,1b6e364ed-da2a-3031-3be0-97900c2c26e0,FISHING,204.00222222222226,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,203.94777777777776,224014530,F/V PLAYA DE BARES,3aae1db25-5f1a-4acb-bdbf-7207741cd756,FISHING,203.94777777777776,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,203.76305555555555,225989357,LITORAL,f3ad2e3be-e577-bcc6-9162-e7e4f069f15b,FISHING,203.76305555555555,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,201.1980555555556,227304010,Unknown vessel,d5210b3ee-eb90-2f50-8d6b-255386d93a43,FISHING,201.1980555555556,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,200.99833333333328,224215890,Unknown vessel,d78e56890-036b-ffe5-3c93-83b31b990095,FISHING,200.99833333333328,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,200.84916666666663,224144750,GURE ITXAS BEGI,b6cefd1df-f493-0ce4-17a7-d5bda27823bd,FISHING,200.84916666666663,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,198.13361111111118,225384000,NUEVO PEREZ,6065f6bf8-8ecb-5fdc-2971-12200b99361a,FISHING,198.13361111111118,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,197.50194444444446,228931000,F/V CARLA EGLANTINE,d1591d1b0-0b82-e0cf-9dae-9bb426940871,FISHING,197.50194444444446,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,197.38027777777774,224068580,CRUCEIRO DE PAZOS,f17aeb46f-f353-d286-c2e9-26220a5fd70c,FISHING,197.38027777777774,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,196.7786111111111,224299000,REY DE OLAYA,dc506c256-657e-3b58-7430-8f0757a5ddce,FISHING,196.7786111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,195.10805555555555,227640970,Unknown vessel,5156e0bd0-0cb7-86e7-76e8-3fafa1fca557,FISHING,195.10805555555555,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Drifting longline,193.65916666666666,224021820,LUSITANIA PRIMERO,d4c669ba4-4422-2c40-4a7a-d43df3d5dfc9,FISHING,193.65916666666666,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,192.5461111111111,224136380,VIRGEN TERCERA,91666fdf5-5b79-3645-64da-8d199b76cd7e,FISHING,192.5461111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,192.53916666666663,224071740,VIRGEN DEL FARO,44520594f-f99c-ecc8-62eb-ec888da2aea8,FISHING,192.53916666666663,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,188.43388888888887,227561230,DOGGER,979e02f22-2f88-fbc7-3756-c373452e141c,FISHING,188.43388888888887,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,187.78555555555556,224052450,RIOBAO UNO,c06d5855a-a31e-b711-8f04-642adbdde66a,FISHING,187.78555555555556,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,183.0702777777778,224106440,Unknown vessel,bab269066-680c-f6ab-98e4-fdc9e4364132,FISHING,183.0702777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,181.98277777777787,224094740,F\V CRUZ Y CRISTO,2697b402a-aabb-8d35-8fb5-37138f715787,FISHING,181.98277777777787,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,181.90333333333336,224128680,OS XUXOS,a679613e0-065e-3567-6168-c30ec4ff5459,FISHING,181.90333333333336,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,180.15083333333328,224009240,CABO DE SAN LOREZO,426e452e8-855b-5531-bf54-c7fe0d63b4ff,FISHING,180.15083333333328,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fixed gear,179.6641666666667,224980870,NUEVO SALORIO,ab99fd45d-ddca-039f-e030-0f4e31410ec6,FISHING,179.6641666666667,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,176.13388888888898,227860000,F/V MAGAYANT,80d784ef9-9d55-200a-2045-bca073235a91,FISHING,176.13388888888898,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,174.8063888888889,225994807,FERVOROSO,b58e70e74-49ab-3267-3eea-bd6aa0f40813,FISHING,174.8063888888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,173.71016583333332,224101890,GALAICO SEGUNDO,471f63ea4-4956-a371-1ffb-ac68bfb90a7d,FISHING,173.71016583333332,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,173.5886111111111,227533000,F/V YANNICK,7b129ffca-af30-6001-2bfc-f3f84e09a6e3,FISHING,173.5886111111111,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,173.51999999999998,224175960,CURRANA UN,b83b70753-382f-87d9-90de-f5fd1e160b39,FISHING,173.51999999999998,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,173.07583333333335,227657220,F/V L ORCA,6834cd000-0e08-c397-7aa5-36f2f04c1f77,FISHING,173.07583333333335,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,171.30388888888888,224106260,BERRIZ PATXIKU,0f9914e2b-b7a2-290e-391b-2f345b8411d0,FISHING,171.30388888888888,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,171.10194444444437,224221430,EL MARINERO,5a1298cd5-5220-caaa-1660-84e979f8edd5,FISHING,171.10194444444437,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,170.0863888888889,224102530,O POCHE,20098317d-d8a2-b61e-ae3c-751f032216d5,FISHING,170.0863888888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,169.79888888888888,224225430,LUTXI,0733bca6d-df16-13a8-4c3e-2dacaf389915,FISHING,169.79888888888888,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,169.66472222222222,227319490,F/V LES CHOUCHOUS,bfbd4c87f-f485-be6f-6fab-5d1f7184716b,FISHING,169.66472222222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,169.55277777777783,224223670,NUEVO MARGIL,0505e95ab-b306-51bb-cad9-2cf7fc0d9519,FISHING,169.55277777777783,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fixed gear,169.00722222222223,224331590,SIEMPRE SAN ROQUE,0a135802c-cf98-e50c-e7cc-2395b2e280dc,FISHING,169.00722222222223,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,168.9872502777778,224050280,OSTARTE,7313c5d2a-a59d-bf74-ad47-0cf934208197,FISHING,168.9872502777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,166.80638888888885,224147740,NUEVO JUAN SANTANA,15adb27cf-fa47-b9cf-b3c5-87bb73d41e9a,FISHING,166.80638888888885,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,165.54000000000002,224042880,NOVO XOEL,6e2aaa324-498f-aaf3-a2e5-a3c600b4b33b,FISHING,165.54000000000002,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other,164.73833333333332,224949000,PUNTA CANCELADA,eb7b4319e-e4d8-aba4-4a20-2fa6968200d3,FISHING,164.73833333333332,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,164.58222222222224,224162880,TERCERO DOS MEROS,1a2a7fa51-13dc-f049-3a0e-d4cb6b9bbe1b,FISHING,164.58222222222224,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,164.54416666666665,225988313,NVO PLAYA DE CARINO,929d2fc46-6e4b-aad6-329a-bd48873a7fc5,FISHING,164.54416666666665,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,164.48916666666662,224051950,FARO DE ONS,337000eb2-2ad2-d646-e3d9-c9e1a8ea4aa9,FISHING,164.48916666666662,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,163.5238888888889,224028550,NOVO AMEIXA,b0318798a-a343-1ca4-4570-1b6a8f4f67ae,FISHING,163.5238888888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,162.52694444444447,224079240,SIEMPRE SANTA MARIA,dc01947ec-c457-b1b7-d115-51148ad7c596,FISHING,162.52694444444447,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,IRL,Trawler,161.77944444444458,250269000,REALT ARA,ec069cf28-816f-f2e1-0097-4654c2d5d261,FISHING,161.77944444444458,public-global-fishing-effort:v3.0,Ireland
+public-global-vessel-identity:v3.0,ESP,Set gillnet,157.05111111111114,224221930,LA PLAYA UNO,6ec5331e6-6876-c70d-c585-3e45012dff5c,FISHING,157.05111111111114,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Drifting longline,156.77027777777778,224116380,PUNTA DO CASTRO,b2f9940b9-9945-80d3-e883-851dd48fa5a6,FISHING,156.77027777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,156.72527777777776,224137880,GOIENKALE,c4612f269-9fc2-5ab1-d12a-ce9aab992b81,FISHING,156.72527777777776,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,156.60472222222225,224067940,NUEVO PENIL,466a4eda9-92f0-402f-9ac5-272d76dde045,FISHING,156.60472222222225,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,156.30888888888884,224012660,NVO HNS CORTABITARTE,0f0d5dcfa-af26-8644-86e6-4607d9a802c6,FISHING,156.30888888888884,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,155.85583333333335,227833000,F/VLE TAD,489cba923-3049-ffea-88eb-d1b88f08845a,FISHING,155.85583333333335,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Trawler,154.85194444444437,224171360,O CANTINO,82d5362c6-6916-559f-af2f-2592f574ee45,FISHING,154.85194444444437,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,IRL,Trawler,153.46583333333334,250006112,ELLA,8564b129b-be3a-329d-8c20-14d1706e5c09,FISHING,153.46583333333334,public-global-fishing-effort:v3.0,Ireland
+public-global-vessel-identity:v3.0,ESP,Set gillnet,150.7036111111111,224100870,SAN MARTINO DOUS,ad7f54f73-37fd-36f9-5747-519407c68070,FISHING,150.7036111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,150.495,224021730,HNOS ISTILLARTY,50ef3ab8f-f988-3916-ec13-3a4949e261f6,FISHING,150.495,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,149.62111111111113,225985576,MANOLO DEL TERIN,36adc575b-b285-26c4-3b07-5e116a2f575d,FISHING,149.62111111111113,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fixed gear,148.9016666666667,225985132,SIEMPRE SAN PABLO,0494c9c9f-feaa-1a66-5826-7263378cb27d,FISHING,148.9016666666667,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,BLZ,Inconclusive,145.6938888888889,312021000,GERD,a5864e3f3-38e3-167d-8b54-2a64aa03ca25,FISHING,145.6938888888889,public-global-fishing-effort:v3.0,Belize
+public-global-vessel-identity:v3.0,ESP,Set longline,143.89305555555558,224072280,GURE ITXAROPENA,46e551bc0-0b5b-5b87-8771-40f643746797,FISHING,143.89305555555558,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Troller,142.75888888888892,224112790,ESMERALDA TERCERO,ce9df8ff8-8a40-9d57-c0cb-51bc2e2df986,FISHING,142.75888888888892,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,142.73638888888888,228138000,F/V VICTOIRE-CELESTE,7ce5a7b57-7e37-c50c-795b-de54ffbedafe,FISHING,142.73638888888888,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Purse seine,142.7025,224085560,MUNDAKA,239d69ee2-2f72-ace9-9694-3ae570635bb9,FISHING,142.7025,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fixed gear,142.6977777777778,224218130,YODAM,0ca3ea5eb-b6a9-773c-730f-3b112dfea36b,FISHING,142.6977777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,142.64861111111114,224127240,COMILLAS TERCERO,6125fa302-2acd-fce4-37fb-8f9dee074636,FISHING,142.64861111111114,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,142.64555555555557,224005670,PEDRA DO MAR,e2dd2b576-641e-fd88-5da0-786643089aa4,FISHING,142.64555555555557,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,142.5705555555556,224227000,F/V N.CRISTODELBUENV,42626ea48-8c9e-cfba-0445-6229303f3c7e,FISHING,142.5705555555556,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,142.25333333333333,224085250,GAMECHO,eda7e2550-03b2-7581-eb9d-9517670d8c8b,FISHING,142.25333333333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,142.00944444444445,227642080,F/V L ABSIDE,5221656a6-6f80-bece-3348-df44f07c53fc,FISHING,142.00944444444445,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fishing,139.0588888888889,227909000,F/V RABELAIS,8814157ad-d7aa-b520-ac00-6e54087e25e7,FISHING,139.0588888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,137.25750000000002,228200000,F/V ROUDOUDOU,d9db03947-71ae-fd5a-3c3f-782d038f0136,FISHING,137.25750000000002,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,136.0772222222222,225982788,SANTINHO DO MAR,9e16ac410-0abc-2209-8325-1802cd2e6e35,FISHING,136.0772222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,135.52694444444444,224327890,PEGAL,bbc46411b-bd29-f679-403c-81cb7c9398df,FISHING,135.52694444444444,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,135.4905555555556,224103760,MARCELINA LECUE,2a4304dc5-5e20-47e9-3fb5-deb53cb59dfd,FISHING,135.4905555555556,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,135.08361111111108,224239960,NUEVO PLAYA LUANA,b09c96df3-3fdb-3bf3-6b7e-201751c4eaa9,FISHING,135.08361111111108,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,135.02750000000006,224005820,MURO DE FONTAN,7a4dfffe2-2ae3-8341-f460-b9d025c9a01a,FISHING,135.02750000000006,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,133.99916666666667,227412000,F/V KERSINY,67979a80f-ffe4-b396-45e8-f6b4510454f0,FISHING,133.99916666666667,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,132.57277777777776,225987542,PRAIA DE AROU,6659cd49e-e605-af16-9120-b178af12132f,FISHING,132.57277777777776,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,131.94972222222222,224181160,MADARI,b73115b96-6bfd-81e1-080c-768eed8650ff,FISHING,131.94972222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,127.67000000000002,224020750,MAR DE GRECIA,4595cd3ce-e188-b917-6f58-08ba59bd1f14,FISHING,127.67000000000002,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,125.03944444444447,228240900,F/V P`TITE MILA,c56d95dd2-2bdb-badd-a218-cae264737b17,FISHING,125.03944444444447,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,123.72027777777775,224495570,BETI ISKANDER,0525539c0-0738-3477-72a5-d873eb79e319,FISHING,123.72027777777775,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,122.97499999999997,224003580,A TENENCIA,4b0830cf6-65f4-fdd7-f6bd-d0bfdd00d346,FISHING,122.97499999999997,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,122.00444444444449,224007820,GAZTELUGATXEKO DONIE,d6e0a7ad2-2d37-8ae9-cd8e-6b2219be9d8d,FISHING,122.00444444444449,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,121.54666666666665,225991651,NUEVO MINONES,204d7bc42-2bc2-70f4-a4a5-57569c4c93ab,FISHING,121.54666666666665,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,120.80611111111111,228364600,LE DOLMEN,387c66d0f-f4be-61dd-8cbf-0bb799b555fa,FISHING,120.80611111111111,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fixed gear,120.68944444444443,224205930,SIEMPRE NOAMAR,75795e506-6a06-5032-0c5d-7dc884250921,FISHING,120.68944444444443,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,119.69749999999998,224022350,PUNTA DEL ESTE,96d567522-200f-acad-765e-8b2edd31d1f6,FISHING,119.69749999999998,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,IRL,Trawler,119.42527777777778,250000428,ATLANTIC QUEST,8b6c1cb81-1472-f2a8-7ca0-3f2a10065f50,FISHING,119.42527777777778,public-global-fishing-effort:v3.0,Ireland
+public-global-vessel-identity:v3.0,ESP,Fixed gear,119.37833333333333,224056960,PLAYA DE TRABA,e11221fef-ff1f-46e4-64bf-fd6cdfb9f947,FISHING,119.37833333333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,119.0288888888889,228157000,F/V EL AMANECER,84fd94a56-65eb-adb0-a678-ef53cba8c9e5,FISHING,119.0288888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,116.0122222222222,224029830,NUEVO MAR GLORIA,6ec02e33f-fe87-3107-e512-f07c3fb43c98,FISHING,116.0122222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,115.25416666666666,224094960,ILLA DA CREVA,0061c05e6-640a-39a7-3db0-21b915d2b848,FISHING,115.25416666666666,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,114.16944444444444,224048880,REINA CONSUELO,0a5b5e483-3439-a087-a7d3-ead703b6ad4e,FISHING,114.16944444444444,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,114.08972222222225,224016330,SIEMPRE ANGELA,8e8bb8459-9e52-377b-d5a2-b88cab31dec3,FISHING,114.08972222222225,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,114.00277777777777,224107990,O VISCAYA,996badc24-4c3a-bca4-c3a8-a3e4affc6704,FISHING,114.00277777777777,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,112.36333333333333,227629620,FV BLACKANDWHITE,37ca78a40-06ad-d7f8-20c8-710feefdbb91,FISHING,112.36333333333333,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fixed gear,111.23,227636430,MILA,47fe5fd29-93be-7f11-1472-131873946bf5,FISHING,111.23,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,110.40416666666667,228329000,F/V NAUSICAA,7e2f28d77-7828-bb5a-78c4-d0f37d8d3240,FISHING,110.40416666666667,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,110.20749999999998,227172660,PITXIN,5765ee4a8-8af2-75e3-a998-ef4f50e528cc,FISHING,110.20749999999998,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,110.06611111111111,227808000,F/V OISEAU D TEMPETE,0de3b3abe-ed55-51f4-5f0b-8559ead9ebcf,FISHING,110.06611111111111,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Pole and line,109.975,227138500,Unknown vessel,8f673e537-76fe-6414-5d5f-7a2f7edcd97a,FISHING,109.975,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set longline,108.97111111111109,227978000,F/V MEABAN,4bc00d5ff-f652-903f-90e8-4d0d9a32f6fc,FISHING,108.97111111111109,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,IRL,Trawler,108.8152777777778,250005539,TEMPO,479173846-62ff-993f-1eaf-2b0477c3c159,FISHING,108.8152777777778,public-global-fishing-effort:v3.0,Ireland
+public-global-vessel-identity:v3.0,FRA,Trawler,108.49444444444443,227641030,Unknown vessel,a14fe1224-4943-dc51-de80-b4becbd57d65,FISHING,108.49444444444443,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,108.46416666666667,228200000,Unknown vessel,e0c7087c3-3e4f-e930-6ad2-d408c89f0201,FISHING,108.46416666666667,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,106.83944444444444,224239970,MANUEL TERESA,bf11bbd93-3771-1988-61b1-e1aae20dc72e,FISHING,106.83944444444444,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,106.54083333333331,224058930,SAN MANUEL,6a7870774-4b07-dde9-2ded-a0c16abb5e93,FISHING,106.54083333333331,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,105.68722222222225,224008640,NUEVO PAQUITA,9c7119af7-70ca-4fa6-a7b5-6d2dc61e22a9,FISHING,105.68722222222225,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,105.37083333333331,224189260,MARCIALITO QUINTO,551a64889-990c-9eb3-3be6-6271227d4bc0,FISHING,105.37083333333331,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Fixed gear,105.1875,227666930,FLIPPER,3177a1cf0-01f0-7ddb-7d4d-7df12cc48ca4,FISHING,105.1875,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Trawler,102.68500000000002,224514000,PLAYA DO TORNO,3bc80bbd2-2a7e-c879-3948-5fc2bc71bb69,FISHING,102.68500000000002,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,102.30444444444446,228193000,F/V L`AS DE TREFLE,ef2af15ee-e99c-9c3b-a91d-20a38222a5a2,FISHING,102.30444444444446,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,102.22555555555556,227316650,LE MELA,5ad73ec91-14e0-325c-d84f-0024efb2bb3d,FISHING,102.22555555555556,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,102.12472222222222,224050740,SAN ADRIAN DO MAR,b9b3c5d46-6158-5e71-557d-ea2d7e8302eb,FISHING,102.12472222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,102.03833333333334,225983539,MARGIL,b8d86fa15-5978-63e8-ebaa-107d2a868dd7,FISHING,102.03833333333334,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,100.28861111111108,224081130,REGINO JESUS,d59e4a2d6-64df-9572-4f9c-39a5a2779105,FISHING,100.28861111111108,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,100.26083333333332,224082850,CHIQUITA DOS,5c3364f93-3220-62a9-efc5-d02dd2c30f86,FISHING,100.26083333333332,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,98.67138888888888,227641030,F/V ORION,8c3d0d1c3-36d3-1366-feb7-e659a8b2bb2e,FISHING,98.67138888888888,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,98.12222222222225,225946280,NUEVO MAPEI,b7b8b69d0-0609-9be4-e562-a48425c52aef,FISHING,98.12222222222225,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,97.18444444444445,224031680,0S T0BA,34c4e07bd-d2b8-ad70-71f6-8a94043669b1,FISHING,97.18444444444445,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,95.6886061111111,224076190,NV-PANELO VILLA,7a762733a-a117-fdc1-bab6-e8113323cfdb,FISHING,95.6886061111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,94.93944444444445,224022550,V.PODEROSA PRIMERO,020a5ff14-4352-b62d-9a1a-63265db76b5e,FISHING,94.93944444444445,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,94.58333333333331,224170740,JOSE EDUARDO,22719db71-1149-8ea8-5bb3-10f0606e7715,FISHING,94.58333333333331,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,94.52055555555559,228222900,F/V CARMALIA,9f38cd8bb-b485-7dbf-5972-8bb1b7c07219,FISHING,94.52055555555559,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fixed gear,94.23222222222223,224394330,METEORO TERCERO,092df4331-1e35-17a2-6da2-74c522ac72ac,FISHING,94.23222222222223,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set longline,93.98222222222222,227107100,F/V CARLA,2b8376b0d-d7c5-3073-1a54-d35d6f863ac3,FISHING,93.98222222222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,93.95277777777777,227619840,F/V MISTRAL,1c81ae942-2443-4a07-8de8-f0cd4bf563a4,FISHING,93.95277777777777,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,93.91888888888887,224051650,NUEVO SAN MATEO,763f37f2c-c761-e9f3-d301-03dc60903fde,FISHING,93.91888888888887,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Drifting longline,93.72555555555556,224100530,ZAMORA II,fa8c11ae3-3949-60e6-24b9-80686f962d26,FISHING,93.72555555555556,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,91.29722222222222,227883260,SAN FRANCISCO,27a2efe50-0b7b-003a-3558-29e3e9e94db0,FISHING,91.29722222222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Trawler,91.04583333333332,224213490,BALEIRO PRIMERO,f23b35317-75d5-8ac1-7eab-6985b06870e9,FISHING,91.04583333333332,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,90.7738888888889,224216220,MENDANA,3973abb77-7e69-2358-2c82-6994fcfb2f39,FISHING,90.7738888888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,90.51388888888889,227355000,F/V MARILUDE II,6820ddc28-80e2-e9a7-dc03-bc65394a45f6,FISHING,90.51388888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,89.89388888888888,227109900,F/V AQUILON,4bc82ddca-a3af-a1ad-4406-51445500cb04,FISHING,89.89388888888888,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fixed gear,88.92138888888887,224382320,NUEVO MADRE DOLORES,fc3b0b71a-a929-6500-45e0-2953cd816dac,FISHING,88.92138888888887,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fixed gear,88.83666666666666,224021560,NUEVO HNOS SUAREZ,afed21ccd-d193-831e-0315-7f717d47e41f,FISHING,88.83666666666666,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,86.81472222222222,224980000,COVADONGA PRIMERO,dc2f96458-8ca1-c2d6-d7e7-cfdae9236c56,FISHING,86.81472222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,85.72166666666666,224181530,RIA CEDEIRA,541b628e9-9697-87b0-6d1d-586b0251bac1,FISHING,85.72166666666666,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,IRL,Trawler,85.35111111111111,250000466,ETERNAL DAWN,0c9f1fef1-1d78-94f2-343d-984e1d364ffe,FISHING,85.35111111111111,public-global-fishing-effort:v3.0,Ireland
+public-global-vessel-identity:v3.0,FRA,Fishing,85.26527777777778,227643210,Unknown vessel,4074300d1-18ee-1b6b-a133-060685d323ec,FISHING,85.26527777777778,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fixed gear,83.62305555555557,224221920,FRANCISCO PADRE,e33adc766-64e7-d450-ef35-5c5177586d6c,FISHING,83.62305555555557,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set longline,82.65249999999999,228224000,F/V LE RESSAC,64b773fb5-5915-8fd3-bc34-ea3d932c32d4,FISHING,82.65249999999999,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fishing,80.89472222222221,227678320,LE GRIFFON,84e8e6650-0cd3-e124-2d71-6a79d96a0cf2,FISHING,80.89472222222221,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,IRL,Trawler,80.83472222222218,250106800,OILEAN AN OIR,989db12f9-99bc-c81f-bdfc-d6c7a3c941ba,FISHING,80.83472222222218,public-global-fishing-effort:v3.0,Ireland
+public-global-vessel-identity:v3.0,ESP,Set longline,80.06694444444445,224011260,F\V MARISCADOR,3d4f27b2c-c8a9-9515-f4bd-6c7457c43d06,FISHING,80.06694444444445,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,79.73222222222223,224285230,SIEMPRE EDER,01c46228d-d3ea-b244-6431-95e4242376cd,FISHING,79.73222222222223,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,79.41833333333332,224332470,VISTA ALEGRE UNO,966c77948-8b86-dee1-9f0c-30407a0c464a,FISHING,79.41833333333332,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,78.55027777777777,224010000,JESUS DE GALIANA,bed214a51-16e0-ada6-dedf-7a16547a6464,FISHING,78.55027777777777,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,77.585,224051590,HERMANOS SOAGE,463794ee2-2356-bbe6-ef1f-2693c473f68f,FISHING,77.585,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,77.1311111111111,224027890,ESTRELLA LA MANANA,ebe2308a7-7318-f6db-b3aa-87ccc4b6771d,FISHING,77.1311111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,76.85416666666669,224170740,J0SE EDUARDO,791d15148-8355-4602-7703-1a51f86d2785,FISHING,76.85416666666669,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set longline,75.54055555555556,228082600,F/V SIEMPRE VIRIATO,e5239e8ef-f4a5-1286-97ef-daa83797d4f8,FISHING,75.54055555555556,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,75.40138888888889,224119750,VARAMAR,c4c5b6da2-2b00-c6f6-dcfd-a84d05bc781b,FISHING,75.40138888888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,74.825,228215700,F/V ANNYTIA,745e79820-05c7-41c2-0b0a-9f6b17a5deff,FISHING,74.825,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,73.77055555555555,224127240,Unknown vessel,42a6fd1e0-0e22-991f-47de-259f2bb051ee,FISHING,73.77055555555555,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,73.60972222222223,227603670,Unknown vessel,67f285225-5adf-3123-561e-301c3fa965b4,FISHING,73.60972222222223,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,73.46138888888889,224938000,PLAYA DE ARBEYAL,a16cd3edf-f86b-8cfc-20be-f82f134a3d1e,FISHING,73.46138888888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,73.14666666666668,228367900,F/V BARA AN ARVORIZ,66699e1c7-7a2f-f4ba-b426-c0b2bdbcc9c8,FISHING,73.14666666666668,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,73.13944444444445,227642080,Unknown vessel,a9bf1814a-a880-5f09-7637-be4580b4f593,FISHING,73.13944444444445,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,73.02916666666667,227657220,Unknown vessel,05fa0e133-3211-1bef-a048-c848467877de,FISHING,73.02916666666667,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Trawler,72.5461111111111,224187770,NUEVO CHAROLAIS,b8b367422-20df-31bf-01b8-71378d064b88,FISHING,72.5461111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,71.55888888888887,224137770,NVO.SANTANINA,55e8573ad-d92d-574f-2b5a-6db978f6b512,FISHING,71.55888888888887,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,70.08194444444446,224610000,INSUA DE AREA,391da2470-01af-d03c-24f4-6b25e4df4130,FISHING,70.08194444444446,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Fishing,69.6175,227871280,POUTCHI,ff7f7dc3d-d446-30b5-d4fc-4419bb5c5586,FISHING,69.6175,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,69.35027777777778,227844000,F/V NEPTUNE III,45fc49824-4c92-c21e-e1fa-4ebe58b9169a,FISHING,69.35027777777778,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,69.19805555555553,227316490,Unknown vessel,acb9ef026-62a6-0711-14ff-e8425d75fec5,FISHING,69.19805555555553,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,68.9022222222222,224226540,Unknown vessel,429c2a1fa-a750-58c3-0892-6dfa4d57bfb4,FISHING,68.9022222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Pole and line,68.73408666666666,228087410,PAPAYE,208f4d29e-e713-0dda-717e-e9edbc6653a2,FISHING,68.73408666666666,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fishing,68.4325,227060020,LAGUNAK,c7bd56068-8965-173d-32ed-99adedaf0f0b,FISHING,68.4325,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,68.3511111111111,225987488,SEMPRE AVANTE,d59bc1c26-613c-460b-e49e-295f8db80dd7,FISHING,68.3511111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,68.1263888888889,227145200,F/V LE BELIER,683de95bf-ff23-f76e-5321-31d02703ecbf,FISHING,68.1263888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,POL,Fishing,67.75916666666667,261000299,EZKATA,95f2fe7a7-7f8f-d243-e78e-34f2b819ad64,FISHING,67.75916666666667,public-global-fishing-effort:v3.0,Poland
+public-global-vessel-identity:v3.0,FRA,Trawler,67.38472222222222,227636950,F/V MARIE GALANTE II,833e21502-2dac-17e5-f5cb-709947e6436e,FISHING,67.38472222222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,67.38222222222224,225993058,Unknown vessel,0c49aeb8b-b97c-622d-717e-a5d584bf5f39,FISHING,67.38222222222224,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fixed gear,66.8438888888889,224221980,Unknown vessel,c9879a748-8be6-9709-4504-8afb80dc4990,FISHING,66.8438888888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,66.81083333333336,224043180,A GAVEIRA,58dcc5760-07fa-7ef2-9ac8-690d92b7ecb2,FISHING,66.81083333333336,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,66.78305555555556,225980581,DO NETO,68cf5c2f7-7514-27bd-dc5e-9353d5e28800,FISHING,66.78305555555556,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Dredge fishing,66.775,227992610,Unknown vessel,26e950e7a-aa8f-c558-fcb6-264195dc5278,FISHING,66.775,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,66.57861111111112,224050370,ARINO,d063fe087-723a-722f-ad43-8b942427f4b5,FISHING,66.57861111111112,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,PRT,Fishing,66.12333333333333,204225000,MESTRE BOBICHA,9fd4f6a7f-fe3c-4426-ad34-d571c2685b6b,FISHING,66.12333333333333,public-global-fishing-effort:v3.0,Portugal
+public-global-vessel-identity:v3.0,FRA,Fixed gear,64.98204305555556,227472610,PATCHIKU,ca6f65751-162a-7781-a194-c2a2163d4a70,FISHING,64.98204305555556,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,63.894999999999996,228138000,F/V LES MENHIRS,1beb10255-5469-f90e-4910-4e6e447ea2a1,FISHING,63.894999999999996,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,63.68583333333334,228021700,F/V BARA AR VICHER,0937ecccb-b8c8-7b8a-771a-6ff8b28e0874,FISHING,63.68583333333334,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,63.62611111111111,227636440,F/V HANLEY,06d8be311-1cbe-10dd-62df-9a9bc3b085db,FISHING,63.62611111111111,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,62.83722222222222,224022130,MAROUCO,29cf4c759-98bb-0a9f-58ac-5ac776c43769,FISHING,62.83722222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,62.76611111111111,228112000,EDEN,2fe643a5d-dfe9-7b11-b54f-f000a206a6fe,FISHING,62.76611111111111,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fishing,62.323611111111106,227452290,JACNAT,bd4358918-85b5-49ae-9600-cf4ce4126c14,FISHING,62.323611111111106,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,62.090833333333336,224057450,MARTIN DANIEL,0a4a811a3-3ee0-c6ac-0b7a-c6e8be22945a,FISHING,62.090833333333336,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Fishing,61.99472222222222,227424250,EDMA,0c1a4c314-49be-ee4d-9863-248dd842cd14,FISHING,61.99472222222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fixed gear,61.95916666666666,224218130,Unknown vessel,aef41993d-d032-1891-f9f6-d737b80fb6d2,FISHING,61.95916666666666,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,60.137777777777785,224221970,NV VIRGEN GUADALUPAN,9a13f2fb9-92b6-4b2f-3bcf-4de08aa0c992,FISHING,60.137777777777785,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,59.74083333333333,228408800,NANOPLON,fcd95b3eb-bdd7-0edb-0ce5-0540aeef6fa3,FISHING,59.74083333333333,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Pole and line,59.52833333333333,228443700,L`EMBELLIE,29bdf56bb-b1da-7faf-b225-1975acbf5fc7,FISHING,59.52833333333333,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Pole and line,59.45694444444444,224018460,BERRIZ IRIGOIEN,3dbe9d75e-ef1b-948a-e9e5-6766653d6408,FISHING,59.45694444444444,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,58.31527777777778,224004950,XEOS,8ee84ed3a-ada3-c508-3b81-75eb2c61ed5a,FISHING,58.31527777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,58.20777777777777,228437700,F/V MAR MARES,f133c20ce-e088-5e39-08be-661aad4559c9,FISHING,58.20777777777777,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,58.1988888888889,227673970,Unknown vessel,f6c313b9f-f8b7-4fde-3fbe-3b107d1deb06,FISHING,58.1988888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,57.64037972222222,224224360,MADRE MARIA LUISA,b8368f8cd-db0b-9252-ec52-8b5b6da7bd18,FISHING,57.64037972222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Fishing,57.37166666666668,227145800,F/V MARIA MAGDALENA,e3c949aba-a2bd-0cfc-1bdb-232de32181a7,FISHING,57.37166666666668,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fixed gear,57.29527777777778,224331590,Unknown vessel,56e089e45-519f-4227-4b4a-65a6c682e516,FISHING,57.29527777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,57.16833333333336,228093800,F/V BARA BREIZH,9c5076037-77e0-9e26-9733-01af68eeeed7,FISHING,57.16833333333336,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,56.5161111111111,224101830,ESPADIN DOUS,8cf339d62-2d61-ac0f-e60c-25f864d58df7,FISHING,56.5161111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,56.50027777777778,225992778,SIEMPRE ROMANTICA,3438c1e68-85ef-4d10-7124-dbb53650bf28,FISHING,56.50027777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,56.472500000000004,228858000,F/V LE STIFF,054acb986-6d2c-8dd5-f124-29cd62fb0ad5,FISHING,56.472500000000004,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,56.07472222222223,224332470,Unknown vessel,7b5fafa93-364c-7541-9e49-23e13be764fc,FISHING,56.07472222222223,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,56.0463888888889,224105890,XUREL UNO,281cc9d32-29b0-e1a3-2637-1dd818bc1991,FISHING,56.0463888888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,54.16166666666667,225018770,NUEVO NAUTILUS,be3b81170-0e70-117f-4c85-9fffdd048ec4,FISHING,54.16166666666667,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,53.171666666666674,225378000,S.MADRE-DOLORES--,5ceb2a7dc-c486-185c-5563-9b16590aa58b,FISHING,53.171666666666674,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,53.133055555555565,228112000,Unknown vessel,e90061c74-4c8e-138d-01ca-2ca97d915cc6,FISHING,53.133055555555565,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,52.600833333333334,227145200,F/V LES FRANGINS,47b410154-4987-84ec-3bf8-70263b92cfbe,FISHING,52.600833333333334,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,52.40777777777779,227609710,ALSYCA,11d3e0ace-e3b1-a522-65aa-7c5cb6b6170e,FISHING,52.40777777777779,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fishing,52.30305555555556,227064230,MAS SOUBROT,780c501c1-1f95-9c58-f3ed-b219e3b3f1eb,FISHING,52.30305555555556,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,52.007777777777775,224031640,SIAL TRES,e36866f95-5616-2f10-6b39-75db65ae932a,FISHING,52.007777777777775,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Pole and line,51.941944444444445,227138500,AHALDENA,d92806c1c-ca9d-d70d-48e5-cd1e8d6ddbfd,FISHING,51.941944444444445,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,51.57055555555555,227652390,F/V PARADISIO,9759b1207-71a1-a687-a3f6-906892c37515,FISHING,51.57055555555555,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,50.97,224077140,HNOS CHIQUITA,655f5db8d-df8e-3162-0f4e-cf8d803419c5,FISHING,50.97,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,50.83777777777778,225958770,NICOLAS,962222d0f-f8c9-8020-9e4b-6d765f20c977,FISHING,50.83777777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,50.376666666666665,224320530,Unknown vessel,874355823-3644-7c2a-abeb-d0a7d7322c36,FISHING,50.376666666666665,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,50.17833333333333,227626810,F/V AIGLE DES MERS,e083c0ad7-7395-10ad-45c9-be495ce2a988,FISHING,50.17833333333333,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,48.79555555555556,224326530,NUEVO PASTOR,d6c60a284-4e42-26f4-f01f-2142f1479af0,FISHING,48.79555555555556,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,48.44416666666666,224022550,V.PODER0SA.PRIMERO.,c81f120a5-50dd-a929-bb9e-30514157a571,FISHING,48.44416666666666,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,47.974166666666676,224906480,TECELANA,77f3b5309-90f7-5272-e231-2f1960660cfd,FISHING,47.974166666666676,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,47.42416666666667,224103220,SIEMPRE PECO,11428c59e-ec60-f3bc-b34a-b8efea156da7,FISHING,47.42416666666667,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Fishing,47.14083333333333,228024910,JOY,b095e9ff7-7efc-222d-d5b0-06e750cfd904,FISHING,47.14083333333333,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,46.255,224297160,MARIA DEL CARMEN,33b4e56d3-36ce-edc8-b194-386093405bf1,FISHING,46.255,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fixed gear,46.23444444444443,224281170,ESTELA,a5204e35e-e85f-9946-12dc-0fccc12525b9,FISHING,46.23444444444443,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,44.35305555555555,224939000,SIEMPRE BALUARTE,0c09a698e-e5c1-ee99-ea10-35bb4b40249a,FISHING,44.35305555555555,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Fishing,43.96611111111111,227607450,ALIZE,a0b0dc9a5-559b-5c99-813f-72ec2156437c,FISHING,43.96611111111111,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,43.86277777777779,224028620,F/V NUEVO ENZO,f96ce5c33-362c-d7b0-8356-cfb065ad3bb4,FISHING,43.86277777777779,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,43.80527777777779,227319980,F/V NANDO,89e8f250e-eb0f-7cca-26d8-91fcc551f2fe,FISHING,43.80527777777779,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,43.44222222222222,224168780,Unknown vessel,2eab3c065-5bf8-5680-fc78-2c75d3288d12,FISHING,43.44222222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,42.80333333333333,227317810,F/V NAUSICAA,f84126c41-1927-9d93-f6d3-d27569e27650,FISHING,42.80333333333333,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,42.64166666666666,227136690,LE COURLIS,19435a498-8c0d-e16d-dd79-0f899fea1175,FISHING,42.64166666666666,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,42.23990222222222,227878000,F/V OCEANOS,3940c24f9-9369-4625-5dd6-add772000479,FISHING,42.23990222222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fixed gear,40.29,227454620,LE TISHARO,a56c0db95-5669-c9c4-10d1-e95f79ba38f2,FISHING,40.29,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,40.205,224224330,Unknown vessel,cae1c4143-3792-a050-50c4-827d3e959695,FISHING,40.205,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,40.07617638888887,224104450,NUESTRO PADRE TONINO,34cfc6087-7836-be89-4e92-284de6653fb8,FISHING,40.07617638888887,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,IRL,Trawler,40.05194444444444,250006662,GREEN ISLE,4f9405eae-eba9-5328-58f1-063665cdbd16,FISHING,40.05194444444444,public-global-fishing-effort:v3.0,Ireland
+public-global-vessel-identity:v3.0,ESP,Fishing,39.49055555555556,224045480,Unknown vessel,1fd24d81a-af05-bd45-7094-8ffedb85bf07,FISHING,39.49055555555556,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fixed gear,39.40027777777778,225990176,MAYCRIS,b17ac9454-46f1-8d0e-5deb-363ea7757a09,FISHING,39.40027777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,39.22527777777778,227608160,F/V LE PTILU,54a7133a8-8d2c-6586-0549-1ee1c9a188ff,FISHING,39.22527777777778,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,38.962777777777774,228037170,PICHALA,42b670888-8c34-7ad1-9c43-87d0a52f1f7c,FISHING,38.962777777777774,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,38.55666666666666,224221930,Unknown vessel,cb28d9660-0b17-6f88-53a8-fc578baf0fc5,FISHING,38.55666666666666,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,38.50305555555555,224224330,ESTELA DEL CARMEN,f80f952c2-2d1b-8895-cc39-e3a5b504383f,FISHING,38.50305555555555,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Fishing,38.33166666666666,227535020,HELDU DA,4bc2fc211-1a9d-cbbd-a24e-1cabac167bcd,FISHING,38.33166666666666,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fishing,38.17777777777778,227749510,POISSON LUNE,0143d8a56-6807-be44-e800-fcfe4d9f0a5e,FISHING,38.17777777777778,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,IRL,Trawler,37.51666666666669,250103600,CISEMAIR,d00dc86c9-92f2-5d06-275c-103f79807dbe,FISHING,37.51666666666669,public-global-fishing-effort:v3.0,Ireland
+public-global-vessel-identity:v3.0,ESP,Fishing,37.36444444444445,224285230,Unknown vessel,0492af0d7-77eb-eff1-97b2-33dd1469e9cf,FISHING,37.36444444444445,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,37.125555555555565,227124200,Unknown vessel,ca084bad1-1313-a5f5-d3e0-3059baed5c1c,FISHING,37.125555555555565,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Trawler,36.933055555555555,224081150,MARIA DOS ANXOS,a61274049-9937-376e-de2b-69d7bf4ab251,FISHING,36.933055555555555,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,36.874166666666675,224061530,PENIL GONZALEZ,23ff73ced-db87-f5b3-f59e-69f5fc268b0c,FISHING,36.874166666666675,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Pole and line,36.7336111111111,227832390,Unknown vessel,406f3d0e9-9ab6-ae99-0098-a5107115125c,FISHING,36.7336111111111,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,36.6561111111111,227277650,ROQUET II,c45ee2ed8-87d2-455d-f6e5-a6f52a7fc782,FISHING,36.6561111111111,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,36.47722222222223,226267000,F/V BARA PEMDEZ II,537031219-9515-5267-3e7b-3d7a3d919aba,FISHING,36.47722222222223,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,36.39055555555555,224918250,Unknown vessel,1ef7523a2-2744-6681-2faa-39ef8692ef60,FISHING,36.39055555555555,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,36.23222222222222,227646270,F/V ARIES,38ac4b80e-e766-a2e8-a2af-9f5d6b13d9f7,FISHING,36.23222222222222,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Trawler,35.39805555555556,224138950,AIROA,c430bc87f-f00c-4296-ef39-33fff762ac85,FISHING,35.39805555555556,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,35.196111111111115,224348290,SIEMPRE GALANA,68627d25d-dc06-e09a-b8db-5da0aa8d2a4d,FISHING,35.196111111111115,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Tuna purse seine,34.861111111111114,227431250,MARGAUX,5253066ab-be1d-9835-8b37-5fceeb4210cf,FISHING,34.861111111111114,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,,Fishing,34.64527777777777,799210515,Unknown vessel,31ad89395-5827-3077-e8f1-b25ce17c2e8b,FISHING,34.64527777777777,public-global-fishing-effort:v3.0,
+public-global-vessel-identity:v3.0,FRA,Set gillnet,34.50944444444445,228037170,Unknown vessel,ef702b190-0125-2c4c-e63c-a1ea9f9c58c9,FISHING,34.50944444444445,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Other purse seines,34.45416416666667,227573440,F/V JIMORHAN,b06e9ad8f-f35e-03a4-ceea-24201f9d964f,FISHING,34.45416416666667,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fishing,34.279444444444444,227463090,IJIN,3e4cde2a0-0cad-afbe-f774-fa61052d8fa6,FISHING,34.279444444444444,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,34.003611111111105,224270570,CASTRO DACOSTA,3758921d9-9975-e376-3d15-a37eb525a146,FISHING,34.003611111111105,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,33.92583333333333,228972000,Unknown vessel,294b85d66-673d-70ce-4f6b-ed200924fddb,FISHING,33.92583333333333,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set longline,33.477222222222224,228339000,F/V RAY PRIMERO,49e053cb0-0cd0-01b0-1851-2872c3875b26,FISHING,33.477222222222224,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Other purse seines,32.826388888888886,228260900,WAR RAOG IV,ee7f79a48-8388-35c6-72a2-1963cb6c25b9,FISHING,32.826388888888886,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,32.67805555555555,224314570,Unknown vessel,bc80cb429-9ade-9b30-cf9e-2512379ac6b6,FISHING,32.67805555555555,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,32.13,228370000,F/V OCEANIE,c73fb7308-8111-00dc-878e-7e8c622d2f47,FISHING,32.13,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,32.1247222222222,224457450,F/V  GAMBA N* TRES,672e880af-f874-546c-9959-1a5226cdab40,FISHING,32.1247222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,31.76944444444444,224011290,POMBO SEIS,642681e0c-ce01-d198-cee9-dc7e86caca92,FISHING,31.76944444444444,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,31.689722222222215,224058930,Unknown vessel,9ebef94c2-2412-cf2d-2c0a-bb759203135d,FISHING,31.689722222222215,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,31.675833333333333,224339950,Unknown vessel,b43ffcbb1-12f8-352f-6fbe-2a2f131bb7f6,FISHING,31.675833333333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,31.376111111111108,227618210,F/V MADININA,64f916324-4fe0-c02a-df1c-ddf878ab9c58,FISHING,31.376111111111108,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,31.267777777777777,225980752,EVARISTO CHURRUCA II,3315559a1-1fa6-a65a-503a-790ea2e9191c,FISHING,31.267777777777777,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set longline,31.049444444444447,227209970,F/V MAR DE FLORES,62d091961-1d90-ca87-9cb7-f2bece9756b3,FISHING,31.049444444444447,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,31.044166666666676,225992778,Unknown vessel,91c6583d3-3336-0d9f-68bd-b932cf9fb857,FISHING,31.044166666666676,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,30.85638888888889,227481000,F/V MEN GWEN,05f0ee777-7654-60cb-4ba7-6d622c8aa1be,FISHING,30.85638888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fixed gear,30.834444444444447,225993707,Unknown vessel,22c7e41e6-629e-9e57-12a5-7cc3555eb4ed,FISHING,30.834444444444447,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,30.167777777777776,224012990,BRUAL,e67f8e5ca-a99a-31cb-6373-881831daf7cf,FISHING,30.167777777777776,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Pole and line,30.123888888888892,227347130,MANON II,0947518f2-2c25-8576-894f-869fbf1ed603,FISHING,30.123888888888892,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,30.08083333333333,224169260,LUSITANIA,a065feb1a-af86-270a-ef86-0264f99a19ac,FISHING,30.08083333333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Fishing,29.94888888888889,227034370,BEG AR VANN,68316870c-c613-9b3d-d56e-ae3051ee45c7,FISHING,29.94888888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fixed gear,29.898888888888887,224131530,NUEVO PADRE,c80024467-7ce5-a549-1400-fd10c0c0706c,FISHING,29.898888888888887,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,29.634166666666665,228972000,LA CANGUE,f235f500c-c5d4-8f79-571b-3d65acbb1f93,FISHING,29.634166666666665,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,29.55166666666667,224105580,AGARIMO DOUS,e83bb841d-da6e-9ba0-e4d7-d81264979dc4,FISHING,29.55166666666667,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,29.364444444444448,224043760,LAGO DOS,4a09b5762-2770-d232-6c51-2b5fd1c3ee3b,FISHING,29.364444444444448,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,29.150000000000002,224220740,JAUNGOIKOA,7b50a186e-ea93-f870-932e-fc4be3813ceb,FISHING,29.150000000000002,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,28.65416666666667,227392000,F/V ALYA,5022f7480-0b1f-cb0e-5192-c3930dff617a,FISHING,28.65416666666667,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,27.90583333333333,224270370,CUARTO PANCHO,9e6dbc86d-d80c-c429-8dea-08140adbfedd,FISHING,27.90583333333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,26.37194444444444,228884000,F/V MOBY-DICK,a25805307-70e0-47bf-8e11-6aa1ee1f93a9,FISHING,26.37194444444444,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,26.339166666666664,227393000,KSORA,a41ae8287-75e5-e76d-31ac-83b6b109fa21,FISHING,26.339166666666664,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,25.97527777777778,227300140,F/V LEBLONDI,094cb615d-d312-dc65-f118-460d8698b70f,FISHING,25.97527777777778,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,25.699444444444453,224315860,SEGUNDA ROMINA,ff01b472d-d63e-66fa-9146-cb6091756f3f,FISHING,25.699444444444453,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Drifting longline,25.519444444444446,224032970,FVPUNTA DO XUNCOS,0909377b8-8167-7b60-9a5a-e3ba817734ce,FISHING,25.519444444444446,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,25.169444444444444,227640470,JASON IV,226ea1d7e-ee1b-ec6e-3636-385b5f4e6120,FISHING,25.169444444444444,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set longline,24.99972222222222,224000220,ARRIGORRI,2cf840b12-22ba-29e2-0982-42b77c17d89e,FISHING,24.99972222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Fishing,24.97388888888889,227145800,F/V MARIA MAGDALENA,13cae2840-082a-9bdb-8b7e-59cf9bbb82f8,FISHING,24.97388888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,24.697777777777777,224108670,LEKANDA,7d02c8f5b-ba9b-c2de-c30c-bc5ccc2f1799,FISHING,24.697777777777777,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,24.53722222222222,224551980,Unknown vessel,192111e67-756c-7e12-e7c1-5b9e06b5442f,FISHING,24.53722222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,24.170555555555552,227317810,Unknown vessel,2d64fb2e2-228d-afa6-247a-1e7dab33f7e3,FISHING,24.170555555555552,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,22.578055555555554,228123600,Unknown vessel,6899fd77e-e9d6-4966-c4a8-ce987ba5fb49,FISHING,22.578055555555554,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,20.38777777777778,224339950,IZARO HIRU,2a9016a32-28e0-e163-e858-2fde5ee2d842,FISHING,20.38777777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,20.14527777777778,224195750,NUEVO JUAN ANTONIO,0e877c530-09d0-5bb1-3e5c-0a296acf7116,FISHING,20.14527777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,20.06888888888889,228380000,F/V BILLABONG,cb606ed5e-e814-b4e3-3273-3457ae2c6055,FISHING,20.06888888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set longline,19.70138888888889,227376000,F/V GRAND ST BERNARD,89d303d0a-a4c0-0124-9873-dccb5abc7534,FISHING,19.70138888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,PRT,Drifting longline,19.47888888888889,204856000,LAJES DO PICO,178d3491c-cef9-84ad-391e-d2ccd6caf5a7,FISHING,19.47888888888889,public-global-fishing-effort:v3.0,Portugal
+public-global-vessel-identity:v3.0,ESP,Other purse seines,19.250000000000004,224104540,NOVO  LUCAS,43bcc5b1c-c210-e584-3ccc-e45dc9dc3967,FISHING,19.250000000000004,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,19.00361111111111,224319430,Unknown vessel,2119e1a4a-a904-7309-cb82-ddea4a4f3f15,FISHING,19.00361111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fixed gear,18.968055555555548,224445860,REBALO,64b02bba9-9d05-9956-3ef7-2312feb9fe72,FISHING,18.968055555555548,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,18.486944444444443,224224380,NENIN,0b8061f63-366b-965f-653d-c067f2109f01,FISHING,18.486944444444443,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other,18.011944444444445,224332370,Unknown vessel,8c1ff0452-2c87-c008-915e-544cd6bb85e4,FISHING,18.011944444444445,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,17.8125,227474000,F/V KERFLOUS,0b3cef08d-dbf6-9c82-1984-01b204487c72,FISHING,17.8125,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,17.16861111111111,224239960,Unknown vessel,735b7ad26-648b-0efe-7bac-f821ed58860d,FISHING,17.16861111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,IRL,Trawler,16.47777777777778,250117400,GLOR NA DTONN,caebdf8e0-0a97-4471-240e-3fc57125fe21,FISHING,16.47777777777778,public-global-fishing-effort:v3.0,Ireland
+public-global-vessel-identity:v3.0,ESP,Set longline,16.33638888888889,224076440,CORVO,2388e4648-8437-ec43-624c-1e38ea19819f,FISHING,16.33638888888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,16.115277777777777,228134700,F/V NAONED,9585aff32-20e5-8cdd-56b2-8754208c5a89,FISHING,16.115277777777777,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,GRL,Trawler,15.805833333333336,331000409,TUUGAALIK,8b99b6624-4caf-5978-81d8-60ba434b85ec,FISHING,15.805833333333336,public-global-fishing-effort:v3.0,Greenland
+public-global-vessel-identity:v3.0,ESP,Set gillnet,15.741388888888892,224221990,SIEMPRE ESMERALDA,0c96805ca-a29b-920f-ae5d-f19ae573d60b,FISHING,15.741388888888892,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,15.351944444444445,227648210,F/V LE CORSE,240aaddf1-1403-4bfb-daf9-b7c6baae0934,FISHING,15.351944444444445,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,15.191666666666665,224078290,MAR DE AMURA,4887374bd-dd2a-a7ec-706f-db565e8c1115,FISHING,15.191666666666665,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,14.520555555555557,225989291,CANIZAS,a7aac4257-7a6b-ed0c-0397-0b151f8e794f,FISHING,14.520555555555557,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set longline,14.442777777777778,227712610,SUR LA ROUTE,95597c5ab-bb1a-adde-735e-753737eb48c3,FISHING,14.442777777777778,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,IRL,Trawler,14.415833333333335,250105800,BUDDY M,7207f3aff-fe21-4586-f61a-06808bb34a2b,FISHING,14.415833333333335,public-global-fishing-effort:v3.0,Ireland
+public-global-vessel-identity:v3.0,ESP,Fixed gear,13.535277777777779,224980870,Unknown vessel,900dce0c9-977d-a61f-e2a7-ba9ba9b20735,FISHING,13.535277777777779,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,13.451944444444445,224627380,Unknown vessel,94fdd82b0-0371-6ea9-34de-cf19740bc93c,FISHING,13.451944444444445,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,13.260000000000002,224022130,MAR DE XANDRE,008067a0c-c5ef-07ed-d20a-24a528f9b1eb,FISHING,13.260000000000002,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,12.231388888888889,224348290,Unknown vessel,7b99162b7-72cc-d62c-ca19-70c9bb5a95df,FISHING,12.231388888888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other,11.800833333333335,224332480,AITANA DO MAR,41918bdb9-9678-8855-dbdf-fd6a3fff9c63,FISHING,11.800833333333335,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,11.768888888888887,224063730,Unknown vessel,45dcb3666-6bac-7090-77bf-d7220d35afa1,FISHING,11.768888888888887,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,11.336944444444445,224091650,Unknown vessel,561ffb10d-d438-726d-3c24-4399a7d9b4df,FISHING,11.336944444444445,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,11.27888888888889,224096550,NSTRA SRA LINDES,61474fd99-99f8-a727-2756-d77b198d8395,FISHING,11.27888888888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fixed gear,11.080000000000002,224281170,Unknown vessel,c44947e28-8b8f-6ffe-91ab-6b30e602e503,FISHING,11.080000000000002,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,10.083888888888888,224226570,SIEMPRE ALEGRIA,3e5a2de2c-c919-a280-3fd1-ffcfe3376e0d,FISHING,10.083888888888888,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,9.657222222222224,224045480,NUBERU,75c2f51e7-7fa2-6fb0-abfa-1f2c33d7fcce,FISHING,9.657222222222224,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,IRL,Trawler,9.256944444444445,250000527,F/V RACHEL JAY  S448,1c3adbaa2-2fc3-a56d-a6aa-c225e8de23cb,FISHING,9.256944444444445,public-global-fishing-effort:v3.0,Ireland
+public-global-vessel-identity:v3.0,FRA,Set longline,8.941944444444445,228110000,F/V GURE ANDRE,07d5eb70a-a175-4161-80c4-6e3f7e946e89,FISHING,8.941944444444445,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Pole and line,8.812222222222221,225985372,Unknown vessel,e3c06d4b5-521c-1201-8242-d1895dce6939,FISHING,8.812222222222221,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Drifting longline,8.795833333333334,224098640,RAMON   ESTEFANIA,0527a4936-68b8-2bbb-eb8e-66e760c0cc49,FISHING,8.795833333333334,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,8.482777777777777,227317250,F/V AMDORIC,a88bbf6bd-dc17-b79c-b004-dda3e4561525,FISHING,8.482777777777777,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,8.454166666666666,227866000,F/V COLOMBINE,3c10414ec-c285-1034-4841-1e510a974a99,FISHING,8.454166666666666,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,8.41388888888889,228367800,FV/BEOTHUK,845d232e2-29e0-efd7-6e79-eed159a33904,FISHING,8.41388888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,7.688055555555556,224221420,ELISA MARIA PRIMERO,fcb20dcd1-16c0-6ccc-fab3-aeffedadb3cd,FISHING,7.688055555555556,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set longline,7.671388888888889,227712610,Unknown vessel,209e4cc9c-c61c-24f4-da3d-6111ec235741,FISHING,7.671388888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,7.373055555555554,224139780,XIANA E ANXO,200ee4ef3-3c11-4519-a513-a3e0fa58cc0f,FISHING,7.373055555555554,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,6.500277777777778,224151980,DANIEL Y MARIA,5942b9d69-9940-430d-1e3d-604336968ddc,FISHING,6.500277777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,6.494166666666666,224224340,EVA DOS,0d81e458b-b96e-7915-cf71-993c6c84119b,FISHING,6.494166666666666,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,6.170833333333333,228387000,F/V LIBERTY-S,484443df2-26e9-7309-f8bf-4004b70c3eb8,FISHING,6.170833333333333,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,6.002777777777778,224221940,Unknown vessel,77bb532bc-c1ae-10fe-ce64-0f68f7057a31,FISHING,6.002777777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Pole and line,5.679444444444445,224131660,DIMCEA III,29b1f3013-3b02-c8bf-f09e-dcdecb516be0,FISHING,5.679444444444445,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,5.644722222222223,225993201,Unknown vessel,32f5013e7-7cdf-ac2c-6d7c-6ba0feef9e4d,FISHING,5.644722222222223,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,5.470555555555556,227600050,F/V ASTROLABE,5039f486a-a20f-8b20-6818-b85915b0dce0,FISHING,5.470555555555556,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fixed gear,5.438611111111111,225019240,NUEVO FRANCES,62e2fe1ef-f1d1-056a-0cd6-54b1b30db241,FISHING,5.438611111111111,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,5.330833333333333,228349800,F/V FERREIRA MARTINE,0c102ae4f-f0b4-329b-2184-6c501cfebf76,FISHING,5.330833333333333,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other purse seines,5.086388888888889,225990089,PORTO DE MALPICA,8e8ba9a13-37f5-7127-67b5-f27e40550775,FISHING,5.086388888888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,4.762499999999999,228168600,F/V ROSELAND,d8c5ae51d-d328-abad-dc77-bd6b25d91be8,FISHING,4.762499999999999,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fishing,4.731666666666667,228306600,MALACATSA,9bc239ec0-015a-d628-d767-3887e251598e,FISHING,4.731666666666667,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,4.515833333333333,224228670,Unknown vessel,17c758868-8861-4650-a7e7-97c5d6b114df,FISHING,4.515833333333333,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,4.391944444444444,224014590,MEROMAR,44ae1c0e1-16ac-bfaf-0cdf-e8aa748055ac,FISHING,4.391944444444444,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,4.258055555555556,228020600,F/V LES4FANTASTIQUES,c5341b7a4-4769-1607-5d25-f999056a64c6,FISHING,4.258055555555556,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,4.050833333333333,227679890,Unknown vessel,3995dba69-9f1c-5e90-7025-5813aacbf566,FISHING,4.050833333333333,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,IRL,Trawler,3.961111111111111,250013579,OCEAN CREST,2dc84a56f-f389-6c0e-bdc6-63325325d6cd,FISHING,3.961111111111111,public-global-fishing-effort:v3.0,Ireland
+public-global-vessel-identity:v3.0,ESP,Pole and line,3.699444444444444,224004680,Unknown vessel,e31ebdfeb-b88e-b349-3353-bfabf4505f36,FISHING,3.699444444444444,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Trawler,3.6591666666666676,224084870,Unknown vessel,b49e5c835-59bf-5991-7d57-1d6831d44c03,FISHING,3.6591666666666676,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other purse seines,3.5347222222222223,224012660,NVO HNS CORTABITARTE,f7e2d38d2-2d5f-fd79-06de-cc7c7b946274,FISHING,3.5347222222222223,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,3.4719444444444445,227960670,LEDANI3,46010cff1-10a1-79cc-29f5-766c4ab2dc62,FISHING,3.4719444444444445,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,3.283611111111111,227118500,F/V HEBEILAN II,a6335ae9c-ce31-bb72-27f8-41fbf2a35c1b,FISHING,3.283611111111111,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Fishing,3.283333333333335,228047750,EPSILON,ceaa7c295-5b04-f47f-e05b-cc668e7d07c8,FISHING,3.283333333333335,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,3.2424999999999997,224551990,SIEMPRE MARIA,2af0f460b-b134-0634-2490-cecd7c14b9aa,FISHING,3.2424999999999997,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,3.118888888888889,227648190,LA P'TITE MAE,be3859e70-0361-087c-5d38-0619c21c3f11,FISHING,3.118888888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,2.8722222222222222,224145860,PINTOR DOS,ae9994848-8d13-324e-6084-a54683d3fdb3,FISHING,2.8722222222222222,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,2.7658333333333327,225341000,AKILLAMENDI BERRIA,a16b50f2b-b5d2-a20b-1a14-94a3a4a821ec,FISHING,2.7658333333333327,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,2.5775,224136930,Unknown vessel,5fbb8ae76-64b1-dbbc-15c5-30049c4c6152,FISHING,2.5775,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,2.5175,224297160,Unknown vessel,ce5d9ecfa-a075-8777-b27f-00132355ad5d,FISHING,2.5175,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,2.4191666666666665,224283330,Unknown vessel,34b8b057e-ed29-a27f-fb74-774be8cccab9,FISHING,2.4191666666666665,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,1.908888888888889,228019600,F/V BIKAIN,865e518cd-dc53-f110-4931-0d57c02211b7,FISHING,1.908888888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,PRT,Trawler,1.833611111111111,263441300,ANTONIO DO VELLINO,0367e34a4-48e8-8e26-7e00-05eef262c7c9,FISHING,1.833611111111111,public-global-fishing-effort:v3.0,Portugal
+public-global-vessel-identity:v3.0,ESP,Set gillnet,1.7905555555555557,224370840,NON SEI,27cd3244d-d61d-f31e-76ea-736bec86b521,FISHING,1.7905555555555557,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Set gillnet,1.7325000000000002,227316590,RAGNAROK,b59e1d0c3-34ac-a0f3-8838-680576869e7d,FISHING,1.7325000000000002,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Other,1.6691666666666665,225995326,ZABZIT,2a74c746f-f3e0-18e8-d306-3f54b2ef1738,OTHER,1.6691666666666665,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Other,1.5463888888888886,224104690,Unknown vessel,aea96152e-eb36-266d-1f3c-cdeb1e5f6e24,FISHING,1.5463888888888886,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set longline,1.0588888888888888,225360000,ALBELO PRIMERO,a12b6914a-a4af-349e-ec7c-86dc11363eab,FISHING,1.0588888888888888,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,1.036111111111111,227336000,F/V RANGIROA,01c62834f-fdfa-d37b-5154-00b8027d9951,FISHING,1.036111111111111,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Pole and line,0.9916666666666667,228068240,KIMA,f0ff0e34e-e4b9-c674-2444-4beebbc81c40,FISHING,0.9916666666666667,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fishing,0.8525,224231150,O VULCANO,fb9b1767d-d48e-3917-0cae-dfe79ed058b1,FISHING,0.8525,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,GBR,Trawler,0.8144444444444444,232023129,F/V TIGER`S 2,07ef532c3-3f22-ad2a-32b8-13df4d469007,FISHING,0.8144444444444444,public-global-fishing-effort:v3.0,United Kingdom
+public-global-vessel-identity:v3.0,ESP,Pole and line,0.7891666666666667,224131660,Unknown vessel,5b2ab6d84-49ec-27ae-1710-0f8d732cbb59,FISHING,0.7891666666666667,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,FRA,Trawler,0.758611111111111,227020680,CALA,c738a7ad1-1832-ebd3-684d-5d4d0255692d,FISHING,0.758611111111111,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Other purse seines,0.6663888888888889,228315000,F/V ATTALAYA BERRIA,8fc7caf60-04cd-072a-0c34-4cc78686e5ca,FISHING,0.6663888888888889,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Set gillnet,0.6308333333333331,227380000,F/V ASPIN,6dabddd35-5f38-8fed-3c70-f36fd7f56549,FISHING,0.6308333333333331,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,FRA,Trawler,0.5883333333333333,227600950,AMZER ZO,ceeb23f0c-c1e4-fe38-4248-7bc4a87a269d,FISHING,0.5883333333333333,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Set gillnet,0.5663888888888889,224224340,Unknown vessel,6e6d70fb1-1bc3-bcfb-355d-f81e640ec869,FISHING,0.5663888888888889,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Set gillnet,0.4994444444444444,224137880,GOIENKALE,c26ac3190-0508-3cb2-a1a2-01e901f57a41,FISHING,0.4994444444444444,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,ESP,Fishing,0.4752777777777778,224316460,Unknown vessel,d32770b80-070f-9c02-7fb9-83f4bab76ba7,FISHING,0.4752777777777778,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,IRL,Trawler,0.45166666666666666,250429000,CARMONA,5c0671588-8d77-6313-453c-063221388790,FISHING,0.45166666666666666,public-global-fishing-effort:v3.0,Ireland
+public-global-vessel-identity:v3.0,FRA,Set gillnet,0.4255555555555556,227652390,Unknown vessel,e37ba2b9f-f06f-8987-69f7-b1ab0c573283,FISHING,0.4255555555555556,public-global-fishing-effort:v3.0,France
+public-global-vessel-identity:v3.0,ESP,Fixed gear,0.425,225981862,AITONA ANTXON,f1f1b053f-fd19-3d66-c59d-b2cec95ed432,FISHING,0.425,public-global-fishing-effort:v3.0,Spain
+public-global-vessel-identity:v3.0,BEL,Trawler,0.3388888888888889,205106000,MARCUS,8b07d9af5-5f12-d634-98ce-02ccc5fec0a7,FISHING,0.3388888888888889,public-global-fishing-effort:v3.0,Belgium
+public-global-vessel-identity:v3.0,ESP,Fishing,0.15833333333333333,224136930,NOVA LUZ,36ca687b4-419d-3bb0-c892-e5c053699895,FISHING,0.15833333333333333,public-global-fishing-effort:v3.0,Spain

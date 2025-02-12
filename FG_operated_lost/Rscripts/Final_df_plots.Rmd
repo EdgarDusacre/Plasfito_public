@@ -1,0 +1,336 @@
+---
+title: "Richardson"
+author: "Edgar"
+date: "2024-07-05"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(ggplot2)
+library(tidyr)
+library(forcats)
+library(dplyr)
+library(readxl) 
+library(readr)
+library(RColorBrewer)
+library(tidyverse)
+library(binom)
+library(lubridate)
+library(ade4)
+library(ggrepel)
+library(broom)
+library(ggpubr)
+library(rstatix)
+library(wesanderson)
+library(car)
+library(multcompView)
+library(rcompanion)
+library(writexl)
+library(gmodels)
+library(tools)
+library(fmsb)
+
+library(mgcv)
+library(gamlss)
+library(quantreg)
+library(MASSExtra)
+```
+
+#Plot and df for Richardson for vessels with AIS
+```{r final df AIS vessels}
+
+res_model <- read_xlsx("AIS_FG_deployed.xlsx") %>% 
+  mutate(FG = if_else(FG == "PS", "Purse seine nets", FG),
+         FG = if_else(FG == "TR", "Bottom trawl nets", FG),
+         FG = if_else(FG == "GN", "Set gillnets", FG),
+         FG = if_else(FG == "main", "Longline mainlines", FG),
+         FG = if_else(FG == "branch", "Longline branchlines", FG)) %>% 
+  #if unit = m2, then all numerical variables /1000
+  mutate(unit = rep(c("km2", "km"), rep(c(3, 2))),
+         Deployed_FG = if_else(unit == "km2", Deployed_FG/1000, Deployed_FG),
+         Deployed_FG_IC5 = if_else(unit == "km2", Deployed_FG_IC5/1000, Deployed_FG_IC5),
+         Deployed_FG_IC95 = if_else(unit == "km2", Deployed_FG_IC95/1000, Deployed_FG_IC95),
+         Lost_FG = if_else(unit == "km2", Lost_FG/1000, Lost_FG),
+         Lost_FG_IC5 = if_else(unit == "km2", Lost_FG_IC5/1000, Lost_FG_IC5),
+         Lost_FG_IC95 = if_else(unit == "km2", Lost_FG_IC95/1000, Lost_FG_IC95),
+         per_lost = round((Lost_FG/Deployed_FG) * 100, digits = 2))
+  
+res_model
+
+res_model2 <- res_model %>% 
+  pivot_longer(cols = c(Deployed_FG, Lost_FG),
+               names_to = "Type", values_to = "Value")
+res_model2
+
+res_oper <- res_model2 %>% 
+  filter(Type == "Deployed_FG") %>% 
+  dplyr::select(-Lost_FG_IC5, -Lost_FG_IC95) %>% 
+  rename(lower_CI_all = Deployed_FG_IC5, upper_CI_all = Deployed_FG_IC95)
+res_oper
+
+res_diss <- res_model2 %>% 
+  filter(Type == "Lost_FG") %>% 
+  dplyr::select(-Deployed_FG_IC5, -Deployed_FG_IC95) %>% 
+  rename(lower_CI_all = Lost_FG_IC5, upper_CI_all = Lost_FG_IC95) 
+res_diss
+
+res_model3 <- bind_rows(res_oper, res_diss) %>% 
+  mutate(label = if_else(Type == "Lost_FG", 
+                         sprintf("%s (%0.2f%%)", scales::comma(Value, accuracy = 1), per_lost),
+                         scales::comma(Value, accuracy = 1)))
+res_model3
+
+```
+
+
+```{r plot Rich}
+
+res_model3$Type <- factor(res_model3$Type, levels = c("Lost_FG", "Deployed_FG"))
+
+plot_final_R <- res_model3 %>%
+  filter(FG != "Longline hooks",
+         FG != "Midwater trawl nets") %>%
+  ggplot(aes(x = Value, y = FG, fill = Type)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9)) +
+  geom_errorbar(aes(xmin = lower_CI_all, xmax = upper_CI_all), 
+                position = position_dodge(width = 0.9), 
+                width = 0.25, linewidth = 1) +
+  scale_x_log10(labels = scales::comma) +
+  labs(title = "Fishing gear operated and lost in the southeastern BoB",
+       subtitle = "Period: November 2022 to November 2023\n\nOnly the boat equipped with AIS were included",
+       x = "Value (log scale)",
+       y = NULL, 
+       fill = "") +
+  scale_fill_manual(values = c("Deployed_FG" = "#26396D", "Lost_FG" = "#6DE2C3"),
+                  labels = c("Deployed_FG" = "Median FG Onboard\nIC[0.05-0.95]", "Lost_FG" = "Median FG Lost\nIC[0.05-0.95]"),
+                  breaks = c("Deployed_FG", "Lost_FG")) +
+  facet_grid(unit ~ ., scales = "free_y", switch = "x") +
+  theme_bw() +
+  theme(
+    strip.placement = "outside",
+    panel.spacing = unit(1, "lines"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+    axis.text.x = element_text(size = 18, face = 'bold'),
+    axis.text.y = element_text(size = 18, face = 'bold'),
+    title = element_text(size = 22, face = "bold"),
+    strip.text = element_text(face = "bold", size = rel(2)),
+    strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+    legend.position="bottom",
+    legend.title=element_text(size = 18, face = 'bold'),
+    legend.text=element_text(size = 16, face = 'bold'),
+    legend.spacing.x = unit(0.4, 'cm'),
+    plot.margin = unit(c(1, 1, 1, 1), "cm")
+  ) +
+  geom_text(aes(label = label,
+                color = Type,
+                x = upper_CI_all),  # Utiliser color = Type dans aes()
+            position = position_dodge(width = 0.90), 
+            hjust = -0.1,  # Aligne le texte à gauche
+            fontface = "bold") +
+  scale_color_manual(values = c("Deployed_FG" = "black", "Lost_FG" = "black")) +  # Définir les couleurs du texte
+  guides(color = "none") 
+
+plot_final_R
+```
+
+#Plot and df for Richardson for vessels NO AIS
+```{r final df AIS vessels}
+
+res_model <- read_xlsx("NO_AIS_FG_deployed.xlsx") %>% 
+  mutate(FG = if_else(FG == "PS", "Purse seine nets", FG),
+         FG = if_else(FG == "TR", "Bottom trawl nets", FG),
+         FG = if_else(FG == "GN", "Set gillnets", FG),
+         FG = if_else(FG == "main", "Longline mainlines", FG),
+         FG = if_else(FG == "branch", "Longline branchlines", FG),
+         FG = if_else(FG == "PT", "Pots & Traps", FG)) %>% 
+  #if unit = m2, then all numerical variables /1000
+  mutate(unit = rep(c("km2", "km", "items"), rep(c(3, 2, 1))),
+         Deployed_FG = if_else(unit == "km2", Deployed_FG/1000, Deployed_FG),
+         Deployed_FG_IC5 = if_else(unit == "km2", Deployed_FG_IC5/1000, Deployed_FG_IC5),
+         Deployed_FG_IC95 = if_else(unit == "km2", Deployed_FG_IC95/1000, Deployed_FG_IC95),
+         Lost_FG = if_else(unit == "km2", Lost_FG/1000, Lost_FG),
+         Lost_FG_IC5 = if_else(unit == "km2", Lost_FG_IC5/1000, Lost_FG_IC5),
+         Lost_FG_IC95 = if_else(unit == "km2", Lost_FG_IC95/1000, Lost_FG_IC95),
+         per_lost = round((Lost_FG/Deployed_FG) * 100, digits = 2))
+  
+res_model
+
+res_model2 <- res_model %>% 
+  pivot_longer(cols = c(Deployed_FG, Lost_FG),
+               names_to = "Type", values_to = "Value")
+res_model2
+
+res_oper <- res_model2 %>% 
+  filter(Type == "Deployed_FG") %>% 
+  dplyr::select(-Lost_FG_IC5, -Lost_FG_IC95) %>% 
+  rename(lower_CI_all = Deployed_FG_IC5, upper_CI_all = Deployed_FG_IC95)
+res_oper
+
+res_diss <- res_model2 %>% 
+  filter(Type == "Lost_FG") %>% 
+  dplyr::select(-Deployed_FG_IC5, -Deployed_FG_IC95) %>% 
+  rename(lower_CI_all = Lost_FG_IC5, upper_CI_all = Lost_FG_IC95) 
+res_diss
+
+res_model3 <- bind_rows(res_oper, res_diss) %>% 
+  mutate(label = if_else(Type == "Lost_FG", 
+                         sprintf("%s (%0.2f%%)", scales::comma(Value, accuracy = 1), per_lost),
+                         scales::comma(Value, accuracy = 1)))
+res_model3
+
+```
+
+
+```{r plot Rich}
+res_model3$Type <- factor(res_model3$Type, levels = c("Lost_FG", "Deployed_FG"))
+
+plot_final_R <- res_model3 %>%
+  #if FG = Bottom trawl nets and Type = Lost_FG then variables lower_CI_all upper_CI_all and Value --> 1
+  mutate(Value = if_else(FG == "Bottom trawl nets" & Type == "Lost_FG", 1, Value),
+         lower_CI_all = if_else(FG == "Bottom trawl nets" & Type == "Lost_FG", 1, lower_CI_all),
+         upper_CI_all = if_else(FG == "Bottom trawl nets" & Type == "Lost_FG", 1.747, upper_CI_all)) %>%
+  filter(FG != "Longline hooks",
+         FG != "Midwater trawl nets") %>%
+  ggplot(aes(x = Value, y = FG, fill = Type)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9)) +
+  geom_errorbar(aes(xmin = lower_CI_all, xmax = upper_CI_all), 
+                position = position_dodge(width = 0.9), 
+                width = 0.25, linewidth = 1) +
+  scale_x_log10(labels = scales::comma) +
+  labs(title = "Fishing gear operated and lost in the southeastern BoB",
+       subtitle = "Period: November 2022 to November 2023\n\nOnly the boat equipped with AIS were included",
+       x = "Value (log scale)",
+       y = NULL, 
+       fill = "") +
+  scale_fill_manual(values = c("Deployed_FG" = "#26396D", "Lost_FG" = "#6DE2C3"),
+                  labels = c("Deployed_FG" = "Median FG Onboard\nIC[0.05-0.95]", "Lost_FG" = "Median FG Lost\nIC[0.05-0.95]"),
+                  breaks = c("Deployed_FG", "Lost_FG")) +
+  facet_grid(unit ~ ., scales = "free_y", switch = "x") +
+  theme_bw() +
+  theme(
+    strip.placement = "outside",
+    #strip.text.y.left = element_text(angle = 0),
+    #axis.text.y = element_text(hjust = 1),
+    panel.spacing = unit(1, "lines"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+    axis.text.x = element_text(size = 18, face = 'bold'),
+    axis.text.y = element_text(size = 18, face = 'bold'),
+    title = element_text(size = 22, face = "bold"),
+    strip.text = element_text(face = "bold", size = rel(2)),
+    strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+    legend.position="bottom",
+    legend.title=element_text(size = 18, face = 'bold'),
+    legend.text=element_text(size = 16, face = 'bold'),
+    legend.spacing.x = unit(0.4, 'cm'),
+    plot.margin = unit(c(1, 1, 1, 1), "cm")
+  ) +
+  geom_text(aes(label = label,
+                color = Type,
+                x = upper_CI_all),  # Utiliser color = Type dans aes()
+            position = position_dodge(width = 0.90), 
+            hjust = -0.1,  # Aligne le texte à gauche
+            fontface = "bold") +
+  scale_color_manual(values = c("Deployed_FG" = "black", "Lost_FG" = "black")) +  # Définir les couleurs du texte
+  guides(color = "none") 
+
+plot_final_R
+```
+
+
+#plot and df for Kuczenski
+```{r plot Kuczenski}
+
+res_model <- read_csv("data/gear_diss_results_script.csv") %>% 
+  rename(FG = Gear) %>% 
+  mutate(FG = if_else(FG == "Seiners", "Purse seine nets", FG),
+         FG = if_else(FG == "Trawlers", "Trawl nets", FG)) %>% 
+  mutate(unit = "kg",
+         per_lost = (diss_median / oper_median) * 100)
+res_model
+
+res_model2 <- res_model %>% 
+  dplyr::select(-unit_median, -unit_05, -unit_95) %>% 
+  pivot_longer(cols = c(oper_median, diss_median),
+               names_to = "Type", values_to = "Value")
+res_model2
+
+res_oper <- res_model2 %>% 
+  filter(Type == "oper_median") %>% 
+  dplyr::select(-diss_05, -diss_95) %>% 
+  rename(lower_CI_all = oper_05, upper_CI_all = oper_95) %>%  filter(tau == 0.5 | is.na(tau))
+res_oper
+sum(res_oper$Value)/1000
+sum(res_oper$lower_CI_all)/1000
+sum(res_oper$upper_CI_all)/1000
+
+res_diss <- res_model2 %>% 
+  filter(Type == "diss_median") %>% 
+  dplyr::select(-oper_05, -oper_95) %>% 
+  rename(lower_CI_all = diss_05, upper_CI_all = diss_95) %>%  filter(tau == 0.5 | is.na(tau))
+res_diss
+sum(res_diss$Value)/1000
+sum(res_diss$lower_CI_all)/1000
+sum(res_diss$upper_CI_all)/1000
+
+
+res_model3 <- bind_rows(res_oper, res_diss) %>% 
+  filter(tau == 0.5 | is.na(tau)) %>% 
+  mutate(label = if_else(Type == "diss_median", 
+                         sprintf("%s (%0.2f%%)", scales::comma(Value, accuracy = 1), per_lost),
+                         scales::comma(Value, accuracy = 1)))
+res_model3
+
+res_model3$FG = factor(res_model3$FG, levels=c('Longlines', 'Set Gillnets', 'Purse seine nets', 'Trawl nets'))
+
+plot_final_K <- res_model3 %>%
+  ggplot(aes(x = Value, y = FG, fill = Type)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9)) +
+  geom_errorbar(aes(xmin = lower_CI_all, xmax = upper_CI_all), 
+                position = position_dodge(width = 0.9), 
+                width = 0.25, linewidth = 1) +
+  scale_x_log10(labels = scales::comma) +
+  labs(title = "Fishing gear weight taken onboard and lost\nfrom November 2022 to November 2023",
+       subtitle = "Only the boat >15m are included\nAdapted from Kuczenski et al. (2021) model\nTau = 0.7\n",
+       x = "Value (log scale)",
+       y = NULL, 
+       fill = "") +
+  scale_fill_manual(values = c("oper_median" = "#26396D", "diss_median" = "#6DE2C3"),
+                  labels = c("oper_median" = "Median FG Onboard\nIC[0.05-0.95]", "diss_median" = "Median FG Lost\nIC[0.05-0.95]"),
+                  breaks = c("oper_median", "diss_median")) +
+  facet_grid(unit ~ ., scales = "free_y", switch = "x") +
+  theme_bw() +
+  theme(
+    strip.placement = "outside",
+    #strip.text.y.left = element_text(angle = 0),
+    #axis.text.y = element_text(hjust = 1),
+    panel.spacing = unit(1, "lines"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+    axis.text.x = element_text(size = 18, face = 'bold'),
+    axis.text.y = element_text(size = 18, face = 'bold'),
+    title = element_text(size = 22, face = "bold"),
+    strip.text = element_text(face = "bold", size = rel(2)),
+    strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+    legend.position="bottom",
+    legend.title=element_text(size = 18, face = 'bold'),
+    legend.text=element_text(size = 16, face = 'bold'),
+    legend.spacing.x = unit(0.4, 'cm'),
+    plot.margin = unit(c(1, 1, 1, 1), "cm")
+  ) +
+  geom_text(aes(label = label,
+                color = Type,
+                x = upper_CI_all),  # Utiliser color = Type dans aes()
+            position = position_dodge(width = 0.90), 
+            hjust = -0.1,  # Aligne le texte à gauche
+            fontface = "bold") +
+  scale_color_manual(values = c("oper_median" = "black", "diss_median" = "black")) +  # Définir les couleurs du texte
+  guides(color = "none") 
+
+print(plot_final_K)
+
+```
+

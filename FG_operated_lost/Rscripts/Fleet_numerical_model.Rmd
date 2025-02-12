@@ -1,0 +1,476 @@
+---
+title: "Richardson"
+author: "Edgar"
+date: "2024-07-05"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(ggplot2)
+library(tidyr)
+library(forcats)
+library(dplyr)
+library(readxl) 
+library(readr)
+library(RColorBrewer)
+library(tidyverse)
+library(binom)
+library(lubridate)
+library(ade4)
+library(ggrepel)
+library(broom)
+library(ggpubr)
+library(rstatix)
+library(wesanderson)
+library(car)
+library(multcompView)
+library(rcompanion)
+library(writexl)
+library(gmodels)
+library(tools)
+library(fmsb)
+
+library(mgcv)
+library(gamlss)
+library(quantreg)
+library(MASSExtra)
+```
+
+May 31, 2014, all European Union flagged fishing vessels over 15 meters in length are required to be equipped with AIS 
+
+```{r}
+
+#data fishing boat in area
+GFW_vessels1 <- read_csv("data/GFW/fishing_fleet_GFW_100924.csv") %>% 
+  mutate(shipName = gsub("F/V ", "", shipName),
+         shipName = gsub("F/V-", "", shipName),
+         shipName = gsub("F/V", "", shipName),
+         shipName = gsub("NV-", "", shipName)) %>% 
+  mutate(shipName = if_else(mmsi == "228224900" & shipName == "Unknown vessel", "L'INSOLITE", shipName),
+         shipName = if_else(mmsi == "224004680" & shipName == "Unknown vessel", "PITTAR", shipName),
+         shipName = if_else(mmsi == "224022550" & shipName == "V.PODER0SA.PRIMERO.", "V.PODEROSA.PRIMERO", shipName),
+         shipName = if_else(mmsi == "224022550" & shipName == "V.PODEROSA PRIMERO", "V.PODEROSA.PRIMERO", shipName),
+         shipName = if_else(mmsi == "224170740" & shipName == "J0SE EDUARDO", "JOSE EDUARDO", shipName),
+         shipName = if_else(mmsi == "224076440" & shipName == "HNOS.RAINA", "CORVO", shipName),
+         shipName = if_else(mmsi == "224022130" & shipName == "MAROUCO", "MAR DE XANDRE", shipName),
+         shipName = if_else(mmsi == "227145200" & shipName == "LE BELIER", "LES FRANGINS", shipName),
+         shipName = if_else(mmsi == "227641030" & shipName == "Unknown vessel", "ORION", shipName),
+         shipName = if_else(mmsi == "227878000" & shipName == "OCEANOS", "OUTSIDER", shipName),
+         shipName = if_else(mmsi == "228138000" & shipName == "LES MENHIRS", "VICTOIRE-CELESTE", shipName),
+         shipName = if_else(mmsi == "227316650" & shipName == "Unknown vessel", "LE MELA", shipName),
+         shipName = if_else(mmsi == "227315730" & shipName == "Unknown vessel", "POINT FINAL", shipName),
+         shipName = if_else(mmsi == "228200000" & shipName == "Unknown vessel", "ROUDOUDOU", shipName),
+         shipName = if_else(mmsi == "228339000" & shipName == "RAY PRIMERO", "VIRIATO PRIMERO", shipName),
+         shipName = if_else(mmsi == "227319630" & shipName == "YETI", "LE YETI", shipName),
+         shipName = if_else(shipName == "NAUSICAA" & mmsi == 227317810, "WEST INDIES", shipName)) %>%
+  dplyr::select(flag,  geartype,       hours,      mmsi, shipName, vesselType) %>% 
+  rename(gfw_flag = flag) %>% 
+  group_by(gfw_flag, geartype, mmsi, shipName, vesselType) %>% 
+    summarise(hours = sum(hours)) %>% 
+  filter(shipName != "Unknown vessel") #Because not fishing boats 
+GFW_vessels1
+
+#data all boats in area 
+GFW_all <- read_csv("data/GFW/global_fleet_GFW_100924.csv") %>% 
+  filter(vesselType == "FISHING" | vesselType == "SUPPORT,FISHING") %>% 
+  mutate(shipName = gsub("F/V ", "", shipName),
+         shipName = gsub("F/V-", "", shipName),
+         shipName = gsub("F/V", "", shipName),
+         shipName = gsub("NV-", "", shipName)) %>% 
+  mutate(shipName = if_else(mmsi == "228224900" & shipName == "Unknown vessel", "L'INSOLITE", shipName),
+         shipName = if_else(mmsi == "224004680" & shipName == "Unknown vessel", "PITTAR", shipName),
+         shipName = if_else(mmsi == "224022550" & shipName == "V.PODER0SA.PRIMERO.", "V.PODEROSA.PRIMERO", shipName),
+         shipName = if_else(mmsi == "224022550" & shipName == "V.PODEROSA PRIMERO", "V.PODEROSA.PRIMERO", shipName),
+         shipName = if_else(mmsi == "224170740" & shipName == "J0SE EDUARDO", "JOSE EDUARDO", shipName),
+         shipName = if_else(mmsi == "224076440" & shipName == "HNOS.RAINA", "CORVO", shipName),
+         shipName = if_else(mmsi == "224022130" & shipName == "MAROUCO", "MAR DE XANDRE", shipName),
+         shipName = if_else(mmsi == "227145200" & shipName == "LE BELIER", "LES FRANGINS", shipName),
+         shipName = if_else(mmsi == "227641030" & shipName == "Unknown vessel", "ORION", shipName),
+         shipName = if_else(mmsi == "227878000" & shipName == "OCEANOS", "OUTSIDER", shipName),
+         shipName = if_else(mmsi == "228138000" & shipName == "LES MENHIRS", "VICTOIRE-CELESTE", shipName),
+         shipName = if_else(mmsi == "227316650" & shipName == "Unknown vessel", "LE MELA", shipName),
+         shipName = if_else(mmsi == "227315730" & shipName == "Unknown vessel", "POINT FINAL", shipName),
+         shipName = if_else(mmsi == "228200000" & shipName == "Unknown vessel", "ROUDOUDOU", shipName),
+         shipName = if_else(mmsi == "228339000" & shipName == "RAY PRIMERO", "VIRIATO PRIMERO", shipName),
+         shipName = if_else(mmsi == "227319630" & shipName == "YETI", "LE YETI", shipName)) %>%
+  mutate(mmsi = if_else(mmsi == 224186130 & shipName == "NVO VIRGEN PODEROSA", 224086130, mmsi),
+         mmsi = if_else(mmsi == 228314000 & shipName == "ATTALAYA BERRIA", 228315000, mmsi),
+         mmsi = if_else(mmsi == 218315000 & shipName == "ATTALAYA BERRIA", 228315000, mmsi),
+         shipName = if_else(shipName == "NAUSICAA" & mmsi == 227317810, "WEST INDIES", shipName),
+         shipName = if_else(mmsi == 224076190 & shipName == "Unknown vessel", "PANELA VILLA", shipName),
+         shipName = if_else(mmsi == 224217130 & shipName == "Unknown vessel", "JESUS NAZARET BERRIA", shipName),
+         shipName = if_else(mmsi == 227316490 & shipName == "Unknown vessel", "LE CROISICAIS", shipName),
+         shipName = if_else(mmsi == 227608160 & shipName == "Unknown vessel", "LE PTILU", shipName),
+         shipName = if_else(mmsi == 227642080 & shipName == "Unknown vessel", "L ABSIDE", shipName),
+         shipName = if_else(mmsi == 227673970 & shipName == "Unknown vessel", "TIPTOP", shipName),
+         shipName = if_else(mmsi == 227679890 & shipName == "Unknown vessel", "CARABAS", shipName),
+         shipName = if_else(mmsi == 228123600 & shipName == "Unknown vessel", "L'APPEL DU LARGE", shipName),
+         shipName = if_else(mmsi == 228364800 & shipName == "Unknown vessel", "LA SAMBA", shipName),
+         flag = if_else(flag == "DEU" & mmsi == 228315000, "FRA", flag)) %>% 
+  filter(shipName != "TXOMIN", shipName != "Unknown vessel") %>% 
+  rename(total_hours = hours, gfw_flag = flag) %>% 
+  group_by(gfw_flag, shipName, mmsi) %>% 
+  summarise(total_hours = sum(total_hours))
+  
+GFW_all
+
+GFW_vessels <- GFW_vessels1 %>% 
+  left_join(GFW_all, by = c("mmsi", "shipName", "gfw_flag"), relationship = "many-to-many") 
+GFW_vessels
+
+#data EU fleet register
+EU_fleet <- read_delim("data/fishing_registers/EU_fishing_fleet_reg.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE) %>% 
+  mutate(Statut = "OK")
+EU_fleet
+
+GBR_fleet <- read_delim("data/fishing_registers/GBR_fishing_fleet.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE) %>% 
+  mutate(Statut = "NO")
+GBR_fleet
+
+Old_EU <- read_delim("data/fishing_registers/EU_old_vessels.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE) %>% 
+  mutate(Statut = "OLD")
+Old_EU
+
+Ret_EU <- read_delim("data/fishing_registers/EU_retired_vessels.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE) %>% 
+  mutate(Statut = "RET")
+Ret_EU
+
+Error_EU <- read_excel("data/fishing_registers/missing_data.xlsx", 
+    sheet = "Feuil1") %>% 
+    mutate(mmsi = as.double(mmsi)) %>% 
+  dplyr::select(mmsi, Engine_Power, GT, Error_geartype, city_port, Error_geartype)
+Error_EU
+
+Fleet_all <- bind_rows(EU_fleet, GBR_fleet, Old_EU, Ret_EU) 
+
+Fleet_all2 <- Fleet_all %>% 
+  rename(flag = "Country of Registration",
+         EU_shipName = "Name of vessel",
+         city_port = "Place of registration name",
+         mmsi = "MMSI",
+         vessel_type = "Vessel Type",
+         EU_geartype = "Main fishing gear",
+         EU_geartype2 = "Subsidiary fishing gear 1",
+         EU_geartype3 = "Subsidiary fishing gear 2",
+         GT = "Tonnage GT",
+         Engine_Power1 = "Power of main engine",
+         Engine_Power2 = "Power of auxiliary engine") %>% 
+  mutate(Engine_Power = Engine_Power1+Engine_Power2) %>% 
+  dplyr::select(flag, Statut, EU_shipName, city_port, mmsi, vessel_type, EU_geartype, EU_geartype2, EU_geartype3, GT, Engine_Power, LOA) %>%
+  filter(flag == "BEL" | flag == "ESP" | flag == "FRA" | flag == "GBR" | flag == "IRL" | flag == "NLD" | flag == "NOR" | flag == "PRT" | flag == "POL")
+Fleet_all2
+
+Fleet_combined <- full_join(Fleet_all2, GFW_vessels) %>% 
+  filter(!(is.na(geartype) & 
+           (LOA >= 15 | 
+            !(flag %in% c("ESP", "FRA")) | 
+            Statut != "OK"| 
+              !(city_port %in% c("Bilbao", "Ondarroa", "Lequeitio", "Bermeo", "Armintza", "Plencia", "Fuenterrabia", "San Sebastián", "Orio", "Guetaria", "Motrico", "Bayonne", "Bordeaux", "Arcachon", "La Cotinière", "Les Sables-D'Olonne", "Marennes", "Castro Urdiales", "Laredo", "Colindres", "Santoña", "Santander", "Suances", "Comillas", "Bustio", "Llanes"))))) %>% 
+  #Exclude estuarine and Arcachon Bay fishing boats
+   filter(
+    !(city_port %in% c("Arcachon", "Bordeaux") & is.na(geartype)) |
+    EU_shipName %in% c("YETI", "CHRISTINE-SYLVIE", "EYDEN", "GAELINE", "L'ESPADON", 
+                       "SCORPION 2", "GA-BRI-JO", "BUHEZ AR VRO", "LA PAIX DU CIEL II", 
+                       "EX NIHILO", "FORCE TRANQUILLE")
+  ) %>% 
+  #Exclude estuarine fishing boats 
+  filter(!EU_shipName %in% c("ANGELIQUE", "AR KAD", "AZKUBE", "BARAKA", "BURU", "CAIMAN", "CATHERINE",  
+                    "FLORIC II", "HAMALAU", "KRASKAIL", "LEGATZ BERRIA", "LES TROIS CANARDS", 
+                    "LES TROIS FRERES", "LOOPING", "MARRAINE", "MOUTTON", "RAPE TOUT", 
+                    "SHANGAI", "TUKU", "TXIKI", "TXINOURS", "UNTXIN", "XARNEGU II", "YOCEME", "TUKU TUKU")) %>% 
+  group_by(flag,  Statut, EU_shipName, city_port,   mmsi, vessel_type, 
+           EU_geartype, EU_geartype2, EU_geartype3, GT, LOA, Engine_Power, 
+           gfw_flag, geartype, shipName, vesselType) %>% 
+  summarise(hours = sum(hours), total_hours = sum(total_hours)) %>% 
+  mutate(shipName = coalesce(shipName, EU_shipName),
+         hours = if_else(mmsi == 224228490, 542.1878, hours), 
+         total_hours = if_else(mmsi == 224228490, 1061, total_hours),
+         hours = if_else(mmsi == 227640970, 1924, hours), 
+         total_hours = if_else(mmsi == 227640970, 2134, total_hours),) %>% 
+  filter(mmsi != 224300560 | shipName != "NUEVO MAXI Y MARIO") %>%
+  ungroup()
+Fleet_combined 
+
+
+Fleet_combined2 <- Fleet_combined %>%
+  left_join(Error_EU %>% dplyr::select(mmsi, Engine_Power, city_port, GT, Error_geartype), by = "mmsi", relationship = "many-to-many") %>%
+  mutate(
+    Engine_Power = coalesce(Engine_Power.x, Engine_Power.y),
+    city_port = coalesce(city_port.x, city_port.y),
+    GT = coalesce(GT.x, GT.y),
+    city_port = if_else(city_port == "la cotiniere", "La Cotinière", city_port),
+    city_port = if_else(city_port == "Oleron", "La Cotinière", city_port)
+  ) %>%
+  dplyr::select(-Engine_Power.x, -Engine_Power.y, -city_port.x, -city_port.y, -GT.x, -GT.y) %>% 
+  filter(!is.na(Engine_Power), shipName != "TUUGAALIK", shipName != "FONNALAKS") %>% 
+  mutate(shipName = if_else(mmsi == 227586760 & shipName == "L'HORIZON", "P'TIT TOM", shipName))
+  
+Fleet_combined2
+
+
+```
+
+```{r FG abbreviation FAO}
+# Créer les vecteurs
+Cat_FG <- c("Beach seines", "Boat seines", "Danish seines", "Scottish seines", "Pair seines",
+            "Purse seines", "One-boat operated purse seines", "Two-boat operated purse seines", "Lampara",
+            "Anchored seine nets", "Drifting seine nets", "Purse seine", 
+            "Trawl nets", "Beam trawls", "Twin bottom otter trawl", "Pair trawls", "Shrimp trawls", "Bottom trawls", "Midwater trawls", "Single boat bottom otter trawls", "Bottom pair trawls", "Single boat midwater otter trawls", "Midwater pair trawls",
+            "Dredges", "Towed dredges", "Lift nets", "Boat-operated lift nets", "Falling gear", 
+            
+            "Encircling gillnets", "Gillnets", "Set gillnets (anchored)", "Drifting gillnets",
+            "Trammel nets", "Set trammel nets", "Drifting trammel nets", "Combined gillnets-trammel nets",
+            "Surrounding nets", "Stationary uncovered pound nets", "Stationary covered pound nets",
+            
+            "Barrier, fence, weir, etc.", "Traps", "Pots", "Fyke nets", "Stow nets", "Pound nets", "Aerial traps", 
+            
+            "Handlines and hand-operated pole-and-lines", "Hooks and lines", "Hand lines", "Longlines", "Set longlines", "Drifting longlines",
+            "Grappling and wounding gear", "Harpoons", "Spears", "Hand harpoons", "Mechanized harpoons",
+            "Harvesting machines", "Electric fishing gear", "Electro-fishing", "Pumps", "Hand implements",
+            "Diving", 
+            "Hooks and Lines with light attraction", "Vertical lines", "Trolling lines", "Poles and lines",
+            "Grappling devices", "Harvesting machines", "Mechanical dredges", "Miscellaneous gear",
+            "Boat-operated lift nets")
+
+abb <- c("SB", "SV", "SDN", "SSC", "SPR", "PS", "PS1", "PS2", "LA", 
+         "AS", "DS", "AFAD",
+         "TR", "TBB", "OTT", "PT", "TRS", "TBOT", "TM", "OTB", "PTB", "OTM", "PTM",
+         "DR", "DRB", "LN", "LNB", "FG", 
+         "GNC", "GN", "GNS", "GND", "GTR", "STN", "DTN", "GTN", "SN", "SPN", "CPN", 
+         
+         "BFW", "TR", "FPO", "FN", "SN", "PN","AT", 
+         
+         "LHP", "HL", "HNL", "LL", "LLS", "LLD", 
+         "GW", "H", "S", "HH", "MH", 
+         "HM", "EF", "EF", "P", "HI", 
+         "D", 
+         "HLLA", "VL", "LTL", "PL", 
+         "GD", "HM", "MD", "MG",
+         "LNB")
+
+# Créer le tibble
+FG_cat_fao <- tibble(full_geartype = Cat_FG, abb = abb)
+
+#Fleet 2023 
+Fleet_combined3 <- Fleet_combined2 %>% 
+  left_join(FG_cat_fao, by = c("EU_geartype" = "abb"), relationship = "many-to-many") %>% 
+  left_join(FG_cat_fao, by = c("EU_geartype2" = "abb"), relationship = "many-to-many") %>% 
+  rename(full_geartype = full_geartype.x, full_geartype2 = full_geartype.y) %>% 
+   group_by(flag,  Statut, EU_shipName,     mmsi, vessel_type, EU_geartype, EU_geartype2, EU_geartype3,   LOA, gfw_flag, geartype, shipName, vesselType, Error_geartype, Engine_Power, city_port, GT, full_geartype, full_geartype2) %>%
+  summarise(hours = sum(hours), 
+            total_hours = sum(total_hours)) %>% 
+  filter(is.na(mmsi) | shipName != "L'INSOLITE",
+         is.na(mmsi) | shipName != "LE CROISICAIS",
+         is.na(flag) | shipName != "BETI ISKANDER",
+         mmsi == 228396800 | shipName != "LES CHIGNOLLES")
+Fleet_combined3
+
+```
+
+```{r Final df FE BOB 2023}
+Fleet_combined4 <- Fleet_combined3 %>%
+  ungroup() %>% 
+  dplyr::select(gfw_flag, city_port, shipName, mmsi, EU_geartype, full_geartype, geartype, Error_geartype, full_geartype2, GT, Engine_Power, LOA, hours, total_hours) %>% 
+  rename(Flag = gfw_flag) %>%  
+  mutate(full_geartype = if_else(is.na(full_geartype), Error_geartype, full_geartype)) %>% 
+  dplyr::select(Flag, city_port, shipName, mmsi, EU_geartype, full_geartype, geartype, full_geartype2, GT, Engine_Power, LOA, hours, total_hours) %>% 
+  mutate(full_geartype = if_else(full_geartype == "GNS_LLS_GTR", "Set gillnets (anchored)", full_geartype),) %>% 
+  mutate(full_geartype = if_else(is.na(full_geartype), geartype, full_geartype)) %>% 
+  mutate(Plasfito_FG = case_when(
+    full_geartype %in% c("Danish seines") ~ "Danish seines",
+    full_geartype %in% c("Purse seines", "purse seine", "seiner_trawler") ~ "Purse seines",
+    full_geartype %in% c("Beam trawls", "Trawler", "bottom sea trawler", "Single boat bottom otter trawls", "Bottom pair trawls", "Twin bottom otter trawl", "bottom sea trawler_dredge") ~ "Bottom trawls",
+    full_geartype %in% c("Single boat midwater otter trawls", "Midwater trawls", "pelagic trawler", "Midwater pair trawls") ~ "Midwater trawls",
+    full_geartype %in% c("Towed dredges") ~ "Dredge fishing",
+    full_geartype %in% c("Boat-operated lift nets") ~ "Lift nets",
+    full_geartype %in% c("Set gillnets (anchored)", "Trammel nets", "Combined gillnets-trammel nets", "Set gillnet") ~ "Set gillnets",
+    full_geartype %in% c("Pots") ~ "Pots & traps",
+    full_geartype %in% c("Handlines and hand-operated pole-and-lines", "Trolling lines") ~ "Lines & hooks",
+    full_geartype %in% c("Drifting longlines") ~ "Drifting longlines",
+    full_geartype %in% c("Set longlines", "Set longline") ~ "Set longlines"), 
+    Plasfito_FG = if_else(is.na(Plasfito_FG), "No specific", Plasfito_FG)) %>% 
+  mutate(Plasfito_FG = if_else(EU_geartype == "FPO" & shipName == "FLEUR DE SEL", "Set gillnets", Plasfito_FG),
+         Plasfito_FG = if_else(EU_geartype == "FPO" & shipName == "RACHEL JAY  S448", "Bottom trawls", Plasfito_FG),
+         ) %>% 
+  mutate(Plasfito_FG = if_else(Plasfito_FG == "No specific" & !is.na(full_geartype), full_geartype, Plasfito_FG)) %>% 
+  mutate(Plasfito_FG2 = case_when(
+    full_geartype2 %in% c("Danish seines") ~ "Danish seines",
+    full_geartype2 %in% c("Purse seines", "purse seine", "seiner_trawler") ~ "Purse seines",
+    full_geartype2 %in% c("Beam trawls", "Trawler", "bottom sea trawler", "Single boat bottom otter trawls", "Bottom pair trawls", "Twin bottom otter trawl", "bottom sea trawler_dredge") ~ "Bottom trawls",
+    full_geartype2 %in% c("Single boat midwater otter trawls", "Midwater trawls", "pelagic trawler", "Midwater pair trawls") ~ "Midwater trawls",
+    full_geartype2 %in% c("Towed dredges") ~ "Dredge fishing",
+    full_geartype2 %in% c("Boat-operated lift nets") ~ "Lift nets",
+    full_geartype2 %in% c("Set gillnets (anchored)", "Trammel nets", "Combined gillnets-trammel nets", "Set gillnet", "Gillnets") ~ "Set gillnets",
+    full_geartype2 %in% c("Pots") ~ "Pots & traps",
+    full_geartype2 %in% c("Handlines and hand-operated pole-and-lines", "Trolling lines") ~ "Lines & hooks",
+    full_geartype2 %in% c("Drifting longlines") ~ "Drifting longlines",
+    full_geartype2 %in% c("Set longlines", "Set longline") ~ "Set longlines"),
+    Plasfito_FG2 = if_else(is.na(Plasfito_FG2), NA, Plasfito_FG2),
+    Plasfito_FG2 = if_else(Plasfito_FG == Plasfito_FG2, NA, Plasfito_FG2)) %>% 
+  mutate(days = hours/24,
+         FE_kWxdays = Engine_Power*days) %>% 
+  mutate(Flag = if_else(city_port %in% c("Bilbao", "Ondarroa", "Lequeitio", "Bermeo", "Armintza", "Plencia", "Fuenterrabia", "San Sebastián", "Orio", "Guetaria", "Motrico", "Castro Urdiales", "Laredo", "Colindres", "Santoña", "Santander", "Suances", "Comillas", "Bustio", "Llanes"), "ESP", 
+                        if_else(city_port %in% c("Bayonne", "Bordeaux", "Arcachon", "La Cotinière", "Les Sables-D'Olonne", "Marennes"), "FRA", Flag))) %>% 
+  mutate(Plasfito_FG = if_else(Plasfito_FG == "Gillnets", "Set gillnets", Plasfito_FG),
+         Plasfito_FG = if_else(Plasfito_FG == "small scale", "Pots & traps", Plasfito_FG),
+        Plasfito_FG = if_else(Plasfito_FG == "Longlines", "Set longlines", Plasfito_FG),
+        Plasfito_FG = if_else(Plasfito_FG == "Encircling gillnets", "Set gillnets", Plasfito_FG)) 
+Fleet_combined4 
+
+#Fleet for each FG 
+sum_FG <- Fleet_combined4 %>% 
+  filter(!is.na(hours)) %>% 
+  group_by(
+    Plasfito_FG,
+  ) %>% 
+  summarise(sum_hours = sum(hours, na.rm = TRUE),
+            sum_vessels = n(),
+            sum_power = sum(Engine_Power, na.rm = TRUE)) %>% 
+  mutate(per_vessels = sum_vessels*100/1041,
+         per_hours = sum_hours*100/401839,
+         per_power = sum_power*100/273247) %>% 
+  arrange(-per_hours)
+sum_FG
+
+sum_PS <- Fleet_combined4 %>% 
+  filter(!is.na(hours)) %>% 
+  filter(Plasfito_FG == "Purse seines") %>% 
+  group_by(
+    Flag
+  ) %>% 
+  summarise(sum_hours = sum(hours, na.rm = TRUE),
+            sum_vessels = n(),
+            sum_power = sum(Engine_Power, na.rm = TRUE)) %>% 
+  mutate(per_vessels = sum_vessels*100/160,
+         per_hours = sum_hours*100/57027,
+         per_power = sum_power*100/67434) %>% 
+  arrange(-per_hours)
+sum_PS
+
+sum_LL <- Fleet_combined4 %>% 
+  filter(!is.na(hours)) %>% 
+  filter(Plasfito_FG %in% c("Set longlines", "Drifting longlines")) %>% 
+  group_by(
+    Flag
+  ) %>% 
+  summarise(sum_hours = sum(hours, na.rm = TRUE),
+            sum_vessels = n(),
+            sum_power = sum(Engine_Power, na.rm = TRUE)) %>% 
+  mutate(per_vessels = sum_vessels*100/104,
+         per_hours = sum_hours*100/69143,
+         per_power = sum_power*100/43540) %>% 
+  arrange(-per_hours)
+sum_LL
+
+sum_gill <- Fleet_combined4 %>% 
+  filter(!is.na(hours)) %>% 
+  filter(Plasfito_FG %in% c("Set gillnets")) %>% 
+  group_by(
+    Flag
+  ) %>% 
+  summarise(sum_hours = sum(hours, na.rm = TRUE),
+            sum_vessels = n(),
+            sum_power = sum(Engine_Power, na.rm = TRUE)) %>% 
+  mutate(per_vessels = sum_vessels*100/219,
+         per_hours = sum_hours*100/119484,
+         per_power = sum_power*100/43476) %>% 
+  arrange(-per_hours)
+sum_gill
+
+sum_BT <- Fleet_combined4 %>% 
+  filter(!is.na(hours)) %>% 
+  filter(Plasfito_FG %in% c("Bottom trawls", "Midwater trawls")) %>% 
+  group_by(
+    Flag
+  ) %>% 
+  summarise(sum_hours = sum(hours, na.rm = TRUE),
+            sum_vessels = n(),
+            sum_power = sum(Engine_Power, na.rm = TRUE)) %>% 
+  mutate(per_vessels = sum_vessels*100/165,
+         per_hours = sum_hours*100/130917,
+         per_power = sum_power*100/76727) %>% 
+  arrange(-per_hours)
+sum_BT
+
+sum_PL <- Fleet_combined4 %>% 
+  filter(!is.na(hours)) %>% 
+  filter(Plasfito_FG %in% c("Lines & hooks")) %>% 
+  group_by(
+    Flag
+  ) %>% 
+  summarise(sum_hours = sum(hours, na.rm = TRUE),
+            sum_vessels = n(),
+            sum_power = sum(Engine_Power, na.rm = TRUE)) %>% 
+  mutate(per_vessels = sum_vessels*100/10,
+         per_hours = sum_hours*100/10142,
+         per_power = sum_power*100/2487) %>% 
+  arrange(-per_hours)
+sum_PL
+
+Fleet_combined5 <- Fleet_combined4 %>% 
+  filter(!is.na(FE_kWxdays)) 
+Fleet_combined5
+
+```
+
+
+```{r Fleet for kucenzki}
+
+#create a French fishing fleet with Plasfoti_FG pots and traps when it is as a second fishing metier 
+Pots_and_traps_FRA <- Fleet_combined4 %>% 
+  filter(Flag == "FRA", Plasfito_FG2 == "Pots & traps") %>% 
+  mutate(Plasfito_FG = Plasfito_FG2)
+
+Pots_and_traps_ESP <- Fleet_combined4 %>% 
+  filter(Flag == "ESP", geartype == "Fixed gear") %>% 
+  mutate(Plasfito_FG = "Pots & traps")
+  
+Fleet_num_model <- Fleet_combined4 %>% 
+  bind_rows(Pots_and_traps_FRA) %>%
+  bind_rows(Pots_and_traps_ESP) %>%
+  rename(f_hours = hours) %>%
+  filter(!is.na(f_hours)) %>% #selection of boat with fishing hours and therefore AIS
+  mutate(Plasfito_FG = if_else(Flag == "FRA" & Plasfito_FG == "Lines & hooks", geartype, Plasfito_FG)) %>% 
+  mutate(Plasfito_FG = if_else(Plasfito_FG == "Fishing", Plasfito_FG2, Plasfito_FG)) %>% 
+  mutate(GFWCategory = case_when(
+    Plasfito_FG %in% c("Purse seines", "Other purse seines") ~ "seiners",
+    Plasfito_FG %in% c("Bottom trawls", "Danish seines", "Midwater trawls") ~ "trawlers",
+    Plasfito_FG %in% c("Dredge fishing") ~ "dredge_fishing",
+    Plasfito_FG %in% c("Set gillnets", "Set gillnet", "No specific", "Lift nets", "driftnets") ~ "set_gillnets",
+    Plasfito_FG %in% c("Pots & traps") ~ "pots_and_traps",
+    Plasfito_FG %in% c("Lines & hooks", "Pole and line") ~ "pole_and_line",
+    Plasfito_FG %in% c("Drifting longlines", "Fishing") ~ "drifting_longlines",
+    Plasfito_FG %in% c("Set longlines") ~ "set_longlines",
+    TRUE ~ NA,
+  ),
+  GFWCategory = if_else(Flag == "FRA" & GFWCategory == "drifting_longlines", "set_longlines", GFWCategory)) %>%
+  mutate(Flag = if_else(is.na(Flag), "ESP", Flag)) %>% 
+  dplyr::select(Flag, city_port, shipName, GFWCategory, LOA, GT, Engine_Power, total_hours, f_hours, days) %>% 
+  mutate(f_hours_length_m = f_hours * LOA,
+         f_hours_kw = f_hours * Engine_Power,
+         f_hours_gt = f_hours * GT,
+         year = "2023",
+         fao_area_code = "27") %>% 
+  rename(iso3_code = Flag, 
+         fishing_hours = f_hours,
+         hours = total_hours,
+         fishing_days = days) %>% 
+  group_by(year, iso3_code, fao_area_code, GFWCategory) %>%
+  summarise(total_f_hours_length = sum(f_hours_length_m, na.rm = T),
+              total_f_hours_tonnage = sum(f_hours_gt, na.rm = T),
+              total_f_hours_kw = sum(f_hours_kw, na.rm = T),
+              total_f_hours = sum(fishing_hours, na.rm = T),
+              total_hours = sum(hours, na.rm = T),
+              total_days = sum(fishing_days, na.rm = T),
+              n_vessel = n()) %>%
+    ungroup() 
+Fleet_num_model
+
+```
+

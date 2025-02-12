@@ -1,0 +1,27 @@
+{
+    "id": "B97F22C6",
+    "path": "~/Nextcloud/GitHub/Plasfito_public/FG_operated_lost/Rscripts/Final_df_plots.Rmd",
+    "project_path": "Rscripts/Final_df_plots.Rmd",
+    "type": "r_markdown",
+    "hash": "3382472410",
+    "contents": "",
+    "dirty": false,
+    "created": 1739358688981.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "chunk_output_type": "console",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "238,0",
+        "scrollLine": "238"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1739363332,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1739363332199,
+    "read_only": false,
+    "read_only_alternatives": []
+}
