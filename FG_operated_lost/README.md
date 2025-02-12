@@ -26,7 +26,7 @@ Enter in the "Rscripts" folder
   2.1-Follow the README of the folder
 
 
-## Part 2: Using the sociological study of Richardson et al. (2022) and create statistical models
+## Part 2: Using the sociological study of Richardson et al. (2022) and creating statistical models
 ### Process 
 Open the "Project_FG_operated_lost.Rproj" Rstudio environment 
 Enter in the "Rscripts" folder 
