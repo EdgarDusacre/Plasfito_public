@@ -1,4 +1,8 @@
-# Welcome in the R software created to analyse the data of OSPAR Monitoring samples. This software aims to focus on the abandonned lost or otherwise discarded fisging gear
+# Welcome in the R software created to analyse the data of OSPAR Monitoring samples. 
+
+!!! All the data and methods are currently under submission in a scientific journal. We will update this repository as soon as the article is published !!!
+
+This software aims to focus on the abandonned lost or otherwise discarded fisging gear
 
 We recommend to use the latest version of Rstudio to run the different scripts.
 
