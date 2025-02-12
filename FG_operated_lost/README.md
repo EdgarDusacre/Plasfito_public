@@ -1,17 +1,17 @@
-# Welcome in the R software created to estimat the quantity of fishing gear operated and lost in the Southeastern Bay of Biscay betweeen Novemeber 2022 and November 2023
+# Welcome to the R software created to estimate the quantity of fishing gear operated and lost in the Southeastern Bay of Biscay between November 2022 and November 2023
 
-!!! All the data and methods are currently under submission in a scientific journal. We will update this repository as soon as the article is published !!!
+!!! All the data and methods are currently being submitted to a scientific journal. We will update this repository as soon as the article is published !!!
 
-We recommend to use the latest version of Rstudio to run the different scripts.
+We recommend using the latest version of Rstudio to run the different scripts.
 
 The first part is made to downscale to a local area and a local fishery, the numerical model created by Brandon Kuczenski ([Original repository]([https://pages.github.com/](https://github.com/bkuczenski/unit_gears)). 
 
-You can access to the scientific publications related with the link below:
+You can access the scientific publications related with the link below:
 [A model for the intensity of fishing gear](10.1111/jiec.13156)
 [Plastic gear loss estimates from remote observation of industrial fishing activity](10.1111/faf.12596)
 
-The second part is made to use the sociological study that did Kelsey Richardson and her team, to make statistical models to estimate the FG lost in a defined area with a local fishery.
-You can access to the scientific publication related with the link below:
+The second part uses the sociological study that Kelsey Richardson and her team conducted to make statistical models to estimate the FG lost in a defined area with a local fishery.
+You can access the scientific publication related with the link below:
 [Global estimates of fishing gear lost to the ocean each year](10.1126/sciadv.abq0135)
 
 ## Part 1: Downscaling the model of Kuczesnki et al. (2021)
