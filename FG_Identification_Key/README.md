@@ -1,5 +1,5 @@
 
-# All the data and methods are currently under submission in a scientific journal. We will update this repository as soon as the article is published !!!
+# All the data and methods are currently under submission in a scientific journal. We will update this repository as soon as the article is published
 
 ## Fishing gear Identification Key
 
