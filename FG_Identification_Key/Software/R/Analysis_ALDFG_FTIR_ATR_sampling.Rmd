@@ -267,34 +267,24 @@ Tot_FG <- Global_2022 %>% filter(Site != "Le Teich") %>%
          per_FG = (total_FG / sum(total_FG)) * 100) %>% arrange(desc(per_FG))
 Tot_FG
 
-#Global mass on the 800 m of beach btw nov2022 and nov2022 upscale to the coastline lentgh (~402.64 km)
-upscale <- global_mass %>%  
-  mutate(tot_coast = sum_mass_800m*700/0.8)
-upscale
+#Calculation of the total mass of waste on the 747.29 km of beach between nov2022 and nov2023
 
-    #Total mass with Kucz estimation:
-    sum(c(22900+7290+14600+6990)) #= 51780 kg
-    11796/51780*100 #= 22.8% of the total mass
-    
-#Average mass per 100m m of beach btw nov2022 and nov2022 upscale to the coastline lentgh (~402.64 km)
-# Fonction pour calculer la moyenne
-    
-data_100m <- Global %>% filter(Year == 2022, Site != "Le Teich") %>% 
+data_100m <- Global %>% filter(Year == 2023, Site != "Le Teich") %>% 
   filter(FG != "Unidentified rope", FG != "Unidentified net") %>% 
-  group_by(Season, Site, Year) %>% summarise(sum_mass = sum(Weight)/1000) %>% 
-  rename(mass = sum_mass)
+  group_by(Season, Site, Year) %>% summarise(sum_mass = sum(Weight)/1000) %>% #to get the data in kg
+  rename(mass = sum_mass) 
 data_100m
     
 mean_fun <- function(data, indices) {
   return(mean(data[indices]))
 }
 
-# Effectuer le bootstrap
+# Effectuer le bootstrap pour calculer la moyenne de la masse par 100m de plage
 set.seed(123)  # Pour la reproductibilité
 bootstrap_results <- boot(data_100m$mass, mean_fun, R = 10000)
 
 # Calculer l'estimation pour tout le trait de côte
-trait_cote_100m <- 4026.4
+trait_cote_100m <- 747.29*1000/100 #x1000 to convert in m and /100 to know how many transects of 100m in 747.29 km
 total_estimate <- bootstrap_results$t0 * trait_cote_100m
 
 # Calculer les intervalles de confiance
@@ -302,10 +292,9 @@ ci <- boot.ci(bootstrap_results, type = "bca")
 total_ci <- ci$bca[4:5] * trait_cote_100m
 
 # Afficher les résultats
-print(paste0("Estimation de la masse totale de déchets sur le trait de côte de 402,64 km : ",
-             round(total_estimate, 2), " unités de masse",
+print(paste0("Estimation de la masse totale de déchets sur le trait de côte de 747.29 km : ",
+             round(total_estimate, 2), "kg",
              " (IC 95% bootstrap : ", round(total_ci[1], 2), " - ", round(total_ci[2], 2), ")"))
-
 
 ##To get the standard deviation in the graphs
 # Calculer la variance pondérée pour chaque type de déchet par site

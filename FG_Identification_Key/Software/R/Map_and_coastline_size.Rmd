@@ -301,38 +301,466 @@ Plasfito
 
 ```
 
-```{r length coastline}
+```{r last method based on  Benoît Mandelbrot method}
+library(geodata)
+library(terra)
+library(sf)
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(rnaturalearth)
 
-# Obtenir les données du trait de côte à haute résolution
-coastline <- ne_coastline(scale = 10, returnclass = "sf")
+# Get coastline data for France and Spain
+france <- gadm("FRA", level=0, resolution=1, path=".")
+spain <- gadm("ESP", level=0, resolution=1, path=".")
 
-# Définir les points de début et de fin
-start_point <- c(-1.260000, 46.320000)
-end_point <- c(-4.03000, 43.44000)
+# Combine and transform to a planar coordinate system
+france_sf <- st_as_sf(france)
+france_proj <- st_transform(france_sf, crs = 32631) 
+spain_sf <- st_as_sf(spain)
+spain_proj <- st_transform(spain_sf, crs = 25830) 
 
-# Créer une ligne entre les points de début et de fin
-line <- st_sfc(st_linestring(rbind(start_point, end_point)), crs = st_crs(coastline))
+# Extract the coastline
+coastline_fr <- st_cast(st_geometry(france_proj), "MULTILINESTRING")
+coastline_fr <- st_cast(coastline_fr, "LINESTRING")
 
-# Créer un buffer autour de cette ligne pour capturer le trait de côte
-buffer <- st_buffer(line, dist = 0.1)  # Réduire le buffer à 0.1 degré pour plus de précision
+# Extract the coastline
+coastline_es <- st_cast(st_geometry(spain_proj), "MULTILINESTRING")
+coastline_es <- st_cast(coastline_es, "LINESTRING")
 
-# Découper le trait de côte avec ce buffer
-coastline_subset <- st_intersection(coastline, buffer)
 
-# Convertir le trait de côte en points avec une résolution plus élevée
-coastline_points <- st_cast(coastline_subset, "POINT")
-coords <- st_coordinates(coastline_points)
+##FRANCE
+# Calculate the length of each linestring in the coastline
+l <- st_length(coastline_fr)
+total_length <- sum(l)
+print(total_length)
 
-# Calculer la distance le long du trait de côte
-total_length <- 0
-for (i in 1:(nrow(coords) - 1)) {
-  total_length <- total_length + distGeo(coords[i, ], coords[i+1, ])
+i <- order(l, decreasing = TRUE)[1]
+i
+
+l[i] / 1000
+## Fr size 9154.904 [km]
+b_fr <- coastline_fr[i]
+
+par(mai=rep(0,4))
+plot(b_fr)
+
+b_fr <- terra::vect(b_fr)
+
+# Define the bounding box in geographic coordinates
+lon_min <- -2  # 2°W
+lon_max <- 0   # 0°
+lat_min <- 43  # 43°N
+lat_max <- 47  # 47°N
+
+# Create a bounding box as an sf object
+bbox <- st_as_sfc(st_bbox(c(xmin = lon_min, xmax = lon_max, 
+                            ymin = lat_min, ymax = lat_max), 
+                          crs = 4326))
+
+# Transform the bounding box to match your data's CRS
+# Replace XXXX with the EPSG code of your data's CRS
+bbox_transformed <- st_transform(bbox, crs = 32631)
+
+bbox_transformed2 <- terra::vect(bbox_transformed)
+
+# Perform the intersection
+b_fr_plasfito <- terra::intersect(b_fr, bbox_transformed2)
+
+##SPAIN
+l <- st_length(coastline_es)
+total_length <- sum(l)
+print(total_length)
+
+i <- order(l, decreasing = TRUE)[1]
+i
+
+l[i] / 1000
+## Es size 8013.248 [km]
+b_es <- coastline_es[i]
+
+par(mai=rep(0,4))
+plot(b_es)
+
+b_es <- terra::vect(b_es)
+
+# Define the bounding box in geographic coordinates
+lon_min <- -4  # 2°W
+lon_max <- 0   # 0°
+lat_min <- 43.2  # 43°N
+lat_max <- 44  # 47°N
+
+# Create a bounding box as an sf object
+bbox <- st_as_sfc(st_bbox(c(xmin = lon_min, xmax = lon_max, 
+                            ymin = lat_min, ymax = lat_max), 
+                          crs = 4326))
+
+# Transform the bounding box to match your data's CRS
+# Replace XXXX with the EPSG code of your data's CRS
+bbox_transformed <- st_transform(bbox, crs =25830)
+
+bbox_transformed2 <- terra::vect(bbox_transformed)
+
+# Perform the intersection
+b_es_plasfito <- terra::intersect(b_es, bbox_transformed2)
+```
+
+
+```{r function to measure}
+measure_with_ruler <- function(pols, length, lonlat=FALSE) {
+    # Vérification du type d'objet
+    stopifnot(inherits(pols, 'SpatVector'))
+    stopifnot(length(pols) == 1)
+    
+    # Obtenir les coordonnées
+    g <- crds(pols)
+    nr <- nrow(g)
+    
+    pts <- 1
+    newpt <- 1
+    while(TRUE) {
+        p <- newpt
+        j <- p:(p+nr-1)
+        j[j > nr] <- j[j > nr] - nr
+        gg <- g[j,]
+        
+        # Utiliser la fonction distance de terra
+        pd <- terra::distance(gg[1,, drop=FALSE], gg, lonlat=lonlat)
+        pd <- as.vector(pd)
+        
+        i <- which(pd > length)[1]
+        if (is.na(i)) {
+            stop('Ruler is longer than the maximum distance found')
+        }
+        newpt <- i + p
+        if (newpt >= nr) break
+        pts <- c(pts, newpt)
+    }
+    pts <- c(pts, 1)
+    g[pts, ]
+}
+```
+
+```{r get the data}
+y <- list()
+rulers <- c(0.001) # km
+for (i in 1:length(rulers)) {
+    y[[i]] <- measure_with_ruler(b_fr_plasfito, rulers[i]*1000)
 }
 
-# Convertir en kilomètres et arrondir
-length_km <- round(total_length / 1000, 2)
+size_fr <- y
 
-print(paste("Longueur estimée du trait de côte :", length_km, "km"))
+y <- list()
+rulers <- c(0.001) # km
+for (i in 1:length(rulers)) {
+    y[[i]] <- measure_with_ruler(b_es_plasfito, rulers[i]*1000)
+}
+size_es <- y
 
 
+```
+
+```{r calculate the segment size France}
+# Fonction pour calculer la distance euclidienne entre deux points
+euclidean_distance <- function(x1, y1, x2, y2) {
+  sqrt((x2 - x1)^2 + (y2 - y1)^2)
+}
+
+# Convertir la liste en dataframe
+df <- as.data.frame(size_fr[[1]])
+colnames(df) <- c("x", "y")
+
+df <- df[-c(7090:7250, 7000:3900, #eliminate gironde coordinates
+            3125:1970,  #eliminate arcachon coordinates
+            355:315), ] #eliminate st-jean-luz bay coordinates
+
+df <- df %>% 
+  filter(!(y > 5130000)) %>% 
+  filter(!(x > 187000)) %>% 
+  filter(!(y < 4813100)) 
+
+
+plot(df$x, df$y, type = "b", col = "blue", lwd = 2)
+
+# Créer un objet sf à partir de vos données
+line_sf <- st_sfc(st_linestring(as.matrix(df)), crs = 32631)
+
+# Obtenir les données de la France
+france <- ne_countries(scale = 10, country = "France", returnclass = "sf")
+
+# Transformer les données de la France en UTM Zone 31N
+france_utm <- st_transform(france, 32631)
+
+# Créer la carte
+ggplot() +
+  geom_sf(data = france_utm, fill = "lightgrey", color = "darkgrey") +
+  geom_sf(data = line_sf, color = "blue", size = 1) +
+  geom_point(data = df, aes(x, y), color = "red", size = 0.5) +
+  coord_sf(xlim = c(min(df$x) - 10000, max(df$x) + 1000),
+           ylim = c(min(df$y) - 1000, max(df$y) + 1000),
+           datum = sf::st_crs("EPSG:32631")) +
+  theme_minimal() +
+  labs(title = "Ligne tracée sur la carte de France",
+       x = "Easting (m)",
+       y = "Northing (m)") +
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE))
+
+#plot zoom on pointe st-clement
+ggplot() +
+  geom_sf(data = france_utm, fill = "lightgrey", color = "darkgrey") +
+  geom_sf(data = line_sf, color = "blue", size = 1) +
+  geom_point(data = df, aes(x, y), color = "red", size = 0.5) +
+  coord_sf(xlim = c(min(df$x) + 50000, max(df$x) - 10000),
+           ylim = c(min(df$y) + 400000, max(df$y) - 50000),
+           datum = sf::st_crs("EPSG:32631")) +
+  theme_minimal() +
+  labs(title = "Ligne tracée sur la carte de France",
+       x = "Easting (m)",
+       y = "Northing (m)") +
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE))
+
+#plot zoom on pointe gironde
+ggplot() +
+  geom_sf(data = france_utm, fill = "lightgrey", color = "darkgrey") +
+  geom_sf(data = line_sf, color = "blue", size = 1) +
+  geom_point(data = df, aes(x, y), color = "red", size = 0.5) +
+  coord_sf(xlim = c(min(df$x) + 50000, max(df$x) - 100),
+           ylim = c(min(df$y) + 300000, max(df$y) - 100000),
+           datum = sf::st_crs("EPSG:32631")) +
+  theme_minimal() +
+  labs(title = "Ligne tracée sur la carte de France",
+       x = "Easting (m)",
+       y = "Northing (m)") +
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE))
+
+# Calculer les distances entre points consécutifs
+distances <- sapply(1:(nrow(df)-1), function(i) {
+  euclidean_distance(df$x[i], df$y[i], df$x[i+1], df$y[i+1])
+})
+
+#plot zoom on arcachon bay
+ggplot() +
+  geom_sf(data = france_utm, fill = "lightgrey", color = "darkgrey") +
+  geom_sf(data = line_sf, color = "blue", size = 1) +
+  geom_point(data = df, aes(x, y), color = "red", size = 0.5) +
+  coord_sf(xlim = c(min(df$x) + 30000, max(df$x) - 100),
+           ylim = c(min(df$y) + 220000, max(df$y) - 200000),
+           datum = sf::st_crs("EPSG:32631")) +
+  theme_minimal() +
+  labs(title = "Ligne tracée sur la carte de France",
+       x = "Easting (m)",
+       y = "Northing (m)") +
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE))
+
+#plot zoom on border fr/es
+ggplot() +
+  geom_sf(data = france_utm, fill = "lightgrey", color = "darkgrey") +
+  geom_sf(data = line_sf, color = "blue", size = 1) +
+  geom_point(data = df, aes(x, y), color = "red", size = 0.5) +
+  coord_sf(xlim = c(min(df$x) - 10000, max(df$x) - 50000),
+           ylim = c(min(df$y) + 40000, max(df$y) - 320000),
+           datum = sf::st_crs("EPSG:32631")) +
+  theme_minimal() +
+  labs(title = "Ligne tracée sur la carte de France",
+       x = "Easting (m)",
+       y = "Northing (m)") +
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE))
+
+# Calculer les distances entre points consécutifs
+distances <- sapply(1:(nrow(df)-1), function(i) {
+  euclidean_distance(df$x[i], df$y[i], df$x[i+1], df$y[i+1])
+})
+
+# Créer le dataframe final
+result_df <- tibble(
+  segment = 1:length(distances),
+  start_x = df$x[-nrow(df)],
+  start_y = df$y[-nrow(df)],
+  end_x = df$x[-1],
+  end_y = df$y[-1],
+  distance = round(distances, 2),
+  dist_km = round(distances / 1000, 2)
+) %>% 
+  filter(!(dist_km > 30))  # Remove segments longer than 30 m
+result_df
+
+summary_stats <- result_df %>%
+  summarise(
+    tot_dist_km = sum(dist_km)
+  )
+summary_stats
+```
+
+```{r calculate the segment size Spain}
+# Fonction pour calculer la distance euclidienne entre deux points
+euclidean_distance <- function(x1, y1, x2, y2) {
+  sqrt((x2 - x1)^2 + (y2 - y1)^2)
+}
+
+# Convertir la liste en dataframe
+df <- as.data.frame(size_es[[1]])
+colnames(df) <- c("x", "y")
+
+df <- df[-c(6355:6445,  #eliminate pasia coordinates
+            5975:6045,   #eliminate orio coordinate
+            4990:5100,  #eliminate mundaka coordinates
+            3790:4290,  #eliminate bilbao coordinates
+            2250:2930,  #eliminate santona coordinates
+            1670:1830,  #eliminate faro de ajo coordinates
+            630:1315  #eliminate santander coordinates
+            ), ] 
+
+df <- df %>% 
+  filter(!(x > 597200)) 
+
+plot(df$x, df$y, type = "b", col = "blue", lwd = 2)
+
+# Create an sf object from your data
+line_sf <- st_sfc(st_linestring(as.matrix(df)), crs = 25830)
+
+# Obtenir les données de la France
+spain <- ne_countries(scale = "large", country = "Spain", returnclass = "sf")
+
+# Transform the map to UTM Zone 31N (EPSG:25830
+spain_utm <- st_transform(spain, 25830)
+
+
+# Create the map
+ggplot() +
+  geom_sf(data = spain_utm, fill = "lightgrey", color = "darkgrey") +
+  geom_sf(data = line_sf, color = "blue", size = 1) +
+  geom_point(data = df, aes(x, y), color = "red", size = 0.5) +
+  coord_sf(xlim = c(min(df$x) - 10000, max(df$x) + 1000),
+           ylim = c(min(df$y) - 1000, max(df$y) + 1000),
+           datum = sf::st_crs("EPSG:25830")) +
+  theme_minimal() +
+  labs(title = "Ligne tracée sur la carte de France",
+       x = "Easting (m)",
+       y = "Northing (m)") +
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE))
+
+# zoom border se/fr
+ggplot() +
+  geom_sf(data = spain_utm, fill = "lightgrey", color = "darkgrey") +
+  geom_sf(data = line_sf, color = "blue", size = 1) +
+  geom_point(data = df, aes(x, y), color = "red", size = 0.5) +
+  coord_sf(xlim = c(min(df$x) + 220000, max(df$x) - 10000),
+           ylim = c(min(df$y) - 1000, max(df$y) + 1000),
+           datum = sf::st_crs("EPSG:25830")) +
+  theme_minimal() +
+  labs(title = "Ligne tracée sur la carte de France",
+       x = "Easting (m)",
+       y = "Northing (m)") +
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE))
+
+# zoom border pasaia
+ggplot() +
+  geom_sf(data = spain_utm, fill = "lightgrey", color = "darkgrey") +
+  geom_sf(data = line_sf, color = "blue", size = 1) +
+  geom_point(data = df, aes(x, y), color = "red", size = 0.5) +
+  coord_sf(xlim = c(min(df$x) + 180000, max(df$x) - 30000),
+           ylim = c(min(df$y) - 1000, max(df$y) + 1000),
+           datum = sf::st_crs("EPSG:25830")) +
+  theme_minimal() +
+  labs(title = "Ligne tracée sur la carte de France",
+       x = "Easting (m)",
+       y = "Northing (m)") +
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE))
+
+# zoom santander
+ggplot() +
+  geom_sf(data = spain_utm, fill = "lightgrey", color = "darkgrey") +
+  geom_sf(data = line_sf, color = "blue", size = 1) +
+  geom_point(data = df, aes(x, y), color = "red", size = 0.5) +
+  coord_sf(xlim = c(min(df$x) + 10000, max(df$x) - 140000),
+           ylim = c(min(df$y) - 1000, max(df$y) + 1000),
+           datum = sf::st_crs("EPSG:25830")) +
+  theme_minimal() +
+  labs(title = "Ligne tracée sur la carte de France",
+       x = "Easting (m)",
+       y = "Northing (m)") +
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE))
+
+# zoom santona
+ggplot() +
+  geom_sf(data = spain_utm, fill = "lightgrey", color = "darkgrey") +
+  geom_sf(data = line_sf, color = "blue", size = 1) +
+  geom_point(data = df, aes(x, y), color = "red", size = 0.5) +
+  coord_sf(xlim = c(min(df$x) + 30000, max(df$x) - 110000),
+           ylim = c(min(df$y) - 1000, max(df$y) + 1000),
+           datum = sf::st_crs("EPSG:25830")) +
+  theme_minimal() +
+  labs(title = "Ligne tracée sur la carte de France",
+       x = "Easting (m)",
+       y = "Northing (m)") +
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE))
+
+# zoom bilbao 
+ggplot() +
+  geom_sf(data = spain_utm, fill = "lightgrey", color = "darkgrey") +
+  geom_sf(data = line_sf, color = "blue", size = 1) +
+  geom_point(data = df, aes(x, y), color = "red", size = 0.5) +
+  coord_sf(xlim = c(min(df$x) + 70000, max(df$x) - 80000),
+           ylim = c(min(df$y) - 1000, max(df$y) + 1000),
+           datum = sf::st_crs("EPSG:25830")) +
+  theme_minimal() +
+  labs(title = "Ligne tracée sur la carte de France",
+       x = "Easting (m)",
+       y = "Northing (m)") +
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE))
+
+# zoom border mundaka
+ggplot() +
+  geom_sf(data = spain_utm, fill = "lightgrey", color = "darkgrey") +
+  geom_sf(data = line_sf, color = "blue", size = 1) +
+  geom_point(data = df, aes(x, y), color = "red", size = 0.5) +
+  coord_sf(xlim = c(min(df$x) + 100000, max(df$x) - 50000),
+           ylim = c(min(df$y) - 1000, max(df$y) + 1000),
+           datum = sf::st_crs("EPSG:25830")) +
+  theme_minimal() +
+  labs(title = "Ligne tracée sur la carte de France",
+       x = "Easting (m)",
+       y = "Northing (m)") +
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE))
+
+# Calculer les distances entre points consécutifs
+distances <- sapply(1:(nrow(df)-1), function(i) {
+  euclidean_distance(df$x[i], df$y[i], df$x[i+1], df$y[i+1])
+})
+
+# Créer le dataframe final
+result_df <- tibble(
+  segment = 1:length(distances),
+  start_x = df$x[-nrow(df)],
+  start_y = df$y[-nrow(df)],
+  end_x = df$x[-1],
+  end_y = df$y[-1],
+  distance = round(distances, 2),
+  dist_km = round(distances / 1000, 2)
+) %>% 
+  filter(!(dist_km > 30))  # Remove segments longer than 30 m
+result_df
+
+summary_stats_es <- result_df %>%
+  summarise(
+    tot_dist_km = sum(dist_km)
+  )
+summary_stats_es
+```
+
+```{r Global coastline size}
+Plasfito_coast_size <- summary_stats$tot_dist_km + summary_stats_es$tot_dist_km
+Plasfito_coast_size
 ```
