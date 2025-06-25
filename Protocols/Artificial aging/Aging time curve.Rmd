@@ -1,0 +1,225 @@
+---
+title: "AA_exp"
+author: "Edgar Dusacre"
+date: "2023-03-03"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r include=FALSE}
+library(ggplot2)
+library(lubridate)
+library(dplyr)
+library(tidyr)
+library(chron)
+```
+
+
+```{r 24 days N°1}
+#New time -------------------------------------------
+
+# Set the start date and time
+start <- ymd_hms("2023-03-22 17:18:00")
+
+# Set the interval time in seconds
+interval <- ddays(6.27/2) # 6.27 days
+
+# Generate a sequence of dates and times
+timeline <- seq(start, by = interval, length.out = 9)
+timeline
+
+# Create a data frame with the timeline data
+df <- tibble(timeline) %>% 
+  separate(timeline, into = c("date", "time"), sep = " ") %>% 
+  mutate(action = c("Start", "Turning over", "Turning over + Remove", "Turning over", "Turning over", "Turning over", "Turning over", "Turning over", "End"))
+df
+
+# Create a ggplot object
+ggplot(df, aes(x = date, y = time, group = 1)) +
+  geom_line(color = "cyan3", size = 1) +
+  geom_point(color = "blue", size = 2) +
+  labs(x = "Date", y = "Time", title = "Chronological Timeline") +
+  geom_text(aes(label = action), vjust = -0.8, hjust = 1.2) +
+  theme_classic()
+  
+```
+
+```{r 24 days N°2}
+#New time -------------------------------------------
+
+# Set the start date and time
+start <- ymd_hms("2023-03-27 9:32:00")
+
+# Set the interval time in seconds
+interval <- ddays(6.27/2) # 6.27 days
+
+# Generate a sequence of dates and times
+timeline <- seq(start, by = interval, length.out =8)
+timeline
+
+# Create a data frame with the timeline data
+df <- tibble(timeline) %>% 
+  separate(timeline, into = c("date", "time"), sep = " ") %>% 
+  mutate(action = c("Turning over", "Turning over + Remove", "Turning over", "Turning over", "Turning over", "Turning over", "Turning over", "End"))
+df
+
+# Create a ggplot object
+ggplot(df, aes(x = date, y = time, group = 1)) +
+  geom_line(color = "cyan3", size = 1) +
+  geom_point(color = "blue", size = 2) +
+  labs(x = "Date", y = "Time", title = "Chronological Timeline") +
+  geom_text(aes(label = action), vjust = -0.8, hjust = 1.2) +
+  theme_classic()
+```
+
+
+```{r 24 days N°3}
+#New time -------------------------------------------
+
+# Set the start date and time
+start <- ymd_hms("2023-04-03 11:06:00")
+
+# Set the interval time in seconds
+interval <- ddays(6.27/2) # 6.27 days
+
+# Generate a sequence of dates and times
+timeline <- seq(start, by = interval, length.out = 9)
+timeline
+
+# Create a data frame with the timeline data
+df <- tibble(timeline) %>% 
+  separate(timeline, into = c("date", "time"), sep = " ") %>% 
+  mutate(action = c("Turning over", "Turning over \n+ Start 2g batch", "Turning over", "Turning over", "Turning over", "End batch 0.6g \n+ Turning over", "Turning over", "Turning over", "End"))
+df
+
+# Create a ggplot object
+ggplot(df, aes(x = date, y = time, group = 1)) +
+  geom_line(color = "cyan3", size = 1) +
+  geom_point(color = "blue", size = 2) +
+  labs(x = "Date", y = "Time", title = "Chronological Timeline") +
+  geom_text(aes(label = action), vjust = -0.8, hjust = 1.2) +
+  theme_classic()
+  
+```
+
+```{r 24 days N°4}
+#New time -------------------------------------------
+
+# Set the start date and time
+start <- ymd_hms("2023-04-17 17:55:00")
+
+# Set the interval time in seconds
+interval <- ddays(6.27/2) # 6.27 days
+
+# Generate a sequence of dates and times
+timeline <- seq(start, by = interval, length.out = 5)
+timeline
+
+# Create a data frame with the timeline data
+df <- tibble(timeline) %>% 
+  separate(timeline, into = c("date", "time"), sep = " ") %>% 
+  mutate(action = c( "New Start", "End batch 0.6g \n+ Turning over", "Turning over", "Turning over", "End"))
+df
+
+# Create a ggplot object
+ggplot(df, aes(x = date, y = time, group = 1)) +
+  geom_line(color = "cyan3", size = 1) +
+  geom_point(color = "blue", size = 2) +
+  labs(x = "Date", y = "Time", title = "Chronological Timeline") +
+  geom_text(aes(label = action), vjust = -0.8, hjust = 1.2) +
+  theme_classic()
+  
+```
+
+
+```{r 24 days N°2 Batch 2}
+#New time -------------------------------------------
+
+# Set the start date and time
+start <- ymd_hms("2023-05-15 12:10:00")
+
+# Set the interval time in seconds
+interval <- ddays(6.27/2) # 6.27 days
+
+# Generate a sequence of dates and times
+timeline <- seq(start, by = interval, length.out = 8)
+timeline
+
+# Create a data frame with the timeline data
+df <- tibble(timeline) %>% 
+  separate(timeline, into = c("date", "time"), sep = " ") %>% 
+  mutate(action = c( "New Start", "Turning over", "Turning over", "Turning over", "Turning over", "Turning over", "Turning over", "End"))
+df
+
+# Create a ggplot object
+ggplot(df, aes(x = date, y = time, group = 1)) +
+  geom_line(color = "cyan3", size = 1) +
+  geom_point(color = "blue", size = 2) +
+  labs(x = "Date", y = "Time", title = "Chronological Timeline") +
+  geom_text(aes(label = action), vjust = -0.8, hjust = 1.2) +
+  theme_classic()
+  
+```
+
+```{r 25 days N°3 Batch 1}
+#New time -------------------------------------------
+
+# Set the start date and time
+start <- ymd_hms("2023-11-23 18:10:00")
+
+# Set the interval time in seconds
+interval <- ddays(6.27/2) # 6.27 days
+
+# Generate a sequence of dates and times
+timeline <- seq(start, by = interval, length.out = 9)
+timeline
+
+# Create a data frame with the timeline data
+df <- tibble(timeline) %>% 
+  separate(timeline, into = c("date", "time"), sep = " ") %>% 
+  mutate(action = c( "New Start", "Turning over", "Turning over - end 6d", "Turning over", "Turning over - end 12d", "Turning over", "Turning over", "Turning over", "End"))
+df
+
+# Create a ggplot object
+ggplot(df, aes(x = date, y = time, group = 1)) +
+  geom_line(color = "cyan3", size = 1) +
+  geom_point(color = "blue", size = 2) +
+  labs(x = "Date", y = "Time", title = "Chronological Timeline") +
+  geom_text(aes(label = action), vjust = -0.8, hjust = 1.2) +
+  theme_classic()
+  
+```
+
+```{r 25 days N°3 Batch 1}
+#New time -------------------------------------------
+
+# Set the start date and time
+start <- ymd_hms("2023-11-28 21:48:00")
+
+# Set the interval time in seconds
+interval <- ddays(6.27/2) # 6.27 days
+
+# Generate a sequence of dates and times
+timeline <- seq(start, by = interval, length.out = 7)
+timeline
+
+# Create a data frame with the timeline data
+df <- tibble(timeline) %>% 
+  separate(timeline, into = c("date", "time"), sep = " ") %>% 
+  mutate(action = c( "Start 6d & 12d", "Turning over", "Turning over - end 6d", "Turning over", "Turning over - end 12d", "Turning over", "End"))
+df
+
+# Create a ggplot object
+ggplot(df, aes(x = date, y = time, group = 1)) +
+  geom_line(color = "cyan3", size = 1) +
+  geom_point(color = "blue", size = 2) +
+  labs(x = "Date", y = "Time", title = "Chronological Timeline") +
+  geom_text(aes(label = action), vjust = -0.8, hjust = 1.2) +
+  theme_classic()
+  
+```
+
+
+
+

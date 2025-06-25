@@ -1,0 +1,270 @@
+---
+title: "Tirage_matrice_CUV"
+author: "CLP"
+date: "2023-02-23"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r Packages}
+library(tidyverse)
+library(writexl)
+library(webshot)
+library(kableExtra)
+```
+
+#December 2023
+```{r setup, include=T}
+#noms col et lignes
+
+
+noms_col <- c(1:7)
+noms_lig <- c("A", "B", "C", "D", "E", "F")
+
+# Matrice 7x6
+
+
+variables_tox <- c("1a35_25", "2a35_25", "3a35_25",
+               "1a35_12", "2a35_12", "3a35_12",
+               "1a35_6", "2a35_6", "3a35_6",
+               "1b33_25", "2b33_25", "3b33_25",
+               "1b33_12", "2b33_12", "3b33_12",
+               "1b33_6", "2b33_6", "3b33_6",
+               "1b95_25", "2b95_25", "3b95_25",
+               "1b95_12", "2b95_12", "3b95_12",
+               "1b95_6", "2b95_6", "3b95_6",
+                "1g33_25", "2g33_25", "3g33_25",
+               "1g33_12", "2g33_12", "3g33_12",
+               "1g33_6", "2g33_6", "3g33_6",
+               "1g60_25", "2g60_25", "3g60_25",
+               "1g60_12", "2g60_12", "3g60_12",
+               "1g60_6", "2g60_6", "3g60_6",
+               "1d35_25", "2d35_25", "3d35_25",
+               "1d35_12", "2d35_12", "3d35_12",
+               "1d35_6", "2d35_6", "3d35_6",
+               "1d60_25", "2d60_25", "3d60_25",
+               "1d60_12", "2d60_12", "3d60_12",
+               "1d60_6", "2d60_6", "3d60_6",
+               "1e425_25", "2e425_25", "3e425_25",
+               "1e425_12", "2e425_12", "3e425_12",
+               "1e425_6", "2e425_6", "3e425_6",
+               "BLC")
+
+variables_chim <- c("a35_25",
+               "a35_12",
+               "a35_6", 
+               "b33_25", 
+               "b33_12",
+               "b33_6", 
+               "b95_25", 
+               "b95_12",
+               "b95_6", 
+               "g33_25",
+               "g33_12", 
+               "g33_6", 
+               "g60_25", 
+               "g60_12",
+               "g60_6", 
+               "d35_25", 
+               "d35_12", 
+               "d35_6", 
+               "d60_25", 
+               "d60_12", 
+               "d60_6", 
+               "e425_25", 
+               "e425_12", 
+               "e425_6", 
+               "BLC")
+
+```
+
+
+```{r rrr, include=T}
+# Tirage
+
+set.seed(918) #Past seed: 568 / 942 / 377 / 495 / 998 / 856 / 918
+
+Tirage_UV <- matrix("", nrow = 6, ncol = 7) 
+Tirage_UV[sample(length(Tirage_UV), length(variables_chim))] <- variables_chim
+colnames(Tirage_UV) <- noms_col
+rownames(Tirage_UV) <- noms_lig
+
+Tirage_UV
+
+df1 <- as.data.frame(Tirage_UV)
+df1
+
+# Formater le tableau avec kableExtra et lignes verticales
+styled_table <- kable(df1, format = "html") %>%
+  kable_styling(full_width = FALSE) %>%
+  column_spec(1, bold = TRUE) %>%  # Mettre la première colonne en gras
+  column_spec(c(1:ncol(df1)), border_left = TRUE, border_right = TRUE)  # Ajouter des lignes verticales
+
+# Afficher le tableau
+styled_table
+
+# Enregistrer le tableau sous forme d'image
+save_kable(styled_table, file = "UVC_141223.png")
+
+```
+
+```{r}
+# Obtenir les coordonnées de la matrice
+coord <- expand.grid(rownames(Tirage_UV), colnames(Tirage_UV))
+Cell <- paste0(coord$Var1, coord$Var2)
+
+# Créer le dataframe avec les colonnes FN, Cell et date
+df <- data.frame(
+  FN = as.vector(Tirage_UV),
+  Cell = Cell,
+  date = as.Date(Sys.Date())
+)
+
+# Supprimer les lignes vides (contenant "")
+df <- df[df$FN != "", ]
+df
+
+write_xlsx(df, path = "Tirage_UV_141223.xlsx")
+```
+
+
+
+#January 2023
+```{r setup, include=T}
+#noms col et lignes
+
+
+noms_col <- c(1:7)
+noms_lig <- c("A", "B", "C", "D", "E", "F")
+
+# Matrice 7x6
+
+
+variables_tox <- c("1a35_25_07", "2a35_25_07", "3a35_25_07",
+               "1a35_25_11", "2a35_25__11", "3a35_25__11",
+               
+               "1b33_25_07", "2b33_25_07", "3b33_25_07",
+               "1b33_25_11", "2b33_25_11", "3b33_25_11",
+               
+               "1g33_25_07", "2g33_25_07", "3g33_25_07",
+               "1g33_25_11", "2g33_25_11", "3g33_25_11",
+               
+               "1d35_25_07", "2d35_25_07", "3d35_25_07",
+               "1d35_25_11", "2d35_25_11", "3d35_25_11",
+               
+               "1e425_25_07", "2e425_25_07", "3e425_25_07",
+               "1e425_25_11", "2e425_25_11", "3e425_25_11",
+               
+               "BLC1_07", "BLC2_07", "BLC3_07",
+               "BLC1_11", "BLC2_11", "BLC3_11")
+
+variables_chim <- rep(c("a35_25",
+               "b33_25", 
+               "g33_25",
+               "d35_25",
+               "e425_25", 
+               "BLC"), each = 2)
+variables_chim
+
+```
+
+
+```{r rrr, include=T}
+# Tirage
+
+set.seed(366) #Past seed: 925 / 599 / 2 / 580 / 246 / 366
+
+Tirage_UV <- matrix("", nrow = 6, ncol = 7) 
+Tirage_UV[sample(length(Tirage_UV), length(variables_tox))] <- variables_tox
+colnames(Tirage_UV) <- noms_col
+rownames(Tirage_UV) <- noms_lig
+
+Tirage_UV
+
+df1 <- as.data.frame(Tirage_UV)
+df1
+
+# Formater le tableau avec kableExtra et lignes verticales
+styled_table <- kable(df1, format = "html") %>%
+  kable_styling(full_width = FALSE) %>%
+  column_spec(1, bold = TRUE) %>%  # Mettre la première colonne en gras
+  column_spec(c(1:ncol(df1)), border_left = TRUE, border_right = TRUE)  # Ajouter des lignes verticales
+
+# Afficher le tableau
+styled_table
+
+# Enregistrer le tableau sous forme d'image
+save_kable(styled_table, file = "UVC_310124.png")
+
+```
+
+```{r}
+# Obtenir les coordonnées de la matrice
+coord <- expand.grid(rownames(Tirage_UV), colnames(Tirage_UV))
+Cell <- paste0(coord$Var1, coord$Var2)
+
+# Créer le dataframe avec les colonnes FN, Cell et date
+df <- data.frame(
+  FN = as.vector(Tirage_UV),
+  Cell = Cell,
+  date = as.Date(Sys.Date())
+)
+
+# Supprimer les lignes vides (contenant "")
+df <- df[df$FN != "", ]
+df
+
+write_xlsx(df, path = "Tirage_UV_310124.xlsx")
+```
+
+#Random sampling agitation
+```{r}
+leachate_t25 <- c("1a35_25_07", "2a35_25_07", "3a35_25_07",
+               "1a35_25_11", "2a35_25__11", "3a35_25__11",
+               
+               "1b33_25_07", "2b33_25_07", "3b33_25_07",
+               "1b33_25_11", "2b33_25_11", "3b33_25_11",
+               
+               "1g33_25_07", "2g33_25_07", "3g33_25_07",
+               "1g33_25_11", "2g33_25_11", "3g33_25_11",
+               
+               "1d35_25_07", "2d35_25_07", "3d35_25_07",
+               "1d35_25_11", "2d35_25_11", "3d35_25_11",
+               
+               "1e425_25_07", "2e425_25_07", "3e425_25_07",
+               "1e425_25_11", "2e425_25_11", "3e425_25_11",
+               
+               "BLC1_t25_07", "BLC2_t25_07", "BLC3_t25_07",
+               "BLC1_t25_11", "BLC2_t25_11", "BLC3_t25_11")
+leachate_t25
+
+leachate_t0 <- c("1a35_0_07", "2a35_0_07", "3a35_0_07",
+               "1a35_0_11", "2a35_0__11", "3a35_0__11",
+               
+               "1b33_0_07", "2b33_0_07", "3b33_0_07",
+               "1b33_0_11", "2b33_0_11", "3b33_0_11",
+               
+               "1g33_0_07", "2g33_0_07", "3g33_0_07",
+               "1g33_0_11", "2g33_0_11", "3g33_0_11",
+               
+               "1d35_0_07", "2d35_0_07", "3d35_0_07",
+               "1d35_0_11", "2d35_0_11", "3d35_0_11",
+               
+               "1e40_0_07", "2e40_0_07", "3e40_0_07",
+               "1e40_0_11", "2e40_0_11", "3e40_0_11",
+               
+               "BLC1_0_07", "BLC2_0_07", "BLC3_0_07",
+               "BLC1_0_11", "BLC2_0_11", "BLC3_0_11")
+leachate_t0
+
+R_sampl_t25 <- sample(leachate_t25, 24, replace = FALSE)
+R_sampl_t25_rest <- setdiff(leachate_t25, R_sampl_t25)
+R_sampl_t25
+R_sampl_t25_rest
+R_sampl_t0 <- sample(leachate_t0, 12, replace = FALSE)
+R_sampl_t0_rest <- setdiff(leachate_t0, R_sampl_t0)
+R_sampl_t0
+R_sampl_t0_rest
+```
+
