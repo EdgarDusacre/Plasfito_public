@@ -1,0 +1,3607 @@
+---
+title: "Fish behavior"
+author: "Edgar Dusacre"
+date: "13/06/2023"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r Insertion package, include=FALSE}
+library(ggplot2) 
+library(tidyr)
+library(purrr)
+library(tidyverse)
+library(ggrepel)
+library(ggpubr)
+library(knitr)
+library(yaml)
+library(dplyr) 
+library(matrixStats)
+library(EnvStats)
+library(stringr)
+library(gtable)
+library(grid)
+library(FSA)
+library(scales)
+library(wbstats)
+library(ggh4x)
+library(multcompView)
+library(report)
+library(ecotox)
+library(wesanderson)
+library(RColorBrewer)
+library(readr)
+library(readxl)
+library(gmodels)
+library(ggpattern)
+library(zoo)
+library(forcats)
+library(car)
+library(dunn.test)
+
+
+library(forcats)
+library(binom)
+library(lubridate)
+library(ade4)
+library(broom)
+library(rstatix)
+library(rcompanion)
+library(chron)
+library(PMCMRplus)
+
+```
+
+```{r Charger les palettes de couleurs, include=FALSE}
+Plasfito_C <- c("#80CAD0", "#36A7A7", "#276573", "#054959","#E3CCC0", "#F7EAE1", "#A48A7B", "#C6AF8D", "#49BED3", "#256CB4", "#008163", "#44B494", "#7BC6B9")
+
+Plasfito_color <- c("GreenP4" = "#80CAD0", "GreenP3" = "#36A7A7", "GreenP2" = "#276573", "GreenP1" = "#054959","Brown1" = "#E3CCC0", "Brown2" = "#F7EAE1", "Brown3" = "#A48A7B", "Brown4" = "#C6AF8D", "Turquoise1" = "#49BED3", "Blue1" = "#256CB4", "Green1" = "#008163", "Green2" = "#44B494", "Green3" = "#7BC6B9")
+
+List_color_Fr <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                   "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573")
+
+List_color <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                 "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573",
+                 "Euskadi" = "#054959")
+
+Plasfito_Tps <- c("5" = "#80CAD0", "15" = "#36A7A7", "30" = "#276573")
+
+
+#A part si vous souhaitez changer les couleurs do not touch.
+Ech_K2CR2O7<- c("K2CR2O7" = "#80CAD0")
+
+Tps_color <- c("5" = "#80CAD0" , "15" = "#36A7A7", "30" = "#276573")
+
+Dilu_color <- c("0.0125" = "#80CAD0" , "0.025" = "#36A7A7", "0.05" = "#276573", "0.1" = "#008163")
+
+Conc_color <- c("0.4125" = "#80CAD0" , "0.825" = "#36A7A7", "1.65" = "#276573", "3.3" = "#008163")
+Conc_color3 <- c("0.825" = "aquamarine", "1.65" = "#36A7A7", "3.3" = "#276573")
+
+Color_biolu_Pasaia <- c("Ech1" = "aquamarine", "Ech2" = "#36A7A7" , "DMSO" = "#A48A7B")
+
+Color_real_FN <- c("dmso" = "#A48A7B", "CTL" = "#256CB4", "PA_a35" = "#4fd355", "PA_b33" = "#ca98d3", "PA_b95" = "#6e217c", "PA_g33" = "#92b78f", "PA_g60" = "#bbb3bc", "PBS_d35" = "#d3ad4f","PBS_d60" = "#c68640", "HPPE_e425" = "#36A7A7")
+```
+
+
+Pour l'analyse poisson, tout run n'est pas forcément utile, mieux vaut faire analyse par analyse car on retrouve parfois les mêmes noms.
+
+
+#NEW FISHING NETS - AA 25 UV EXPERIMENT
+# BLA LOFF 
+```{r data import new}
+# Mettre le bon trajet dossier adapté :
+
+BLA_OFF_0 <- read_excel("Behaviour/240723_ED_t0/BLA_OFF1.xlsx")%>% 
+  rename("FN" = 'Selection Result',
+         "Rep" = "ID (1)",
+         "Time" = "Time bin", 
+         "UV_Time" = "UV_Time (1)",
+         "Agi_time" = "Agi_time (1)",
+         "Vel_avg1" = "Velocity...8", 
+         "Vel_sd1" = "Velocity...9", 
+         "Vel_se1" = "Velocity...10",
+         "Dist_avg1" = "Distance...11",
+         "Dist_sd1" = "Distance...12",
+         "Dist_se1" = "Distance...13",
+         "Dist_tot1" = "Distance...14") %>% 
+  mutate(Trial = as.factor(gsub("    ", "_", Trial)),
+         Arena = as.factor(Arena),
+         Time = as.factor(ifelse(Time == "0:10:00-0:20:00", "10-20", NA)),
+         UV_Time = as.factor(UV_Time),
+         Rep = as.factor(Rep),
+         Agi_time = as.factor(Agi_time),
+         # FN = ifelse(Rep == "h1" & FN == "PA_g33", "PA_g60", FN),
+         # FN = ifelse(Rep == "h2" & FN == "PBS_d60", "PA_g60", FN),
+         # FN = ifelse(Rep == "k3" & FN == "PA_g33", "PBS_d60", FN),
+         # FN = ifelse(Rep == "m3" & FN == "epsi", "delta35", FN),
+         # FN = ifelse(Rep == "k3" & FN == "delta60", "gamma33", FN),
+         FN = as.factor(FN),
+         state = as.factor("aa")) %>% 
+  mutate_if(is.character, as.double, na.rm = T) %>% 
+  filter(rowSums(is.na(.)) != 7) %>% 
+         #Dist_tot1 >= 2490,
+         #FN == "PA_b33",
+         # Arena != "D1" | Trial != "Trial_ 1",
+         # Arena != "C1" | Trial != "Trial_ 3",
+         # Arena != "A6" | Trial != "Trial_ 5",
+         # Arena != "F6" | Trial != "Trial_ 7",
+         # Arena != "D2" | Trial != "Trial_ 9",
+         # Arena != "A8" | Trial != "Trial_11",
+         # Arena != "A6" | Trial != "Trial_13",
+         # Arena != "A3" | Trial != "Trial_ 1",
+         # Arena != "A5" | Trial != "Trial_ 1",
+         # Arena != "F8" | Trial != "Trial_ 3",
+         # Arena != "C7" | Trial != "Trial_ 5",
+         # Arena != "C8" | Trial != "Trial_ 5",
+         # Arena != "D6" | Trial != "Trial_ 5",
+         # Arena != "C1" | Trial != "Trial_ 9",
+         # Arena != "E3" | Trial != "Trial_ 9",
+         # Arena != "E5" | Trial != "Trial_ 9",
+         # Arena != "C7" | Trial != "Trial_10",
+         # Arena != "D1" | Trial != "Trial_10",
+         # Arena != "F1" | Trial != "Trial_11",
+         # Arena != "C6" | Trial != "Trial_12",
+         # Arena != "D1" | Trial != "Trial_12",
+         # Arena != "E7" | Trial != "Trial_12",
+         # Arena != "B7" | Trial != "Trial_13",
+         # Arena != "E5" | Trial != "Trial_ 3") %>% 
+  mutate(FN = as.factor(if_else(FN == "PE", "HPPE_e425", FN)))
+
+
+BLA_OFF_0
+
+BLA_OFF_bis <- BLA_OFF_0 %>% filter(FN == if_else(grepl("c", Rep), "CTL",
+                                                  if_else(grepl("g", Rep), "PA_a35",
+                                                                if_else(grepl("h", Rep), "PA_b95",
+                                                                              if_else(grepl("i", Rep), "PA_b33",
+                                                  if_else(grepl("j", Rep), "PA_g60",
+                                                                if_else(grepl("k", Rep), "PA_g33",
+                                                                              if_else(grepl("l", Rep), "PBS_d60",
+                                                  if_else(grepl("m", Rep), "PBS_d35",
+                                                                if_else(grepl("n", Rep), "HPPE_e425", NA))))))))))
+BLA_OFF_bis
+
+BLA_OFF_0 <- BLA_OFF_bis
+BLA_OFF_0
+
+BLA_OFF <- BLA_OFF_0
+BLA_OFF
+
+```
+
+
+```{r Outliers 25 100%}
+#Boxplot by replicates to see if there are outliers
+
+Outliers <- BLA_OFF %>% ggplot(aes(FN, Vel_avg1, fill = FN)) +  
+  geom_violin(fill = NA, aes(color = FN), width = 1) +
+  geom_boxplot(width = 0.2) +
+  geom_jitter(width = 0.2, alpha = 0.5, color = "red3")
+Outliers
+
+Outliers <- BLA_OFF %>% 
+  filter(state == "aa") %>%
+  ggplot(aes(FN, Dist_tot1, fill = Rep)) + 
+  geom_violin(fill = NA, aes(color = FN), width = 1) +
+  geom_boxplot(width = 0.3) +
+  geom_jitter(width = 0.18, alpha = 0.5, color = "red3") 
+
+
+Outliers
+```
+
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is outliers
+BLA_OFF_avg_Rep <- BLA_OFF %>% group_by(FN, Rep, state) %>%  summarise(n = n(), 
+                                                          Vel_avg = mean(Vel_avg1, na.rm=T),
+                                                          Vel_sd = sd(Vel_avg1, na.rm=T), 
+                                                          Vel_se = Vel_sd / sqrt(n),
+                                                          Dist_avg = mean(Dist_avg1, na.rm=T),
+                                                          Dist_sd = sd(Dist_avg1, na.rm=T), 
+                                                          Dist_se = Dist_sd / sqrt(n),
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n)) %>% dplyr::select(-Vel_sd, -Dist_sd, -Dtot_sd) %>% mutate(ID = "LOFF")
+
+BLA_OFF_avg_Rep
+
+BLA_OFF_avg <- BLA_OFF %>% group_by(FN, state) %>%  summarise(n = n(), 
+                                                          Vel_avg = mean(Vel_avg1, na.rm=T),
+                                                          Vel_sd = sd(Vel_avg1, na.rm=T), 
+                                                          Vel_se = Vel_sd / sqrt(n),
+                                                          Dist_avg = mean(Dist_avg1, na.rm=T),
+                                                          Dist_sd = sd(Dist_avg1, na.rm=T), 
+                                                          Dist_se = Dist_sd / sqrt(n),
+                                                          Dtot_med = median(Dist_tot1, na.rm=T),
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n),
+                                                          Dtot_low = quantile(Dist_tot1, probs = 0.025, na.rm= T), 
+                                                          Dtot_up = quantile(Dist_tot1, probs = 0.975, na.rm= T)) #%>% select(-Vel_sd, -Dist_sd, -Dtot_sd) %>% mutate(ID (1) = "LOFF")
+  
+
+BLA_OFF_avg 
+
+```
+
+```{r Graph}
+
+BLA_OFF_avg %>% #mutate(FN = fct_relevel(FN, 
+                            #"benzo", "dmso", "beta33", "beta95", "gamma33", "gamma60", "delta35", "delta60", "alpha", "epsi")) %>%
+  ggplot(aes(x= FN, y = Dtot_med, fill = FN)) + 
+  geom_col(width =0.5, position = position_dodge()) +
+  geom_errorbar(aes(ymin= ifelse(Dtot_med-Dtot_se < 0, 0, Dtot_med-Dtot_se), ymax=Dtot_med+Dtot_se), width=0.08, linewidth = 0.5, position=position_dodge(width=0.5)) +
+  scale_fill_brewer(palette = "Paired") +
+  theme_bw()
+
+```
+
+```{r Statistics}
+#Test normality by FN
+df_normality <- BLA_OFF %>%
+  group_by(FN) %>% 
+  summarise(normality = shapiro.test(Dist_tot1)$p.value)
+df_normality
+
+Aov <- aov(Dist_tot1 ~ FN, data= BLA_OFF) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+# #Analyses RésID (1)us
+
+ggplot(BLA_OFF, aes(x=Dist_tot1)) + geom_histogram(binwidth = 0.5)
+ggplot(BLA_OFF, aes(x=Dist_tot1)) + geom_density()
+plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P < 0.05 H0 rejected normality not verified
+
+#Test of variance
+bartlett.test(Dist_tot1 ~ FN, data= BLA_OFF) #P-value > 0.05 --> equality of variance
+
+#Application of the Kruskal-wallis test 
+
+KW <- kruskal.test(Dist_tot1 ~ FN, data= BLA_OFF)
+KW
+if (KW$p.value > 0.05) {
+  print("H0 is not rejected. The escape response due to the Vibrational and visual startle response is not influenced by the FN leachates")
+} else {
+  print("H0 is rejected. The escape response due to the Vibrational and visual startle response is influenced by the FN leachates")
+}
+
+MWU_res_n <- PMCMRplus::kwAllPairsDunnTest(Dist_tot1 ~ FN, data= BLA_OFF, p.adjust.method = "holm")
+MWU_res_n
+
+#Letters
+
+df_pval =  MWU_res_n$p.value
+df_pval
+
+df_pval2 = fullPTable(df_pval)
+df_pval2
+
+multcompLetters(df_pval2)
+label_n <- data.frame(label = c("a"    ,   "a"    ,   "a"     ,  "a"     ,  "a"   ,    "a"    ,   "a" ,      "a"      , "a" ))
+label_n
+
+max_values <- BLA_OFF %>%
+  group_by(FN) %>%
+  summarize(max_value = max(Dist_tot1, na.rm = F))
+max_values
+
+Star_ctl <- as_tibble(df_pval2, rownames = "FN") %>% 
+  dplyr::select(FN, CTL) %>% 
+  mutate(diff = if_else(CTL == 1 & FN == "CTL", NA,
+                        if_else(CTL >= 0.05, "ns",
+                                if_else(CTL < 0.0001, "****",
+                                        if_else(CTL < 0.001, "***",
+                                                if_else(CTL < 0.01, "**",
+                                                      if_else(CTL < 0.05, "*", NA)))))))
+Star_ctl
+
+MWU_n_Lett<- cbind(max_values, label_n, diff = Star_ctl$diff, UV_Time = c("0"))
+MWU_n_Lett
+
+MWU_n_Lett_BLA_0 <- MWU_n_Lett
+MWU_n_Lett_BLA_0
+```
+
+```{r graph fin BLA OFF}
+G1 <- BLA_OFF %>% ggplot(aes(x = FN, y = Dist_tot1, fill = FN)) + geom_boxplot(width = 0.2) + 
+  #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Hyperactivity period in reaction to a sudden reduction of light intensity",
+       y = "Traveled distance (mm)", 
+       x = "Fishing nets")  +
+  scale_x_discrete(labels = c("Blank H2O \nn = 48",
+                              "HPPE \u03B5\nØ4.25 mm \nn = 48",
+                              "PA6 \u03B1\nØ0.35 mm \nn = 48", 
+                              "PA6 \u03B2\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B2\nØ0.95 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.60 mm \nn = 48",
+                              "PBS \u03B4\nØ0.35 mm \nn = 48",
+                              "PA6 \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G1 +
+  # geom_text(data = MWU_n_Lett, aes(x = FN, y = max_value, label = label),
+  #           size = 5, vjust = -0.7, color="black", 
+  #           position = position_dodge(width=0.6),
+  #           show.legend = FALSE,
+  #           na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 14, df = 8, p > 0.05)") + 
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+```
+
+
+# BLA LON
+```{r data import}
+BLA_ON_0 <- read_excel("Behaviour/240723_ED_t0/BLA_ON.xlsx") %>% 
+  rename("FN" = 'Selection Result',
+         "Rep" = "ID (1)",
+         "Time" = "Time bin", 
+         "UV_Time" = "UV_Time (1)",
+         "Agi_time" = "Agi_time (1)", 
+         "Vel_avg1" = "Velocity...8", 
+         "Vel_sd1" = "Velocity...9", 
+         "Vel_se1" = "Velocity...10",
+         "Dist_avg1" = "Distance...11",
+         "Dist_sd1" = "Distance...12",
+         "Dist_se1" = "Distance...13",
+         "Dist_tot1" = "Distance...14") %>% 
+  mutate(Trial = as.factor(gsub("    ", "_", Trial)),
+         Arena = as.factor(Arena),
+         UV_Time = as.factor(UV_Time),
+         Agi_time = as.factor(Agi_time),
+         FN = as.factor(FN),
+         state = as.factor("aa"),
+         Rep = as.factor(Rep)) %>%
+  mutate_if(is.character, as.double, na.rm = T) %>%
+  group_by(Trial, Arena, FN, Rep, Agi_time, UV_Time) %>%
+  summarise(Vel_avg1 = sum(Vel_avg1),
+            Vel_sd1 = sum(Vel_sd1),
+            Vel_se1 = sum(Vel_se1),
+            Dist_avg1 = sum(Dist_avg1),
+            Dist_sd1 = sum(Dist_sd1),
+            Dist_se1 = sum(Dist_se1),
+            Dist_tot1 = sum(Dist_tot1)) %>%
+         #Rep = as.factor(ifelse(FN == "benzo" & Rep == "dmso", "benzo", Rep)),
+         # FN = ifelse(Rep == "h3" & FN == "beta33", "beta95", FN),
+         # FN = ifelse(Rep == "g3" & FN == "beta95", "alpha", FN),
+         # FN = ifelse(Rep == "m3" & FN == "epsi", "delta35", FN),
+         # FN = ifelse(Rep == "k3" & FN == "delta60", "gamma33", FN),
+         # FN = as.factor(ifelse(Rep == "i3" & FN == "gamma60", "beta33", FN)),
+         #FN = as.factor(gsub("\\(2\\)", "", gsub("\\s+", "", FN))),
+         #state = as.factor("n")) %>% 
+  filter(Arena != "D1" | Trial != "Trial_ 1",
+         Arena != "C1" | Trial != "Trial_ 3",
+         Arena != "A6" | Trial != "Trial_ 5",
+         Arena != "F6" | Trial != "Trial_ 7",
+         Arena != "D2" | Trial != "Trial_ 9",
+         Arena != "A8" | Trial != "Trial_11",
+         Arena != "A6" | Trial != "Trial_13",
+         Arena != "A3" | Trial != "Trial_ 1",
+         Arena != "A5" | Trial != "Trial_ 1",
+         Arena != "F8" | Trial != "Trial_ 3",
+         Arena != "C7" | Trial != "Trial_ 5",
+         Arena != "C8" | Trial != "Trial_ 5",
+         Arena != "D6" | Trial != "Trial_ 5",
+         Arena != "C1" | Trial != "Trial_ 9",
+         Arena != "E3" | Trial != "Trial_ 9",
+         Arena != "E5" | Trial != "Trial_ 9",
+         Arena != "C7" | Trial != "Trial_10",
+         Arena != "D1" | Trial != "Trial_10",
+         Arena != "F1" | Trial != "Trial_11",
+         Arena != "C6" | Trial != "Trial_12",
+         Arena != "D1" | Trial != "Trial_12",
+         Arena != "E7" | Trial != "Trial_12",
+         Arena != "B7" | Trial != "Trial_13",
+         Arena != "E5" | Trial != "Trial_ 3") %>% 
+  mutate(FN = if_else(FN == "PE", "HPPE_e425", FN))
+BLA_ON_0
+
+BLA_ON_bis <- BLA_ON_0 %>% filter(FN == if_else(grepl("c", Rep), "CTL",
+                                                  if_else(grepl("g", Rep), "PA_a35",
+                                                                if_else(grepl("h", Rep), "PA_b95",
+                                                                              if_else(grepl("i", Rep), "PA_b33",
+                                                  if_else(grepl("j", Rep), "PA_g60",
+                                                                if_else(grepl("k", Rep), "PA_g33",
+                                                                              if_else(grepl("l", Rep), "PBS_d60",
+                                                  if_else(grepl("m", Rep), "PBS_d35",
+                                                                if_else(grepl("n", Rep), "HPPE_e425", NA))))))))))
+BLA_ON_bis
+
+BLA_ON <- BLA_ON_bis
+BLA_ON
+```
+
+
+```{r Outliers}
+#Boxplot by replicates to see if there is outliers
+
+Outliers <- BLA_ON %>% ggplot(aes(FN, Vel_avg1, fill = FN)) +  
+  geom_violin(fill = NA, aes(color = FN), width = 1) +
+  geom_boxplot(width = 0.2) +
+  geom_jitter(width = 0.2, alpha = 0.5, color = "red3")
+Outliers
+
+Outliers <- BLA_ON %>% ggplot(aes(FN, Dist_tot1, fill = FN)) +   
+  geom_violin(fill = NA, aes(color = FN), width = 1) +
+  geom_boxplot(width = 0.2) +
+  geom_jitter(width = 0.2, alpha = 0.5, color = "red3") +
+  theme_bw()
+Outliers
+
+```
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is outliers
+BLA_ON_avg <- BLA_ON %>% group_by(FN) %>%  summarize(n = n(), 
+                                                          Vel_avg = mean(Vel_avg1, na.rm=T),
+                                                          Vel_sd = sd(Vel_avg1, na.rm=T), 
+                                                          Vel_se = Vel_sd / sqrt(n),
+                                                          Dist_avg = mean(Dist_avg1, na.rm=T),
+                                                          Dist_sd = sd(Dist_avg1, na.rm=T), 
+                                                          Dist_se = Dist_sd / sqrt(n),
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_med = median(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n),
+                                                          Dtot_low = quantile(Dist_tot1, probs = 0.025, na.rm= T), 
+                                                          Dtot_up = quantile(Dist_tot1, probs = 0.975, na.rm= T)) #%>% select(-Vel_sd, -Dist_sd, -Dtot_sd) %>% mutate(ID (1) = "LON")
+  
+
+BLA_ON_avg  
+```
+
+```{r first graph}
+
+BLA_ON_avg %>% #mutate(FN = fct_relevel(FN, 
+                            #"benzo", "dmso", "beta33", "beta95", "gamma33", "gamma60", "delta35", "delta60", "alpha", "epsi")) %>%
+  ggplot(aes(x= FN, y = Dtot_med, fill = FN)) + 
+  geom_col(width =0.5, position = position_dodge()) +
+  geom_errorbar(aes(ymin= ifelse(Dtot_med-Dtot_se < 0, 0, Dtot_med-Dtot_se), ymax=Dtot_med+Dtot_se), width=0.08, linewidth = 0.5, position=position_dodge(width=0.5)) +
+  scale_fill_brewer(palette = "Paired")
+
+```
+
+#Both BLA
+```{r BLA OFF + BLA ON un graph final}
+
+df_ON <- BLA_ON_avg %>%  mutate(ID = "BLA_ON", state = "aa")
+df_OFF <- BLA_OFF_avg %>%  mutate(ID = "BLA_OFF")
+
+BLA <- rbind(df_ON, df_OFF)
+BLA
+
+#Distance total
+ 
+BLA %>%
+  ggplot(aes(x= FN, y = Dtot_avg, fill = FN, pattern = ID)) + 
+  geom_bar_pattern(stat = "identity", position = position_dodge(preserve = "single", width=0.6), width =0.5, 
+                   pattern_fill = "black",
+                   pattern_angle = 45,
+                   pattern_density = 0.1,
+                   pattern_spacing = 0.025,
+                   pattern_key_scale_factor = 0.6) +
+  geom_errorbar(aes(ymin= ifelse(Dtot_avg-Dtot_se < 0, 0, Dtot_avg-Dtot_se), ymax=Dtot_avg+Dtot_se), position=position_dodge(width=0.6), width=0.08, size = 1) +
+  guides(pattern = guide_legend(override.aes = list(fill = "white")),
+         fill = guide_legend(override.aes = list(pattern = "none"))) +
+  theme_bw()
+  # scale_fill_manual(values = c("PBS_d35" = "#33aa3c","PA_g33" = "#80CAD0", 
+  #                              "PBS_d60" = "#C6AF8D","PA_g60" = "#0096FC",
+  #                              "BLC" = "gray")) +
+  
+
+#Velocity average
+#BLA %>% #mutate(FN = fct_relevel(FN, 
+                            #"benzo", "dmso", "beta33", "beta95", "gamma33", "gamma60", "delta35", "delta60", "alpha", "epsi")) %>%
+BLA %>%
+  filter(FN != "Benzo") %>%
+  filter(FN != "PE") %>% 
+  ggplot(aes(x= FN, y = Vel_avg, fill = FN, pattern = ID)) + 
+  geom_bar_pattern(stat = "identity", position = position_dodge(preserve = "single", width=0.6), width =0.5, 
+                   pattern_fill = "black",
+                   pattern_angle = 45,
+                   pattern_density = 0.1,
+                   pattern_spacing = 0.025,
+                   pattern_key_scale_factor = 0.6) +
+  geom_errorbar(aes(ymin= ifelse(Vel_avg-Vel_se < 0, 0, Vel_avg-Vel_se), ymax=Vel_avg+Vel_se), position=position_dodge(width=0.6), width=0.08, size = 1) +
+  guides(pattern = guide_legend(override.aes = list(fill = "white")),
+         fill = guide_legend(override.aes = list(pattern = "none"))) +
+  theme_bw()
+  # scale_fill_manual(values = c("PBS_d35" = "#33aa3c","PA_g33" = "#80CAD0", 
+  #                              "PBS_d60" = "#C6AF8D","PA_g60" = "#0096FC",
+  #                              "BLC" = "gray")) +
+  
+
+
+```
+
+#VSR (startle response)
+```{r data import new}
+VLSR1 <- read_excel("Behaviour/240723_ED_t0/VSR1.xlsx")
+VLSR2 <- read_excel("Behaviour/240723_ED_t0/VSR2.xlsx")
+VLSR3 <- read_excel("Behaviour/240723_ED_t0/VSR3.xlsx")
+VLSR4 <- read_excel("Behaviour/240723_ED_t0/VSR4.xlsx")
+VLSR5 <- read_excel("Behaviour/240723_ED_t0/VSR5.xlsx")
+VLSR6 <- read_excel("Behaviour/240723_ED_t0/VSR6.xlsx")
+VLSR7 <- read_excel("Behaviour/240723_ED_t0/VSR7.xlsx")
+VLSR8 <- read_excel("Behaviour/240723_ED_t0/VSR8.xlsx")
+VLSR9 <- read_excel("Behaviour/240723_ED_t0/VSR9.xlsx")
+VLSR10 <- read_excel("Behaviour/240723_ED_t0/VSR10.xlsx")
+VLSR11 <- read_excel("Behaviour/240723_ED_t0/VSR11.xlsx")
+VLSR12 <- read_excel("Behaviour/240723_ED_t0/VSR12.xlsx")
+VLSR13 <- read_excel("Behaviour/240723_ED_t0/VSR13.xlsx")
+
+VLSR_0 <- rbind(VLSR1, VLSR2, VLSR3, VLSR4, VLSR5, VLSR6, VLSR7, VLSR8, VLSR9, VLSR10, VLSR11, VLSR12, VLSR13) %>% 
+    rename("FN" = 'Selection Result',
+         "Rep" = "ID (1)",
+         "Time" = "Time bin", 
+         "UV_Time" = "UV_Time (1)",
+         "Agi_time" = "Agi_time (1)",
+         "Dist_tot1" = "Distance") %>% 
+  mutate(Trial = as.factor(gsub("    ", "_", Trial)),
+         Arena = as.factor(Arena),
+         UV_Time = as.factor(UV_Time),
+         FN = as.factor(FN),
+         Rep = as.factor(Rep),
+         Time = as.factor(Time),
+         Agi_time = as.factor(Agi_time)) %>%
+  mutate_if(is.character, as.double, na.rm = F) %>%
+    # filter(Arena != "D1" | Trial != "Trial_ 1",
+    #      Arena != "C1" | Trial != "Trial_ 3",
+    #      Arena != "A6" | Trial != "Trial_ 5",
+    #      Arena != "F6" | Trial != "Trial_ 7",
+    #      Arena != "D2" | Trial != "Trial_ 9",
+    #      Arena != "A8" | Trial != "Trial_11",
+    #      Arena != "A6" | Trial != "Trial_13",
+    #      Arena != "A3" | Trial != "Trial_ 1",
+    #      Arena != "A5" | Trial != "Trial_ 1",
+    #      Arena != "F8" | Trial != "Trial_ 3",
+    #      Arena != "C7" | Trial != "Trial_ 5",
+    #      Arena != "C8" | Trial != "Trial_ 5",
+    #      Arena != "D6" | Trial != "Trial_ 5",
+    #      Arena != "C1" | Trial != "Trial_ 9",
+    #      Arena != "E3" | Trial != "Trial_ 9",
+    #      Arena != "E5" | Trial != "Trial_ 9",
+    #      Arena != "C7" | Trial != "Trial_10",
+    #      Arena != "D1" | Trial != "Trial_10",
+    #      Arena != "F1" | Trial != "Trial_11",
+    #      Arena != "C6" | Trial != "Trial_12",
+    #      Arena != "D1" | Trial != "Trial_12",
+    #      Arena != "E7" | Trial != "Trial_12",
+    #      Arena != "B7" | Trial != "Trial_13",
+    #      Arena != "E5" | Trial != "Trial_ 3")%>% 
+  mutate(FN = if_else(FN == "PE", "HPPE_e425", FN))
+VLSR_0
+
+VLSR_bis <- VLSR_0 %>% filter(FN == if_else(grepl("c", Rep), "CTL",
+                                                  if_else(grepl("g", Rep), "PA_a35",
+                                                                if_else(grepl("h", Rep), "PA_b95",
+                                                                              if_else(grepl("i", Rep), "PA_b33",
+                                                  if_else(grepl("j", Rep), "PA_g60",
+                                                                if_else(grepl("k", Rep), "PA_g33",
+                                                                              if_else(grepl("l", Rep), "PBS_d60",
+                                                  if_else(grepl("m", Rep), "PBS_d35",
+                                                                if_else(grepl("n", Rep), "HPPE_e425", NA))))))))))
+VLSR_bis
+
+VLSR_1 <- VLSR_bis
+```
+
+```{r Average}
+
+VLSR_stimu_0 <- VLSR_1 %>%
+  filter(!is.na(Dist_tot1)) %>% 
+  filter(Time =="0:20:01-0:20:02") %>%
+  mutate(Time_Cat = "Stimuli",
+         FN = as.factor(FN))
+
+
+VLSR_stimu_0
+VLSR_stimu <- VLSR_stimu_0
+```
+
+
+```{r Outliers}
+#Boxplot by replicates to see if there is outliers
+
+Outliers <- VLSR_stimu %>%  #mutate(FN = fct_relevel(FN, 
+                            #"benzo", "dmso", "beta33", "beta95", "gamma33", "gamma60", "delta35", "delta60", "alpha", "epsi")) %>%
+  ggplot(aes(FN, Dist_tot1, fill = FN)) + 
+  geom_violin(width = 0.7, alpha = 0.5, color = "grey") +
+  geom_boxplot(width = 0.2) + 
+  scale_fill_brewer(palette = "Paired") +
+  theme_minimal()
+Outliers
+
+```
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is heterogeneity of replicate
+VLSR_avg <- VLSR_stimu %>% group_by(FN, Rep) %>%  summarise(n = n(), 
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n))
+  
+VLSR_avg  
+
+#Average and boxplot by FN
+VLSR_avg <- VLSR_stimu %>% group_by(FN) %>%  summarise(n = n(), 
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n),
+                                                          Dtot_med = median(Dist_tot1, na.rm=T))
+  
+VLSR_avg 
+
+
+```
+
+Hypothesis Normality
+H0: The data are sampled from a population having a normal distribution.
+HA: The data are sampled from a population not having a normal distribution.
+
+```{r Statistics}
+#Test normality by FN
+df_normality <- VLSR_stimu %>% group_by(FN) %>% 
+  summarise(normality = shapiro.test(Dist_tot1)$p.value)
+df_normality
+
+Aov <- aov(Dist_tot1 ~ FN, data= VLSR_stimu) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+# #Analyses RésID (1)us
+
+ggplot(VLSR_stimu, aes(x=Dist_tot1)) + geom_histogram(binwidth = 0.5)
+plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P < 0.05 H0 rejected normality not verified
+
+#Test of variance
+bartlett.test(Dist_tot1 ~ FN, data= VLSR_stimu) #P-value > 0.05 --> equality of variance
+
+#Application of the Kruskal-wallis test 
+
+KW <- kruskal.test(Dist_tot1 ~ FN, data= VLSR_stimu)
+KW
+if (KW$p.value > 0.05) {
+  print("H0 is not rejected. The escape response due to the Vibrational and visual startle response is not influenced by the FN leachates")
+} else {
+  print("H0 is rejected. The escape response due to the Vibrational and visual startle response is influenced by the FN leachates")
+}
+
+MWU_res_n <- PMCMRplus::kwAllPairsDunnTest(Dist_tot1 ~ FN, data= VLSR_stimu, p.adjust.method = "bonferroni")
+MWU_res_n
+
+#Letters
+
+df_pval =  MWU_res_n$p.value
+df_pval
+
+df_pval2 = fullPTable(df_pval)
+df_pval2
+
+multcompLetters(df_pval2)
+label_n <- data.frame(label = c("a"    ,   "a"    ,   "a"   ,    "a"     ,  "a"    ,   "a"    ,   "a"   ,    "a"  ,     "a" ))
+label_n
+
+max_values <- VLSR_stimu %>%
+  group_by(FN) %>%
+  summarize(max_value = max(Dist_tot1, na.rm = F))
+max_values
+
+Star_ctl <- as_tibble(df_pval2, rownames = "FN") %>% 
+  dplyr::select(FN, CTL) %>% 
+  mutate(diff = if_else(CTL == 1 & FN == "CTL", NA,
+                        if_else(CTL >= 0.05, "ns",
+                                if_else(CTL < 0.0001, "****",
+                                        if_else(CTL < 0.001, "***",
+                                                if_else(CTL < 0.01, "**",
+                                                      if_else(CTL < 0.05, "*", NA)))))))
+Star_ctl
+
+MWU_n_Lett<- cbind(max_values, label_n, diff = Star_ctl$diff, UV_Time = c("0"))
+MWU_n_Lett
+
+MWU_n_Lett_VSR_0 <- MWU_n_Lett
+MWU_n_Lett_VSR_0
+```
+
+
+```{r graph fin VLSR}
+G1 <- VLSR_stimu %>% ggplot(aes(x = FN, y = Dist_tot1, fill = FN)) + geom_boxplot(width = 0.2) + 
+  #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Total distance covered in the second after tapping (mm)",
+       y = "Traveled distance (mm)", 
+       x = "Fishing nets")  +
+  scale_x_discrete(labels = c("Blank H2O \nn = 48",
+                              "HPPE \u03B5\nØ4.25 mm \nn = 48",
+                              "PA6 \u03B1\nØ0.35 mm \nn = 48", 
+                              "PA6 \u03B2\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B2\nØ0.95 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.60 mm \nn = 48",
+                              "PBS \u03B4\nØ0.35 mm \nn = 48",
+                              "PA6 \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G1 + 
+  geom_text(data = MWU_n_Lett, aes(x = FN, y = max_value, label = label),
+            size = 5, vjust = -0.7, color="black", 
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 34.105, df = 3, p < 0.0001) \nPostHoc test: Dunn with bonferroni correction") + 
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+```
+
+
+#VMR (light motor response)
+```{r data import new}
+
+VLMR1 <- read_excel("Behaviour/240723_ED_t0/VMR1.xlsx")
+VLMR2 <- read_excel("Behaviour/240723_ED_t0/VMR2.xlsx")
+VLMR3 <- read_excel("Behaviour/240723_ED_t0/VMR3.xlsx")
+VLMR4 <- read_excel("Behaviour/240723_ED_t0/VMR4.xlsx")
+VLMR5 <- read_excel("Behaviour/240723_ED_t0/VMR5.xlsx")
+VLMR6 <- read_excel("Behaviour/240723_ED_t0/VMR6.xlsx")
+VLMR7 <- read_excel("Behaviour/240723_ED_t0/VMR7.xlsx")
+VLMR8 <- read_excel("Behaviour/240723_ED_t0/VMR8.xlsx")
+VLMR9 <- read_excel("Behaviour/240723_ED_t0/VMR9.xlsx")
+VLMR10 <- read_excel("Behaviour/240723_ED_t0/VMR10.xlsx")
+VLMR11 <- read_excel("Behaviour/240723_ED_t0/VMR11.xlsx")
+VLMR12 <- read_excel("Behaviour/240723_ED_t0/VMR12.xlsx")
+VLMR13 <- read_excel("Behaviour/240723_ED_t0/VMR13.xlsx")
+
+VLMR_0 <- rbind(VLMR1, VLMR2, VLMR3, VLMR4, VLMR5, VLMR6, VLMR7, VLMR8, VLMR9, VLMR10, VLMR11, VLMR12, VLMR13) %>%
+  arrange(`Time bin`) %>% 
+  mutate(Time_line = ifelse(row_number() <= 77760, "LON", "LOFF")) %>%
+  rename("FN" = 'Selection Result',
+         "Rep" = "ID (1)",
+         "Time" = "Time bin", 
+         "UV_Time" = "UV_Time (1)",
+         "Agi_time" = "Agi_time (1)", 
+         "Dist_tot1" = "Distance") %>% 
+  mutate(Trial = as.factor(gsub("    ", "_", Trial)),
+         Arena = as.factor(Arena),
+         UV_Time = as.factor(UV_Time),
+         FN = as.factor(FN),
+         Rep = as.factor(Rep),
+         Time = as.factor(Time),
+         Agi_time = as.factor(Agi_time), 
+         Time_line = as.factor(Time_line)) %>%
+  mutate_if(is.character, as.double, na.rm = F) %>%
+    #        Arena != "D1" | Trial != "Trial_ 1",
+    #      Arena != "C1" | Trial != "Trial_ 3",
+    #      Arena != "A6" | Trial != "Trial_ 5",
+    #      Arena != "F6" | Trial != "Trial_ 7",
+    #      Arena != "D2" | Trial != "Trial_ 9",
+    #      Arena != "A8" | Trial != "Trial_11",
+    #      Arena != "A6" | Trial != "Trial_13",
+    #      Arena != "A3" | Trial != "Trial_ 1",
+    #      Arena != "A5" | Trial != "Trial_ 1",
+    #      Arena != "F8" | Trial != "Trial_ 3",
+    #      Arena != "C7" | Trial != "Trial_ 5",
+    #      Arena != "C8" | Trial != "Trial_ 5",
+    #      Arena != "D6" | Trial != "Trial_ 5",
+    #      Arena != "C1" | Trial != "Trial_ 9",
+    #      Arena != "E3" | Trial != "Trial_ 9",
+    #      Arena != "E5" | Trial != "Trial_ 9",
+    #      Arena != "C7" | Trial != "Trial_10",
+    #      Arena != "D1" | Trial != "Trial_10",
+    #      Arena != "F1" | Trial != "Trial_11",
+    #      Arena != "C6" | Trial != "Trial_12",
+    #      Arena != "D1" | Trial != "Trial_12",
+    #      Arena != "E7" | Trial != "Trial_12",
+    #      Arena != "B7" | Trial != "Trial_13",
+    #      Arena != "E5" | Trial != "Trial_ 3") %>%
+  mutate(FN = if_else(FN == "PE", "HPPE_e425", FN)) %>% 
+  group_by(Trial, Arena, FN, Rep, Agi_time, UV_Time, Time_line) %>%
+  summarise(Dist_tot1 = sum(Dist_tot1, na.rm = TRUE)) %>% 
+  filter(!Dist_tot1 > 1000)
+
+VLMR_0
+
+VLMR_bis <- VLMR_0 %>% filter(FN == if_else(grepl("c", Rep), "CTL",
+                                                  if_else(grepl("g", Rep), "PA_a35",
+                                                                if_else(grepl("h", Rep), "PA_b95",
+                                                                              if_else(grepl("i", Rep), "PA_b33",
+                                                  if_else(grepl("j", Rep), "PA_g60",
+                                                                if_else(grepl("k", Rep), "PA_g33",
+                                                                              if_else(grepl("l", Rep), "PBS_d60",
+                                                  if_else(grepl("m", Rep), "PBS_d35",
+                                                                if_else(grepl("n", Rep), "HPPE_e425", NA))))))))))
+VLMR_bis
+
+VLMR0 <- VLMR_bis
+VLMR1 <- VLMR0
+```
+
+```{r Outliers}
+#Boxplot by replicates to see if there is outliers
+
+Outliers <- VLMR1 %>% 
+  ggplot(aes(FN, Dist_tot1, fill = FN)) + 
+  geom_violin(fill = "white")+
+  geom_boxplot(width = 0.2) + 
+  geom_jitter(width = 0.2, alpha = 0.5, color = "grey") +
+  scale_fill_brewer(palette = "Paired") +
+  theme_minimal()
+Outliers
+```
+
+```{r Difference 2 min before LON and 2 min after}
+VLMR_diff_0 <- VLMR1 %>%
+  mutate(FN = as.factor(FN)) %>% 
+  dplyr::select(FN, Rep, UV_Time, Dist_tot1, Time_line) %>% 
+  pivot_wider(names_from = Time_line, values_from = c(Dist_tot1)) %>%
+  group_by(FN, Rep, UV_Time) %>% 
+  summarise(Dist_tot = abs(LON - LOFF)) %>% 
+  arrange(Rep)
+VLMR_diff_0
+
+VLMR_diff_0 %>%
+  ggplot(aes(x= FN, y = Dist_tot, fill = FN)) +
+  geom_boxplot(width = 0.4) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  scale_fill_manual(values = Color_real_FN)
+
+VLMR_diff <- VLMR_diff_0
+
+```
+
+
+```{r Average tibble}
+
+VLMR_diff_avg <- VLMR_diff %>% group_by(FN) %>%  summarise(n = n(), 
+                                                          Dtot_med = median(Dist_tot, na.rm=T),
+                                                          Dtot_avg = mean(Dist_tot, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n))
+VLMR_diff_avg
+
+
+#Distance total
+VLMR_diff_avg %>% 
+  ggplot(aes(x= FN, y = Dtot_med, color = FN)) + 
+  geom_point(size =2, position=position_dodge(width = 0.2)) +
+  geom_errorbar(aes(ymin= ifelse(Dtot_med-Dtot_se < 0, 0, Dtot_med-Dtot_se), ymax=Dtot_med+Dtot_se), width=0.1, size = 0.5, position=position_dodge(width = 0.2)) +
+  scale_color_brewer(palette = "Paired") +
+  theme_minimal()
+
+```
+
+
+```{r Statistics}
+#Test normality by FN
+df_normality <- VLMR_diff %>%
+  group_by(FN) %>% 
+  summarise(normality = shapiro.test(Dist_tot)$p.value)
+df_normality
+
+Aov <- aov(Dist_tot ~ FN, data= VLMR_diff) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+# #Analyses RésID (1)us
+
+ggplot(VLMR_diff, aes(x=Dist_tot)) + geom_histogram(binwidth = 0.5)
+plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P < 0.05 H0 rejected normality not verified
+
+#Test of variance
+bartlett.test(Dist_tot ~ FN, data= VLMR_diff) #P-value > 0.05 --> equality of variance
+
+#Application of the Kruskal-wallis test 
+
+KW <- kruskal.test(Dist_tot ~ FN, data= VLMR_diff)
+KW
+if (KW$p.value > 0.05) {
+  print("H0 is not rejected. The escape response due to the Vibrational and visual startle response is not influenced by the FN leachates")
+} else {
+  print("H0 is rejected. The escape response due to the Vibrational and visual startle response is influenced by the FN leachates")
+}
+
+MWU_res_n <- PMCMRplus::kwAllPairsDunnTest(Dist_tot ~ FN, data= VLMR_diff, p.adjust.method = "bonferroni")
+MWU_res_n
+
+#Letters
+
+df_pval =  MWU_res_n$p.value
+df_pval
+
+df_pval2 = fullPTable(df_pval)
+df_pval2
+
+multcompLetters(df_pval2)
+label_n <- data.frame(label = c("a"   ,    "a"    ,   "a"    ,   "a"   ,    "a"   ,    "a"    ,   "a"    ,   "a"    ,   "a" ))
+label_n
+
+max_values <- VLMR_diff %>%
+  group_by(FN) %>%
+  summarize(max_value = max(Dist_tot, na.rm = T))
+max_values
+
+Star_ctl <- as_tibble(df_pval2, rownames = "FN") %>% 
+  dplyr::select(FN, CTL) %>% 
+  mutate(diff = if_else(CTL == 1 & FN == "CTL", NA,
+                        if_else(CTL >= 0.05, "ns",
+                                if_else(CTL < 0.0001, "****",
+                                        if_else(CTL < 0.001, "***",
+                                                if_else(CTL < 0.01, "**",
+                                                      if_else(CTL < 0.05, "*", NA)))))))
+Star_ctl
+
+MWU_n_Lett<- cbind(max_values, label_n, diff = Star_ctl$diff, UV_Time = c("0"))
+MWU_n_Lett
+
+MWU_n_Lett_VMR_0 <- MWU_n_Lett
+MWU_n_Lett_VMR_0
+```
+
+```{r graph fin VLMR}
+G1 <- VLMR_diff %>% ggplot(aes(x = FN, y = Dist_tot, fill = FN)) + geom_boxplot(width = 0.2) + 
+  #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Hyperactivity period in reaction to a sudden reduction of light intensity",
+       y = "Traveled distance (mm)", 
+       x = "Fishing nets")  +
+  # scale_x_discrete(labels = c("Blank H2O \nn = 48",
+  #                             "HPPE \u03B5\nØ4.25 mm \nn = 48",
+  #                             "PA6 \u03B1\nØ0.35 mm \nn = 48", 
+  #                             "PA6 \u03B2\nØ0.33 mm \nn = 48",
+  #                             "PA6 \u03B2\nØ0.95 mm \nn = 48",
+  #                             "PA6 \u03B3\nØ0.33 mm \nn = 48",
+  #                             "PA6 \u03B3\nØ0.60 mm \nn = 48",
+  #                             "PBS \u03B4\nØ0.35 mm \nn = 48",
+  #                             "PA6 \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G1 + 
+  geom_text(data = MWU_n_Lett, aes(x = FN, y = max_value, label = label),
+            size = 5, vjust = -0.7, color="black", 
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 34.105, df = 3, p < 0.0001) \nPostHoc test: Dunn with bonferroni correction") + 
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+```
+
+
+# Mobility state 
+ici, on étude la mobilité élevée pour une période de obscurité, de lumière et de nouveau obscurité. Il y aura donc plusieurs chunk pour l'étude des différentes conditions avec ensuite une fusion du tout sur un graphique en facet. 
+
+
+```{r LOFF1}
+Mob_LOFF0 <- read_excel("Behaviour/240723_ED_t0/mob_OFF1.xlsx") %>%
+  rename("FN" = `Selection Result`,
+         "Rep" = "ID (1)",
+         "Time" = `Time bin`,
+         "UV_Time" = "UV_Time (1)",
+         "Agi_time" = "Agi_time (1)",  
+         "Dura_mob_l" = `Mobility state...8`,
+         "Dura_mob_m" = `Mobility state...9`,
+         "Dura_mob_h" = `Mobility state...10`,
+         "per_mob_l" = `Mobility state...11`,
+         "per_mob_m" = `Mobility state...12`,
+         "per_mob_h" = `Mobility state...13`) %>%
+   mutate(Trial = as.factor(gsub("    ", "_", Trial)),
+         Arena = as.factor(Arena),
+         UV_Time = as.factor(UV_Time),
+         FN = as.factor(FN),
+         Rep = as.factor(Rep),
+         Time = as.factor(Time),
+         Agi_time = as.factor(Agi_time)) %>%
+  mutate_if(is.character, as.double, na.rm = F) %>%
+  group_by(Trial, Arena, FN, Rep, Agi_time, UV_Time) %>%
+  # summarise(Dura_mob_h = sum(Dura_mob_h, na.rm = TRUE),
+  #           Dura_mob_m = sum(Dura_mob_m, na.rm = T),
+  #           Dura_mob_l = sum(Dura_mob_l, na.rm = T)) %>%
+  mutate(Sum = Dura_mob_h + Dura_mob_m + Dura_mob_l) %>% 
+  mutate(Mob_high = (Dura_mob_h*100)/Sum) %>%                      #percentage of high mobility in function of the total mobility 
+  mutate(Mob_medium = (Dura_mob_m*100)/Sum) %>%                  #percentage of medium mobility in function of the total mobility 
+  mutate(Mob_low = (Dura_mob_l*100)/Sum) %>%                            #percentage of low mobility in function of the total mobility 
+  mutate(FN = as.factor(if_else(FN == "PE", "HPPE_e425", FN))) 
+Mob_LOFF0
+
+Mob_LOFF_bis <- Mob_LOFF0 %>% filter(FN == if_else(grepl("c", Rep), "CTL",
+                                                  if_else(grepl("g", Rep), "PA_a35",
+                                                                if_else(grepl("h", Rep), "PA_b95",
+                                                                              if_else(grepl("i", Rep), "PA_b33",
+                                                  if_else(grepl("j", Rep), "PA_g60",
+                                                                if_else(grepl("k", Rep), "PA_g33",
+                                                                              if_else(grepl("l", Rep), "PBS_d60",
+                                                  if_else(grepl("m", Rep), "PBS_d35",
+                                                                if_else(grepl("n", Rep), "HPPE_e425", NA))))))))))
+Mob_LOFF_bis
+
+Mob_LOFF1 <- Mob_LOFF_bis
+```
+
+
+```{r Graph visua}
+Mob_LOFF1 %>%
+  ggplot(aes(x = FN, y = Mob_high)) +
+  geom_violin(width = 1) +
+  geom_boxplot(width = 0.2) +
+  theme_bw()
+  
+```
+
+
+```{r Statistiques}
+#Test normality by FN
+df_normality <- Mob_LOFF1 %>% group_by(FN) %>% 
+  summarise(normality = shapiro.test(Mob_high)$p.value)
+df_normality
+
+Aov <- aov(Mob_high ~ FN, data= Mob_LOFF1) ## P-value < 0.05 
+report(Aov)
+anova(Aov)
+summary.lm(Aov)
+
+
+#Application of the Kruskal-wallis test 
+
+KW <- kruskal.test(Mob_high ~ FN, data= Mob_LOFF1)
+KW
+if (KW$p.value > 0.05) {
+  print("H0 is not rejected. The escape response due to the Vibrational and visual startle response is not influenced by the FN leachates")
+} else {
+  print("H0 is rejected. The escape response due to the Vibrational and visual startle response is influenced by the FN leachates")
+}
+
+MWU_res_n <- kwAllPairsDunnTest(Mob_high ~ FN, data= Mob_LOFF1, p.adjust.method = "holm")
+MWU_res_n
+
+#Letters
+
+df_pval =  MWU_res_n$p.value
+df_pval
+
+df_pval2 = fullPTable(df_pval)
+df_pval2
+
+multcompLetters(df_pval2)
+label_n <- data.frame(label = c("a"   ,    "a"   ,    "a"    ,   "a"   ,    "a"     ,  "a"    ,   "a"     ,  "a"     ,  "a" ))
+label_n
+
+max_values <- Mob_LOFF1 %>%
+  group_by(FN) %>%
+  summarize(max_value = max(Mob_high, na.rm = T))
+max_values
+
+Star_ctl <- as_tibble(df_pval2, rownames = "FN") %>% 
+  dplyr::select(FN, CTL) %>% 
+  mutate(diff = if_else(CTL == 1 & FN == "CTL", NA,
+                        if_else(CTL >= 0.05, "ns",
+                                if_else(CTL < 0.0001, "****",
+                                        if_else(CTL < 0.001, "***",
+                                                if_else(CTL < 0.01, "**",
+                                                      if_else(CTL < 0.05, "*", NA)))))))
+Star_ctl
+
+MWU_n_Lett<- cbind(max_values, label_n, diff = Star_ctl$diff, UV_Time = c("0"))
+MWU_n_Lett
+
+MWU_n_Lett_MOB_LOFF1_0 <- MWU_n_Lett
+MWU_n_Lett_MOB_LOFF1_0
+```
+
+```{r LON}
+Mob_ON_1 <- read_excel("Behaviour/240723_ED_t0/Mob_ON1.xlsx") 
+Mob_ON_2 <- read_excel("Behaviour/240723_ED_t0/Mob_ON2.xlsx")
+Mob_ON_3 <- read_excel("Behaviour/240723_ED_t0/Mob_ON3.xlsx") 
+Mob_ON_4 <- read_excel("Behaviour/240723_ED_t0/Mob_ON4.xlsx")
+Mob_ON_5 <- read_excel("Behaviour/240723_ED_t0/Mob_ON5.xlsx") 
+
+Mob_ON0 <- rbind(Mob_ON_1, Mob_ON_2, Mob_ON_3, Mob_ON_4, Mob_ON_5) %>% 
+  rename("FN" = `Selection Result`,
+         "Rep" = "ID (1)",
+         "Time" = `Time bin`,
+         "UV_Time" = "UV_Time (1)",
+         "Agi_time" = "Agi_time (1)",  
+         "Dura_mob_l" = `Mobility state...8`,
+         "Dura_mob_m" = `Mobility state...9`,
+         "Dura_mob_h" = `Mobility state...10`,
+         "per_mob_l" = `Mobility state...11`,
+         "per_mob_m" = `Mobility state...12`,
+         "per_mob_h" = `Mobility state...13`) %>% 
+   mutate(Trial = as.factor(gsub("    ", "_", Trial)),
+         Arena = as.factor(Arena),
+         UV_Time = as.factor(UV_Time),
+         FN = as.factor(FN),
+         Rep = as.factor(Rep),
+         Time = as.factor(Time),
+         Agi_time = as.factor(Agi_time)) %>%
+  mutate_if(is.character, as.double, na.rm = F) %>%
+    filter(Arena != "B2" | Trial != "Trial_ 1",
+         Arena != "C6" | Trial != "Trial_ 1",
+         Arena != "D3" | Trial != "Trial_ 3",
+         Arena != "C8" | Trial != "Trial_11",
+         Arena != "E3" | Trial != "Trial_ 5") %>%
+  group_by(Trial, Arena, FN, Rep, Agi_time, UV_Time) %>%
+  summarise(Dura_mob_h = sum(Dura_mob_h, na.rm = TRUE),
+             Dura_mob_m = sum(Dura_mob_m, na.rm = T),
+             Dura_mob_l = sum(Dura_mob_l, na.rm = T)) %>%
+  mutate(Sum = Dura_mob_h + Dura_mob_m + Dura_mob_l) %>% 
+  mutate(Mob_high = (Dura_mob_h*100)/Sum) %>%                      #percentage of high mobility in function of the total mobility 
+  mutate(Mob_medium = (Dura_mob_m*100)/Sum) %>%                  #percentage of medium mobility in function of the total mobility 
+  mutate(Mob_low = (Dura_mob_l*100)/Sum) %>%                           #percentage of low mobility in function of the total mobility
+  filter(Sum != 0) %>% 
+  mutate(FN = as.factor(if_else(FN == "PE", "HPPE_e425", FN)))
+Mob_ON0 #%>% filter(Mob_high >= 20)
+
+
+Mob_ON_bis <- Mob_ON0 %>% filter(FN == if_else(grepl("c", Rep), "CTL",
+                                                  if_else(grepl("g", Rep), "PA_a35",
+                                                                if_else(grepl("h", Rep), "PA_b95",
+                                                                              if_else(grepl("i", Rep), "PA_b33",
+                                                  if_else(grepl("j", Rep), "PA_g60",
+                                                                if_else(grepl("k", Rep), "PA_g33",
+                                                                              if_else(grepl("l", Rep), "PBS_d60",
+                                                  if_else(grepl("m", Rep), "PBS_d35",
+                                                                if_else(grepl("n", Rep), "HPPE_e425", NA))))))))))
+Mob_ON_bis
+
+Mob_ON <- Mob_ON_bis
+```
+
+
+```{r Graph}
+Mob_ON %>%
+  ggplot(aes(x = FN, y = Mob_high)) +
+  geom_violin() +
+  geom_boxplot(width = 0.2) +
+  theme_bw()
+  
+```
+
+
+```{r Statistiques}
+#### stat
+
+#Test normality by FN
+df_normality <- Mob_ON %>% group_by(FN) %>% 
+  summarise(normality = shapiro.test(Mob_high)$p.value)
+df_normality
+
+Aov <- aov(Mob_high ~ FN, data= Mob_ON) ## P-value < 0.05 
+report(Aov)
+anova(Aov)
+summary.lm(Aov)
+
+
+#Application of the Kruskal-wallis test 
+
+KW <- kruskal.test(Mob_high ~ FN, data= Mob_ON)
+KW
+if (KW$p.value > 0.05) {
+  print("H0 is not rejected. The escape response due to the Vibrational and visual startle response is not influenced by the FN leachates")
+} else {
+  print("H0 is rejected. The escape response due to the Vibrational and visual startle response is influenced by the FN leachates")
+}
+library(PMCMRplus)
+
+MWU_res_n <- kwAllPairsDunnTest(Mob_high ~ FN, data= Mob_ON, p.adjust.method = "holm")
+MWU_res_n
+
+#Letters
+
+df_pval =  MWU_res_n$p.value
+df_pval
+
+df_pval2 = fullPTable(df_pval)
+df_pval2
+
+multcompLetters(df_pval2)
+label_n <- data.frame(label = c("a"  ,     "a"    ,   "a"    ,   "a"   ,    "a"   ,    "a"    ,   "a"    ,   "a"   ,    "a" ))
+label_n
+
+max_values <- Mob_ON %>%
+  group_by(FN) %>%
+  summarize(max_value = max(Mob_high, na.rm = F))
+max_values
+
+Star_ctl <- as_tibble(df_pval2, rownames = "FN") %>% 
+  dplyr::select(FN, CTL) %>% 
+  mutate(diff = if_else(CTL == 1 & FN == "CTL", NA,
+                        if_else(CTL >= 0.05, "ns",
+                                if_else(CTL < 0.0001, "****",
+                                        if_else(CTL < 0.001, "***",
+                                                if_else(CTL < 0.01, "**",
+                                                      if_else(CTL < 0.05, "*", NA)))))))
+Star_ctl
+
+MWU_n_Lett<- cbind(max_values, label_n, diff = Star_ctl$diff, UV_Time = c("0"))
+MWU_n_Lett
+
+MWU_n_Lett_MOB_LON_0 <- MWU_n_Lett
+MWU_n_Lett_MOB_LON_0
+```
+
+
+```{r Average}
+
+Mob_ON_avg <- Mob_ON %>% 
+  group_by(FN, Rep) %>%  
+  summarise(n = n(), 
+            Mob_med = median(Mob_high, na.rm=T),
+            Mob_avg = mean(Mob_high, na.rm=T),
+            Mob_sd = sd(Mob_high, na.rm=T),
+            Mob_se = Mob_sd/sqrt(n))
+Mob_ON_avg 
+
+Mob_ON_avg2 <- Mob_ON %>% 
+  group_by(FN) %>%  
+  summarise(n = n(), 
+            Mob_med = median(Mob_high, na.rm=T),
+            Mob_avg = mean(Mob_high, na.rm=T),
+            Mob_sd = sd(Mob_high, na.rm=T),
+            Mob_se = Mob_sd/sqrt(n)) %>%
+  mutate(condition = "Lumière")
+Mob_ON_avg2
+
+Mob_ON_avg2 %>% 
+  ggplot(aes(x= FN, y = Mob_med, fill = FN)) + 
+  geom_col(size =2, position=position_dodge(width = 0.2)) +
+  geom_errorbar(aes(ymin= ifelse(Mob_med-Mob_se < 0, 0, Mob_med-Mob_se), ymax=Mob_med+Mob_se), width=0.1, size = 0.5, position=position_dodge(width=0.2)) +
+  theme_bw()
+
+
+```
+
+
+```{r graph fin Mob ON}
+
+G1 <- Mob_ON %>% ggplot(aes(x = FN, y = Mob_high, fill = FN)) + geom_boxplot(width = 0.2) + 
+  #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "High monility duration during light event",
+       y = "Mobility s/10min", 
+       x = "Fishing nets")  +
+  scale_x_discrete(labels = c("Blank H2O \nn = 48",
+                              "PA6 \u03B1\nØ0.35 mm \nn = 48", 
+                              "PA6 \u03B2\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B2\nØ0.95 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.60 mm \nn = 48",
+                              "PBS \u03B4\nØ0.35 mm \nn = 48",
+                              "PBS \u03B4\nØ0.60 mm \nn = 48",
+                              "HPPE \u03B5\nØ4.25 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G1 + 
+  geom_text(data = MWU_n_Lett, aes(x = FN, y = max_value, label = label),
+            size = 5, vjust = -0.7, color="black", 
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 34.105, df = 3, p < 0.0001) \nPostHoc test: Dunn with holm correction") + 
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+```
+
+Pas exporté car trop long
+
+```{r LOFF2}
+Mob_OFF2_1 <- read_excel("Behaviour/240723_ED_t0/Mob_OFF2_1.xlsx")
+Mob_OFF2_2 <- read_excel("Behaviour/240723_ED_t0/Mob_OFF2_2.xlsx")
+
+Mob_OFF2 <- rbind(Mob_OFF2_1, Mob_OFF2_2) %>%
+  rename("FN" = `Selection Result`,
+         "Rep" = "ID (1)",
+         "Time" = `Time bin`,
+         "UV_Time" = "UV_Time (1)",
+         "Agi_time" = "Agi_time (1)",
+         "Dura_mob_l" = `Mobility state...8`,
+         "Dura_mob_m" = `Mobility state...9`,
+         "Dura_mob_h" = `Mobility state...10`,
+         "per_mob_l" = `Mobility state...11`,
+         "per_mob_m" = `Mobility state...12`,
+         "per_mob_h" = `Mobility state...13`) %>%
+   mutate(Trial = as.factor(gsub("    ", "_", Trial)),
+         Arena = as.factor(Arena),
+         UV_Time = as.factor(UV_Time),
+         FN = as.factor(FN),
+         Rep = as.factor(Rep),
+         Time = as.factor(Time),
+         Agi_time = as.factor(Agi_time)) %>%
+  mutate_if(is.character, as.double, na.rm = F) %>%
+    # filter(Arena != "B2" | Trial != "Trial_ 1",
+    #      Arena != "C6" | Trial != "Trial_ 1",
+    #      Arena != "D3" | Trial != "Trial_ 3",
+    #      Arena != "C8" | Trial != "Trial_11",
+    #      Arena != "E3" | Trial != "Trial_ 5") %>%
+  group_by(Trial, Arena, FN, Rep, Agi_time, UV_Time) %>%
+  summarise(Dura_mob_h = sum(Dura_mob_h, na.rm = TRUE),
+             Dura_mob_m = sum(Dura_mob_m, na.rm = T),
+             Dura_mob_l = sum(Dura_mob_l, na.rm = T)) %>%
+  mutate(Sum = Dura_mob_h + Dura_mob_m + Dura_mob_l) %>%
+  mutate(Mob_high = (Dura_mob_h*100)/Sum) %>%                      #percentage of high mobility in function of the total mobility
+  mutate(Mob_medium = (Dura_mob_m*100)/Sum) %>%                  #percentage of medium mobility in function of the total mobility
+  mutate(Mob_low = (Dura_mob_l*100)/Sum) %>%                           #percentage of low mobility in function of the total mobility
+  filter(Sum != 0, !Mob_high >= 25) %>%
+  mutate(FN = as.factor(if_else(FN == "PE", "HPPE_e425", FN)))
+
+Mob_OFF2 #%>% filter(Mob_high >= 50)
+```
+
+
+```{r Graph}
+Mob_OFF2 %>%
+  ggplot(aes(x = FN, y = Mob_high)) +
+  geom_violin() +
+  geom_jitter(width = 0.1) +
+  #geom_boxplot(width = 0.2) +
+  theme_bw()
+
+```
+
+
+```{r Statistiques}
+#### stat
+#Test normality by FN
+df_normality <- Mob_OFF2 %>% group_by(FN) %>%
+  summarise(normality = shapiro.test(Mob_high)$p.value)
+df_normality
+
+#Transformation data
+Mob_OFF2_log <- Mob_OFF2 %>% mutate(Mob_high_log = log10(Mob_high))
+Mob_OFF2_log
+
+Aov <- aov(Mob_high_log ~ FN, data= Mob_OFF2_log) ## P-value < 0.05
+report(Aov)
+anova(Aov)
+summary.lm(Aov)
+
+# #Analyses Résiduals
+
+ggplot(Mob_OFF2_log, aes(x=Mob_high_log)) + geom_histogram(binwidth = 0.5)
+plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P < 0.05 H0 rejected normality not verified
+#Test of variance
+bartlett.test(Mob_high_log ~ FN, data= Mob_OFF2_log) #P-value > 0.05 --> no equality of variance
+
+TukeyHSD(Aov)
+
+library(emmeans)
+library(multcompView)
+library(multcomp)
+
+# get (adjusted) weight means per group
+model_means <- emmeans(object = Aov,
+                       specs = "FN")
+model_means
+
+
+# add letters to each mean
+model_means_cld <- cld(object = model_means,
+                       adjust = "sidak",
+                       Letters = letters,
+                       alpha = 0.05)
+
+model_means_cld
+
+#Application of the Kruskal-wallis test
+
+KW <- kruskal.test(Mob_high ~ FN, data= Mob_OFF2)
+KW
+if (KW$p.value > 0.05) {
+  print("H0 is not rejected. The escape response due to the Vibrational and visual startle response is not influenced by the FN leachates")
+} else {
+  print("H0 is rejected. The escape response due to the Vibrational and visual startle response is influenced by the FN leachates")
+}
+library(PMCMRplus)
+
+MWU_res_n <- kwAllPairsDunnTest(Mob_high ~ FN, data= Mob_OFF2, p.adjust.method = "holm")
+MWU_res_n
+
+#Letters
+
+df_pval =  MWU_res_n$p.value
+df_pval
+
+df_pval2 = fullPTable(df_pval)
+df_pval2
+
+multcompLetters(df_pval2)
+label_n <- data.frame(label = c("a"    ,   "a"     ,  "a"   ,    "a"    ,   "a"     ,  "a"    ,   "a"    ,   "a"     ,  "a"))
+label_n
+
+max_values <- Mob_OFF2 %>%
+  group_by(FN) %>%
+  summarize(max_value = max(Mob_high, na.rm = F))
+max_values
+
+Star_ctl <- as_tibble(df_pval2, rownames = "FN") %>%
+  dplyr::select(FN, CTL) %>%
+  mutate(diff = if_else(CTL == 1 & FN == "CTL", NA,
+                        if_else(CTL >= 0.05, "ns",
+                                if_else(CTL < 0.0001, "****",
+                                        if_else(CTL < 0.001, "***",
+                                                if_else(CTL < 0.01, "**",
+                                                      if_else(CTL < 0.05, "*", NA)))))))
+Star_ctl
+
+MWU_n_Lett<- cbind(max_values, label_n, diff = Star_ctl$diff, UV_Time = c("0"))
+MWU_n_Lett
+
+MWU_n_Lett_MOB_LOFF2_0 <- MWU_n_Lett
+MWU_n_Lett_MOB_LOFF2_0
+```
+
+
+```{r Average}
+
+Mob_OFF2_avg <- Mob_OFF2 %>%
+  group_by(FN, Rep) %>%
+  summarise(n = n(),
+            Mob_med = median(Mob_high, na.rm=T),
+            Mob_avg = mean(Mob_high, na.rm=T),
+            Mob_sd = sd(Mob_high, na.rm=T),
+            Mob_se = Mob_sd/sqrt(n))
+Mob_OFF2_avg
+
+Mob_OFF2_avg2 <- Mob_OFF2 %>%
+  group_by(FN) %>%
+  summarise(n = n(),
+            Mob_med = median(Mob_high, na.rm=T),
+            Mob_avg = mean(Mob_high, na.rm=T),
+            Mob_sd = sd(Mob_high, na.rm=T),
+            Mob_se = Mob_sd/sqrt(n)) %>%
+  mutate(condition = "Lumière")
+Mob_OFF2_avg2
+
+Mob_OFF2_avg2 %>%
+  ggplot(aes(x= FN, y = Mob_med, fill = FN)) +
+  geom_col(size =2, position=position_dodge(width = 0.2)) +
+  geom_errorbar(aes(ymin= ifelse(Mob_med-Mob_se < 0, 0, Mob_med-Mob_se), ymax=Mob_med+Mob_se), width=0.1, size = 0.5, position=position_dodge(width=0.2)) +
+  theme_bw()
+
+
+```
+
+
+```{r graph fin Mob LOFF2}
+
+G1 <- Mob_OFF2 %>% ggplot(aes(x = FN, y = Mob_high, fill = FN)) + geom_boxplot(width = 0.2) +
+  #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "High monility duration during light event",
+       y = "Mobility s/10min",
+       x = "Fishing nets")  +
+  scale_x_discrete(labels = c("Blank H2O \nn = 48",
+                              "PA6 \u03B1\nØ0.35 mm \nn = 48",
+                              "PA6 \u03B2\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B2\nØ0.95 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.60 mm \nn = 48",
+                              "PBS \u03B4\nØ0.35 mm \nn = 48",
+                              "PBS \u03B4\nØ0.60 mm \nn = 48",
+                              "HPPE \u03B5\nØ4.25 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G1 +
+  # geom_text(data = MWU_n_Lett, aes(x = FN, y = max_value, label = label),
+  #           size = 5, vjust = -0.7, color="black",
+  #           position = position_dodge(width=0.6),
+  #           show.legend = FALSE,
+  #           na.rm = F) +
+  # labs(caption = "Kruskal Wallis test: \n(H = 34.105, df = 3, p < 0.0001) \nPostHoc test: Dunn with holm correction") +
+  theme(plot.caption = element_text(family = "serif",
+               face = "bold",
+               color = 1,
+               size = 14,
+               hjust = 0.999,
+               vjust = 202,
+               angle = 0,
+               lineheight = 1))
+
+```
+
+#AUC Tapping
+```{r data import new}
+AUC1 <- read_excel("Behaviour/240723_ED_t0/AUC1.xlsx")
+AUC2 <- read_excel("Behaviour/240723_ED_t0/AUC2.xlsx")
+AUC3 <- read_excel("Behaviour/240723_ED_t0/AUC3.xlsx")
+AUC4 <- read_excel("Behaviour/240723_ED_t0/AUC4.xlsx")
+AUC5 <- read_excel("Behaviour/240723_ED_t0/AUC5.xlsx")
+AUC6 <- read_excel("Behaviour/240723_ED_t0/AUC6.xlsx")
+AUC7 <- read_excel("Behaviour/240723_ED_t0/AUC7.xlsx")
+AUC8 <- read_excel("Behaviour/240723_ED_t0/AUC8.xlsx")
+AUC9 <- read_excel("Behaviour/240723_ED_t0/AUC9.xlsx")
+AUC10 <- read_excel("Behaviour/240723_ED_t0/AUC10.xlsx")
+AUC11 <- read_excel("Behaviour/240723_ED_t0/AUC11.xlsx")
+AUC12 <- read_excel("Behaviour/240723_ED_t0/AUC12.xlsx")
+AUC13 <- read_excel("Behaviour/240723_ED_t0/AUC13.xlsx")
+
+AUC_0 <- rbind(AUC1, AUC2, AUC3, AUC4, AUC5, AUC6, AUC7, AUC8, AUC9, AUC10, AUC11, AUC12, AUC13) %>% 
+  rename("FN" = 'Selection Result',
+         "Rep" = "ID (1)",
+         "Time" = "Time bin",
+         "UV_Time" = "UV_Time (1)",
+         "Agi_time" = "Agi_time (1)", 
+         "Dist_tot1" = "Distance") %>%
+  mutate(Time = as.factor(Time),
+         Time_Cat = as.factor(c("Tapping")),
+         Trial = as.factor(gsub("    ", "_", Trial)),
+         UV_Time = as.factor(UV_Time),
+         Arena = as.factor(Arena),
+         state = as.factor("aa"),
+         Rep = as.factor(Rep),
+         FN = as.factor(if_else(FN == "PE (2)", "HPPE_e425", FN))) %>%
+  mutate_if(is.character, as.double, na.rm = T) 
+
+AUC_0
+
+AUC_bis <- AUC_0 %>% filter(FN == if_else(grepl("c", Rep), "CTL",
+                                                  if_else(grepl("g", Rep), "PA_a35",
+                                                                if_else(grepl("h", Rep), "PA_b95",
+                                                                              if_else(grepl("i", Rep), "PA_b33",
+                                                  if_else(grepl("j", Rep), "PA_g60",
+                                                                if_else(grepl("k", Rep), "PA_g33",
+                                                                              if_else(grepl("l", Rep), "PBS_d60",
+                                                  if_else(grepl("m", Rep), "PBS_d35",
+                                                                if_else(grepl("n", Rep), "HPPE_e425", NA))))))))))
+AUC_bis
+
+AUC <- AUC_bis
+
+```
+
+
+```{r Average tibble}
+
+
+#Average and boxplot by replicates to see if there is heterogeneity of replicate
+AUC_avg_Rep <- AUC %>% group_by(FN, Rep, Time, Time_Cat, state) %>%  
+  summarise(n = n(), 
+            Dist_med = median(Dist_tot1, na.rm=T),
+            Dist_avg = mean(Dist_tot1, na.rm=T),
+            Dist_sd = sd(Dist_tot1, na.rm=T), 
+            Dist_se = Dist_sd / sqrt(n))
+  
+AUC_avg_Rep  
+
+#Average and boxplot by FN to see if there is heterogeneity of replicate
+AUC_avg <- AUC %>% group_by(FN, Time, Time_Cat, state) %>%  
+  summarise(n = n(), 
+            Dist_med = median(Dist_tot1, na.rm=T),
+            Dist_avg = mean(Dist_tot1, na.rm=T),
+            Dist_sd = sd(Dist_tot1, na.rm=T), 
+            Dist_se = Dist_sd / sqrt(n))
+  
+AUC_avg 
+
+# Count the occurrences of "LOFF" and "LON" in 'Time_line'
+counts <- table(AUC_avg$FN, useNA = "ifany")
+counts
+
+#Average table for facet graphs
+facet1 <- tibble(facet = as.factor(rep(c("PA_a35",    "PA_b33",    "PA_b95",    "PA_g33",    "PA_g60",   "PBS_d35",   "PBS_d60", "HPPE_e425"), each = 53)))
+facet1
+
+df <- AUC_avg  %>% 
+             filter(state == "aa", FN == "CTL") 
+df
+
+df1 <- df %>% bind_rows(replicate(7, df, simplify = FALSE)) 
+df1
+
+df2 <- cbind(df1, facet1) 
+df2
+
+df3 <- AUC_avg %>% filter(FN != "CTL")
+df3
+
+df4 <- bind_cols(df3, facet = rep(c("HPPE_e425", "PA_a35", "PA_b33", "PA_b95", "PA_g33", "PA_g60", "PBS_d35", "PBS_d60"), each = 53))
+df4
+
+df5 <- bind_rows(df2, df4)
+
+df6 <- bind_cols(df5, Time_num = c(rep(c(0:52), c(16))))
+df6
+
+```
+
+
+```{r Plot courbes}
+
+#Distance total
+
+G <- df6 %>% mutate(FN = fct_relevel(FN, "PA_a35",    "PA_b33",    "PA_b95",    "PA_g33",    "PA_g60",   "PBS_d35",   "PBS_d60", "HPPE_e425")) %>%
+  ggplot(aes(x = Time_num, y = Dist_avg, group = FN, color = FN)) + 
+  geom_point(size = 1.5) +
+  geom_line(size = 1) +
+  geom_errorbar(aes(ymin= ifelse(Dist_avg-Dist_se < 0, 0, Dist_avg-Dist_se), ymax=Dist_avg+Dist_se), width=0.1, size = 0.5) +
+  facet_wrap(vars(facet), ncol = 2) +
+  scale_color_brewer(palette = "Paired") + theme_bw() +
+  labs(title = "Habituation to vibratory stimuli",
+       x = "Duration of vibratory stimulus period (s)",
+       y = "Distance covered (mm)" ) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+
+G 
+
+```
+
+```{r AUC}
+library(pracma)
+
+AUC
+AUC <- AUC %>%
+  mutate(Time = as.numeric(gsub(".*:", "", Time)))
+AUC
+
+AUC_Trial <- AUC %>%
+  mutate(Trial = as.factor(ifelse(Trial == "Trial_ 1", "T1",
+                                  ifelse(Trial == "Trial_ 2", "T2",
+                        ifelse(Trial == "Trial_ 3", "T3",
+                               ifelse(Trial == "Trial_ 4", "T4",
+                               ifelse(Trial == "Trial_ 5", "T5",
+                                      ifelse(Trial == "Trial_ 6", "T6",
+                                      ifelse(Trial == "Trial_ 7", "T7",
+                                             ifelse(Trial == "Trial_ 8", "T8",
+                                             ifelse(Trial == "Trial_ 9", "T9",
+                                                    ifelse(Trial == "Trial_10", "T10",
+                                                           ifelse(Trial == "Trial_11", "T11",
+                                                                  ifelse(Trial == "Trial_12", "T12",
+                                                                         ifelse(Trial == "Trial_13", "T13", Trial)))))))))))))))
+
+AUC_Trial
+
+#Average replicates and arean 
+AUC_avg_Arena <- AUC_Trial %>% group_by(FN, Trial, Arena, Rep, Time, Time_Cat, state) %>%  
+  summarise(n = n(), 
+            Dist_med = median(Dist_tot1, na.rm=T),
+            Dist_avg = mean(Dist_tot1, na.rm=T)) %>% 
+  unite(Rep_arena, Rep, Trial, Arena, sep = "_") %>% mutate(Rep_arena = as.factor(Rep_arena))
+  
+AUC_avg_Arena 
+
+# Count the occurrences of "LOFF" and "LON" in 'Time_line'
+counts <- table(AUC_avg_Arena$Rep_arena, useNA = "ifany")
+counts
+
+AUC_n <- AUC_avg %>% ungroup() %>% 
+  dplyr::select(FN, n)
+AUC_n$n
+
+table(AUC_n$n)
+
+n <- c(46, 46, 40, 48, 43, 46, 46, 48, 44)
+sum(n)
+
+AUC_results_0 <- AUC_avg_Arena %>%
+  group_by(FN, Rep_arena) %>%
+  summarize(AUC = trapz(as.numeric(Time), Dist_avg)) %>% 
+  separate(Rep_arena, into = c("Rep", "Trial", "Arena"), sep = "_", remove = FALSE) %>% 
+  arrange(Rep) %>% 
+  mutate(UV_Time = "0")
+AUC_results_0
+
+AUC_results <- AUC_results_0
+
+AUC_final <- AUC_results %>% group_by(FN, UV_Time) %>% summarise(n = n(),
+                                                        AUC_med = median(AUC, na.rm = T),
+                                                        AUC_avg = mean(AUC, na.rm = T),
+                                                        AUC_sd = sd(AUC, na.rm = T),
+                                                        AUC_se = AUC_sd / sqrt(n))
+AUC_final
+
+```
+
+Hypothesis Normality
+H0: The data are sampled from a population having a normal distribution.
+HA: The data are sampled from a population not having a normal distribution
+  
+```{r Statistics}
+#Test normality by FN
+df_normality <- AUC_results %>% group_by(FN) %>% 
+  summarise(normality = shapiro.test(AUC)$p.value)
+df_normality
+
+Aov <- aov(AUC ~ FN, data= AUC_results) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+#Analyses RésID (1)us
+
+ggplot(AUC_results, aes(x=AUC)) + geom_histogram(binwidth = 0.5)
+plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P > 0.05 H0 cannot be rejected normality verified
+
+#Test of variance
+bartlett.test(AUC ~ FN, data= AUC_results) #P-value > 0.05 --> equality of variance
+
+TukeyHSD(Aov)
+
+#Application of the Kruskal-wallis test 
+
+KW <- kruskal.test(AUC ~ FN, data= AUC_results)
+KW
+if (KW$p.value > 0.05) {
+  print("H0 is not rejected. The escape response due to the Vibrational and visual startle response is not influenced by the FN leachates")
+} else {
+  print("H0 is rejected. The escape response due to the Vibrational and visual startle response is influenced by the FN leachates")
+}
+library(PMCMRplus)
+
+MWU_res_n <- kwAllPairsDunnTest(AUC ~ FN, data= AUC_results, p.adjust.method = "holm")
+MWU_res_n
+
+# #Letters
+
+df_pval =  MWU_res_n$p.value
+df_pval
+
+df_pval2 = fullPTable(df_pval)
+df_pval2
+
+multcompLetters(df_pval2)
+label_n <- data.frame(label = c("a"   ,    "a"   ,    "a"    ,   "a"    ,   "a"    ,   "a"    ,   "a"   ,    "a"   ,    "a" ))
+label_n
+
+max_values <- AUC_results %>%
+  group_by(FN) %>%
+  summarize(max_value = max(AUC, na.rm = T))
+max_values
+
+Star_ctl <- as_tibble(df_pval2, rownames = "FN") %>% 
+  dplyr::select(FN, CTL) %>% 
+  mutate(diff = if_else(CTL == 1 & FN == "CTL", NA,
+                        if_else(CTL >= 0.05, "ns",
+                                if_else(CTL < 0.0001, "****",
+                                        if_else(CTL < 0.001, "***",
+                                                if_else(CTL < 0.01, "**",
+                                                      if_else(CTL < 0.05, "*", NA)))))))
+Star_ctl
+
+MWU_n_Lett<- cbind(max_values, label_n, diff = Star_ctl$diff, UV_Time = c("0"))
+MWU_n_Lett
+
+MWU_n_Lett_AUC_0 <- MWU_n_Lett
+MWU_n_Lett_AUC_0
+
+```
+
+
+```{r graph fin AUC}
+
+G1 <- AUC_results %>% ggplot(aes(x = FN, y = AUC, fill = FN)) + 
+  geom_violin(fill = "white", aes(color = FN)) +
+  geom_boxplot(width = 0.1) + 
+  #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  scale_color_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Habituation to vibratory stimuli",
+       y = "Distance covered (mm)", 
+       x = "Fishing nets")  +
+  scale_x_discrete(labels = c("Blank H2O \nn = 48",
+                              "HPPE \u03B5\nØ4.25 mm \nn = 48",
+                              "PA6 \u03B1\nØ0.35 mm \nn = 48", 
+                              "PA6 \u03B2\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B2\nØ0.95 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.60 mm \nn = 48",
+                              "PBS \u03B4\nØ0.35 mm \nn = 48",
+                              "PBS \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G1 + 
+  geom_text(data = MWU_n_Lett, aes(x = FN, y = max_value, label = label),
+            size = 5, vjust = -0.7, color="black",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 34.105, df = 3, p < 0.0001) \nPostHoc test: Dunn with holm correction") +
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+```
+
+#AUC LOFF2
+```{r data import new}
+AUC_OFF1 <- read_excel("Behaviour/240723_ED_t0/AUC_OFF2_1.xlsx")
+AUC_OFF2 <- read_excel("Behaviour/240723_ED_t0/AUC_OFF2_2.xlsx")
+
+AUC_OFF_0 <- rbind(AUC_OFF1, AUC_OFF2) %>% 
+  rename("FN" = 'Selection Result',
+         "Rep" = "ID (1)",
+         "Time" = "Time bin",
+         "UV_Time" = "UV_Time (1)",
+         "Agi_time" = "Agi_time (1)", 
+         "Dist_tot1" = "Distance") %>%
+  mutate(Time = as.factor(Time),
+         Time_Cat = as.factor(c("LOFF2")),
+         Trial = as.factor(gsub("    ", "_", Trial)),
+         UV_Time = as.factor(UV_Time),
+         Arena = as.factor(Arena),
+         state = as.factor("aa"),
+         Rep = as.factor(Rep),
+         FN = as.factor(if_else(FN == "PE", "HPPE_e425", FN))) %>%
+  mutate_if(is.character, as.double, na.rm = T) %>% 
+  separate(Time, into = c("Time_start", "Time_end"), sep = "-")
+AUC_OFF_0
+
+AUC_OFF2 <- AUC_OFF_0
+
+AUC_OFF2$Time_start <- chron(times. = AUC_OFF2$Time_start)
+AUC_OFF2$Time_end <- chron(times. = AUC_OFF2$Time_end)
+
+AUC_OFF2
+
+AUC_n <- AUC_OFF2 %>% group_by(Rep, Arena) %>% 
+  summarise(n = n())
+AUC_n
+AUC_n$Arena
+
+table(AUC_n)
+
+
+#Créer un pas de temps de 30 secondes
+start_time <- times("00:40:03")
+end_time <- times("00:50:53")
+time_interval <- times("00:00:10")
+time_vector <- seq(from = start_time, to = end_time, by = time_interval)
+time_vector <- rep(c(rep(c(format(time_vector, format = "h:m:s")), each = 10)), c(407)) # Convertir le vecteur en format "heure:minute:seconde"
+time_vector
+
+AUC_OFF2 <- AUC_OFF2 %>% mutate(Time_30 = as.times(time_vector))
+AUC_OFF2
+
+```
+
+
+```{r Average tibble}
+
+
+#Average and boxplot by replicates to see if there is heterogeneity of replicate
+AUC_OFF2_avg_Rep <- AUC_OFF2 %>% group_by(FN, Rep, Time_30, Time_Cat, state) %>%  
+  summarise(n = n(), 
+            Dist_med = median(Dist_tot1, na.rm=T),
+            Dist_avg = mean(Dist_tot1, na.rm=T),
+            Dist_sd = sd(Dist_tot1, na.rm=T), 
+            Dist_se = Dist_sd / sqrt(n))
+  
+AUC_OFF2_avg_Rep  
+
+#Average and boxplot by FN to see if there is heterogeneity of replicate
+AUC_OFF2_avg <- AUC_OFF2 %>% group_by(FN, Time_30, Time_Cat, state) %>%  
+  summarise(n = n(), 
+            Dist_med = median(Dist_tot1, na.rm=T),
+            Dist_avg = mean(Dist_tot1, na.rm=T),
+            Dist_sd = sd(Dist_tot1, na.rm=T), 
+            Dist_se = Dist_sd / sqrt(n))
+  
+AUC_OFF2_avg  
+
+#Average table for facet graphs
+facet1 <- tibble(facet = as.factor(rep(c("PA_a35",    "PA_b33",    "PA_b95",    "PA_g33",    "PA_g60",   "PBS_d35",   "PBS_d60", "HPPE_e425"), each = 66)))
+facet1
+
+df <- AUC_OFF2_avg  %>% 
+             filter(state == "aa", FN == "CTL") 
+df
+
+df1 <- df %>% bind_rows(replicate(7, df, simplify = FALSE)) 
+df1
+
+df2 <- cbind(df1, facet1) 
+df2
+
+df3 <- AUC_OFF2_avg %>% filter(FN != "CTL")
+df3
+
+df4 <- bind_cols(df3, facet = rep(c("HPPE_e425", "PA_a35", "PA_b33", "PA_b95", "PA_g33", "PA_g60", "PBS_d35", "PBS_d60"), each = 66))
+df4
+
+df6 <- bind_rows(df2, df4) %>% mutate(Time_30 = as.factor(Time_30)) %>%
+  mutate(Time_30 = gsub("^00:", "", Time_30))
+df6
+
+```
+
+
+```{r Plot courbes}
+
+xaxis <- rep(c("", "LON", "", "", "LOFF", ""), c(2, 1, 3, 29, 1, 30))
+xaxis
+
+#Distance total
+
+G <- df6 %>% mutate(FN = fct_relevel(FN, "HPPE_e425", "PA_a35",    "PA_b33",    "PA_b95",    "PA_g33",    "PA_g60",   "PBS_d35",   "PBS_d60")) %>%
+  ggplot(aes(x = Time_30, y = Dist_avg, group = FN, color = FN)) +
+  geom_vline(xintercept = "40:53", linetype = "dashed", color = "red") +
+  geom_point(size = 1.5) +
+  geom_line(size = 1) +
+  geom_errorbar(aes(ymin= ifelse(Dist_avg-Dist_se < 0, 0, Dist_avg-Dist_se), ymax=Dist_avg+Dist_se), width=0.1, size = 0.5) +
+  facet_wrap(vars(facet), ncol = 2) +
+  scale_x_discrete(labels = xaxis) +
+  scale_color_brewer(palette = "Paired") + theme_bw() +
+  labs(title = "Habituation to vibratory stimuli",
+       x = "Duration of vibratory stimulus period (s)",
+       y = "Distance covered (mm)" ) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 13, face = 'bold'),
+        axis.text.y = element_text(size = 13, face = 'bold'),
+        axis.ticks.x = element_blank(),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="right",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+
+G 
+
+```
+
+______________________________________
+
+```{r AUC_OFF2}
+library(pracma)
+
+# AUC_OFF2
+# AUC_OFF2 <- AUC_OFF2 %>%
+#   mutate(Time = as.numeric(gsub(".*:", "", Time)))
+# AUC_OFF2
+
+AUC_OFF2_Trial <- AUC_OFF2 %>%
+  mutate(Trial = as.factor(ifelse(Trial == "Trial_ 1", "T1",
+                        ifelse(Trial == "Trial_ 3", "T3",
+                               ifelse(Trial == "Trial_ 5", "T5",
+                                      ifelse(Trial == "Trial_ 7", "T7",
+                                             ifelse(Trial == "Trial_ 9", "T9",
+                                                    ifelse(Trial == "Trial_10", "T10",
+                                                           ifelse(Trial == "Trial_11", "T11",
+                                                                  ifelse(Trial == "Trial_12", "T12",
+                                                                         ifelse(Trial == "Trial_13", "T13", Trial)))))))))))
+
+AUC_OFF2_Trial
+
+#Average replicates and area 
+AUC_OFF2_avg_Arena <- AUC_OFF2_Trial %>% group_by(FN, Trial, Arena, Rep, Time_30, state) %>%  
+  summarise(n = n(), 
+            Dist_med = median(Dist_tot1, na.rm=T),
+            Dist_avg = mean(Dist_tot1, na.rm=T)) %>% 
+  unite(Rep_arena, Rep, Trial, Arena, sep = "_") %>% mutate(Rep_arena = as.factor(Rep_arena))
+  
+AUC_OFF2_avg_Arena
+
+AUC_OFF2_results_0 <- AUC_OFF2_avg_Arena %>%
+  group_by(FN, Rep_arena) %>%
+  summarize(AUC = trapz(as.numeric(Time_30), Dist_avg)) %>% 
+  separate(Rep_arena, into = c("Rep", "Trial", "Arena"), sep = "_", remove = FALSE) %>% 
+  arrange(Rep) %>% 
+  mutate(UV_Time = "0")
+AUC_OFF2_results_0
+
+AUC_OFF2_results <- AUC_OFF2_results_0
+
+AUC_OFF2_final <- AUC_OFF2_results_0 %>% group_by(FN) %>% summarise(n = n(),
+                                                        AUC_med = median(AUC, na.rm = T),
+                                                        AUC_avg = mean(AUC, na.rm = T),
+                                                        AUC_sd = sd(AUC, na.rm = T),
+                                                        AUC_se = AUC_sd / sqrt(n))
+AUC_OFF2_final
+
+```
+
+
+Hypothesis Normality
+H0: The data are sampled from a population having a normal distribution.
+HA: The data are sampled from a population not having a normal distribution
+  
+```{r Statistics}
+#Test normality by FN
+df_normality <- AUC_OFF2_results %>% group_by(FN) %>% 
+  summarise(normality = shapiro.test(AUC)$p.value)
+df_normality
+
+Aov <- aov(AUC ~ FN, data= AUC_OFF2_results) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+#Analyses RésID (1)us
+
+ggplot(AUC_OFF2_results, aes(x=AUC)) + geom_histogram(binwidth = 0.0005)
+plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P > 0.05 H0 cannot be rejected normality verified
+
+#Test of variance
+bartlett.test(AUC ~ FN, data= AUC_OFF2_results) #P-value > 0.05 --> equality of variance
+
+TukeyHSD(Aov)
+
+#Application of the Kruskal-wallis test 
+
+KW <- kruskal.test(AUC ~ FN, data= AUC_OFF2_results)
+KW
+if (KW$p.value > 0.05) {
+  print("H0 is not rejected. The escape response due to the Vibrational and visual startle response is not influenced by the FN leachates")
+} else {
+  print("H0 is rejected. The escape response due to the Vibrational and visual startle response is influenced by the FN leachates")
+}
+library(PMCMRplus)
+
+MWU_res_n <- kwAllPairsDunnTest(AUC ~ FN, data= AUC_OFF2_results, p.adjust.method = "holm")
+MWU_res_n
+
+# #Letters
+
+df_pval =  MWU_res_n$p.value
+df_pval
+
+df_pval2 = fullPTable(df_pval)
+df_pval2
+
+multcompLetters(df_pval2)
+label_n_OFF2 <- data.frame(label = c("a"    ,   "a"    ,   "a"    ,   "a"    ,   "a"    ,   "a"    ,   "a"    ,   "a"   ,    "a"))
+label_n_OFF2
+
+max_values_OFF2 <- AUC_OFF2_results %>%
+  group_by(FN) %>%
+  summarize(max_value = max(AUC, na.rm = T))
+max_values_OFF2
+
+Star_ctl <- as_tibble(df_pval2, rownames = "FN") %>% 
+  dplyr::select(FN, CTL) %>% 
+  mutate(diff = if_else(CTL == 1 & FN == "CTL", NA,
+                        if_else(CTL >= 0.05, "ns",
+                                if_else(CTL < 0.0001, "****",
+                                        if_else(CTL < 0.001, "***",
+                                                if_else(CTL < 0.01, "**",
+                                                      if_else(CTL < 0.05, "*", NA)))))))
+Star_ctl
+
+MWU_n_Lett<- cbind(max_values_OFF2, label_n_OFF2, diff = Star_ctl$diff, UV_Time = c("0"))
+MWU_n_Lett
+
+MWU_n_Lett_AUC_LOFF2_0 <- MWU_n_Lett
+MWU_n_Lett_AUC_LOFF2_0
+
+```
+
+
+```{r graph fin AUC}
+
+G_AUC_OFF2 <- AUC_OFF2_results %>% ggplot(aes(x = FN, y = AUC, fill = FN)) + 
+  #geom_violin(fill = "white", aes(color = FN)) +
+  geom_boxplot(width = 0.1) + 
+  #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  scale_color_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Habituation to light stimuli",
+       y = "Distance covered (mm)", 
+       x = "Fishing nets")  +
+  scale_x_discrete(labels = c("Blank H2O \nn = 48",
+                              "HPPE \u03B5\nØ4.25 mm \nn = 48",
+                              "PA6 \u03B1\nØ0.35 mm \nn = 48",
+                              "PA6 \u03B2\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B2\nØ0.95 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.60 mm \nn = 48",
+                              "PBS \u03B4\nØ0.35 mm \nn = 48",
+                              "PBS \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G_AUC_OFF2 + 
+  # geom_text(data = MWU_n_Lett_AUC_LOFF2_0, aes(x = FN, y = max_value, label = label),
+  #           size = 5, vjust = -0.7, color="black",
+  #           position = position_dodge(width=0.6),
+  #           show.legend = FALSE,
+  #           na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 34.105, df = 3, p > 0.05)") +
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+```
+
+<!-- #OFF1_Dist_tot -->
+<!-- ```{r data import new} -->
+<!-- AUC_OFF1 <- read_excel("Behaviour/240723_ED_t0/AUC_OFF2_1.xlsx") -->
+<!-- AUC_OFF2 <- read_excel("Behaviour/240723_ED_t0/AUC_OFF2_2.xlsx") -->
+
+<!-- AUC_OFF_0 <- rbind(AUC_OFF1, AUC_OFF2) %>%  -->
+<!--   rename("FN" = 'Selection Result', -->
+<!--          "Rep" = "ID (1)", -->
+<!--          "Time" = "Time bin", -->
+<!--          "UV_Time" = "UV_Time (1)", -->
+<!--          "Agi_time" = "Agi_time (1)",  -->
+<!--          "Dist_tot2" = "Distance") %>% -->
+<!--   mutate(Time = as.factor(Time), -->
+<!--          Time_Cat = as.factor(c("LOFF2")), -->
+<!--          Trial = as.factor(gsub("    ", "_", Trial)), -->
+<!--          UV_Time = as.factor(UV_Time), -->
+<!--          Arena = as.factor(Arena), -->
+<!--          state = as.factor("aa"), -->
+<!--          Rep = as.factor(Rep), -->
+<!--          FN = as.factor(if_else(FN == "PE", "HPPE_e425", FN))) %>% -->
+<!--   mutate_if(is.character, as.double, na.rm = T) %>%  -->
+<!--   separate(Time, into = c("Time_start", "Time_end"), sep = "-") %>%  -->
+<!--   group_by(Trial, Arena, FN, Rep, Agi_time, state, UV_Time) %>%  -->
+<!--   summarise(Dist_tot1 = mean(Dist_tot2, na.rm=T)) -->
+<!-- AUC_OFF_0 -->
+
+<!-- AUC_OFF2 <- AUC_OFF_0 -->
+
+
+<!-- ``` -->
+
+
+<!-- ```{r Outliers 0 100%} -->
+<!-- #Boxplot by replicates to see if there are outliers -->
+
+<!-- Outliers <- AUC_OFF2 %>%  -->
+<!--   filter(state == "aa") %>% -->
+<!--   filter(Agi_time != "48") %>% -->
+<!--   ggplot(aes(FN, Dist_tot1, fill = Rep)) +  -->
+<!--   geom_violin(fill = NA, aes(color = FN), width = 1) + -->
+<!--   geom_boxplot(width = 0.3) + -->
+<!--   geom_jitter(width = 0.18, alpha = 0.5, color = "red3")  -->
+
+
+<!-- Outliers -->
+<!-- ``` -->
+
+
+<!-- ```{r Average tibble} -->
+
+<!-- #Average and boxplot by replicates to see if there is outliers -->
+<!-- AUC_OFF2_avg_Rep <- AUC_OFF2 %>% group_by(FN, Rep, state) %>%  summarise(n = n(), -->
+<!--                                                           Dtot_avg = mean(Dist_tot1, na.rm=T), -->
+<!--                                                           Dtot_sd = sd(Dist_tot1, na.rm=T),  -->
+<!--                                                           Dtot_se = Dtot_sd / sqrt(n)) %>% mutate(ID = "LOFF2") -->
+
+<!-- AUC_OFF2_avg_Rep -->
+
+<!-- AUC_OFF2_avg <- AUC_OFF2 %>% group_by(FN, state) %>%  summarise(n = n(), -->
+<!--                                                           Dtot_med = median(Dist_tot1, na.rm=T), -->
+<!--                                                           Dtot_avg = mean(Dist_tot1, na.rm=T), -->
+<!--                                                           Dtot_sd = sd(Dist_tot1, na.rm=T),  -->
+<!--                                                           Dtot_se = Dtot_sd / sqrt(n), -->
+<!--                                                           Dtot_low = quantile(Dist_tot1, probs = 0.025, na.rm= T),  -->
+<!--                                                           Dtot_up = quantile(Dist_tot1, probs = 0.975, na.rm= T))  -->
+
+<!-- AUC_OFF2_avg  -->
+
+<!-- ``` -->
+
+<!-- ```{r Graph} -->
+
+<!-- AUC_OFF2_avg %>%  -->
+<!--   ggplot(aes(x= FN, y = Dtot_avg, fill = FN)) +  -->
+<!--   geom_col(width =0.5, position = position_dodge()) + -->
+<!--   geom_errorbar(aes(ymin= ifelse(Dtot_avg-Dtot_se < 0, 0, Dtot_avg-Dtot_se), ymax=Dtot_avg+Dtot_se), width=0.08, size = 1, position=position_dodge(width=0.5)) + -->
+<!--   scale_fill_brewer(palette = "Paired") + -->
+<!--   theme_bw() -->
+
+<!-- ``` -->
+
+<!-- ```{r Statistics} -->
+<!-- #Test normality by FN -->
+<!-- df_normality <- AUC_OFF2 %>% -->
+<!--   group_by(FN) %>%  -->
+<!--   summarise(normality = shapiro.test(Dist_tot1)$p.value) -->
+<!-- df_normality -->
+
+<!-- Aov <- aov(Dist_tot1 ~ FN, data= AUC_OFF2) ## P-value < 0.05  -->
+<!-- anova(Aov) -->
+<!-- summary.lm(Aov) -->
+
+<!-- # #Analyses Résidus -->
+
+<!-- ggplot(AUC_OFF2, aes(x=Dist_tot1)) + geom_histogram(binwidth = 0.5) -->
+<!-- ggplot(AUC_OFF2, aes(x=Dist_tot1)) + geom_density(binwidth = 0.5) -->
+<!-- plot(Aov) #--> Normalité ok -->
+<!-- shapiro.test(residuals(Aov)) #--> P < 0.05 H0 rejected normality not verified -->
+
+<!-- #Test of variance -->
+<!-- bartlett.test(Dist_tot1 ~ FN, data= AUC_OFF2) #P-value > 0.05 --> equality of variance -->
+
+<!-- #Application of the Kruskal-wallis test  -->
+
+<!-- KW <- kruskal.test(Dist_tot1 ~ FN, data= AUC_OFF2) -->
+<!-- KW -->
+
+<!-- MWU_res_n <- PMCMRplus::kwAllPairsDunnTest(Dist_tot1 ~ FN, data= AUC_OFF2, p.adjust.method = "holm") -->
+<!-- MWU_res_n -->
+
+<!-- #Letters -->
+
+<!-- df_pval =  MWU_res_n$p.value -->
+<!-- df_pval -->
+
+<!-- df_pval2 = fullPTable(df_pval) -->
+<!-- df_pval2 -->
+
+<!-- multcompLetters(df_pval2) -->
+<!-- label_n <- data.frame(label = c("a"  ,     "a"   ,    "a"   ,    "a"   ,    "a"    ,   "a"   ,    "a"   ,    "a"   ,    "a")) -->
+<!-- label_n -->
+
+<!-- max_values <- AUC_OFF2 %>% -->
+<!--   group_by(FN) %>% -->
+<!--   summarize(max_value = max(Dist_tot1, na.rm = F)) -->
+<!-- max_values -->
+
+<!-- Star_ctl <- as_tibble(df_pval2, rownames = "FN") %>%  -->
+<!--   dplyr::select(FN, CTL) %>%  -->
+<!--   mutate(diff = if_else(CTL == 1 & FN == "CTL", NA, -->
+<!--                         if_else(CTL >= 0.05, "ns", -->
+<!--                                 if_else(CTL < 0.0001, "****", -->
+<!--                                         if_else(CTL < 0.001, "***", -->
+<!--                                                 if_else(CTL < 0.01, "**", -->
+<!--                                                       if_else(CTL < 0.05, "*", NA))))))) -->
+<!-- Star_ctl -->
+
+<!-- MWU_n_Lett<- cbind(max_values, label_n, diff = Star_ctl$diff, UV_Time = c("0")) -->
+<!-- MWU_n_Lett -->
+
+<!-- MWU_n_Lett_AUC_LOFF2_0 <- MWU_n_Lett -->
+<!-- MWU_n_Lett_AUC_LOFF2_0 -->
+<!-- ``` -->
+
+<!-- ```{r graph fin BLA OFF} -->
+<!-- G1 <- AUC_OFF2 %>% ggplot(aes(x = FN, y = Dist_tot1, fill = FN)) + geom_boxplot(width = 0.2) +  -->
+<!--   #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) + -->
+<!--   #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) + -->
+<!--   scale_fill_manual(values = Color_real_FN) + -->
+<!--   theme_bw() + -->
+<!--   labs(title = "Hyperactivity period in reaction to a sudden reduction of light intensity", -->
+<!--        y = "Traveled distance (mm)",  -->
+<!--        x = "Fishing nets")  + -->
+<!--   scale_x_discrete(labels = c("Blank H2O \nn = 48", -->
+<!--                               "HPPE \u03B5\nØ4.25 mm \nn = 48", -->
+<!--                               "PA6 \u03B1\nØ0.35 mm \nn = 48",  -->
+<!--                               "PA6 \u03B2\nØ0.33 mm \nn = 48", -->
+<!--                               "PA6 \u03B2\nØ0.95 mm \nn = 48", -->
+<!--                               "PA6 \u03B3\nØ0.33 mm \nn = 48", -->
+<!--                               "PA6 \u03B3\nØ0.60 mm \nn = 48", -->
+<!--                               "PBS \u03B4\nØ0.35 mm \nn = 48", -->
+<!--                               "PA6 \u03B4\nØ0.60 mm \nn = 48")) + -->
+<!--   theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)), -->
+<!--         axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)), -->
+<!--         axis.text.x = element_text(size = 16, face = 'bold'), -->
+<!--         axis.text.y = element_text(size = 16, face = 'bold'), -->
+<!--         title = element_text(size = 22, face = "bold"), -->
+<!--         strip.text = element_text(face = "bold", size = rel(1)), -->
+<!--         legend.position="none", -->
+<!--         legend.title=element_blank(), -->
+<!--         legend.spacing.x = unit(0.5, 'cm'), -->
+<!--         plot.margin = unit(c(1, 1, 1, 1), "cm")) -->
+<!-- G1 + -->
+<!--   # geom_text(data = MWU_n_Lett, aes(x = FN, y = max_value, label = label), -->
+<!--   #           size = 5, vjust = -0.7, color="black",  -->
+<!--   #           position = position_dodge(width=0.6), -->
+<!--   #           show.legend = FALSE, -->
+<!--   #           na.rm = F) + -->
+<!--   labs(caption = "Kruskal Wallis test: \n(H = 14, df = 8, p > 0.05)") +  -->
+<!--   theme(plot.caption = element_text(family = "serif",  -->
+<!--                face = "bold",  -->
+<!--                color = 1,  -->
+<!--                size = 14,  -->
+<!--                hjust = 0.999,  -->
+<!--                vjust = 202,  -->
+<!--                angle = 0,  -->
+<!--                lineheight = 1)) -->
+
+<!-- ``` -->
+
+
+#DDIZ
+##LOFF
+```{r data import new}
+DDIZ_0 <- read_excel("Behaviour/240723_ED_t0/DIZ_OFF1.xlsx") %>%
+  rename("FN" = 'Selection Result',
+         "Rep" = "ID (1)",
+         "Time" = "Time bin", 
+         "UV_Time" = "UV_Time (1)",
+         "Agi_time" = "Agi_time (1)",
+         "Dura_s" = "Duration...9",
+         "Dura_per" = "Duration...10") %>%
+  mutate(Time = as.factor(Time),
+         Time_Cat = as.factor(c("LOFF_1")),
+         Trial = as.factor(gsub("    ", "_", Trial)),
+         UV_Time = as.factor(UV_Time),
+         Arena = as.factor(Arena),
+         state = as.factor("aa"),
+         Rep = as.factor(Rep),
+         Zone = as.factor(if_else(Zone == "In Border", "Border", "Center")),
+         FN = as.factor(if_else(FN == "PE", "HPPE_e425", FN))) %>%
+  mutate_if(is.character, as.double, na.rm = T)
+
+DDIZ_0
+
+DDIZ_1 <- DDIZ_0 %>% filter(FN == if_else(grepl("c", Rep), "CTL",
+                                                  if_else(grepl("g", Rep), "PA_a35",
+                                                                if_else(grepl("h", Rep), "PA_b95",
+                                                                              if_else(grepl("i", Rep), "PA_b33",
+                                                  if_else(grepl("j", Rep), "PA_g60",
+                                                                if_else(grepl("k", Rep), "PA_g33",
+                                                                              if_else(grepl("l", Rep), "PBS_d60",
+                                                  if_else(grepl("m", Rep), "PBS_d35",
+                                                                if_else(grepl("n", Rep), "HPPE_e425", NA))))))))))
+DDIZ_1
+
+
+```
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is outliers
+DDIZ_avg <- DDIZ_1 %>% group_by(FN, Zone, Time_Cat, Rep) %>%  summarise(n = n(),
+                                                          Dura_s_avg = mean(Dura_s, na.rm=T),
+                                                          Dura_s_sd = sd(Dura_s, na.rm=T),
+                                                          Dura_s_se = Dura_s_sd / sqrt(n))
+
+
+DDIZ_avg
+
+DDIZ_avg_border <- DDIZ_1 %>% group_by(FN, Zone, Time_Cat) %>%  summarise(n = n(),
+                                                          Dura_s_avg = mean(Dura_s, na.rm=T),
+                                                          Dura_s_sd = sd(Dura_s, na.rm=T),
+                                                          Dura_s_se = Dura_s_sd / sqrt(n)) %>% filter(Zone == "Border")
+
+DDIZ_avg_border
+
+
+#To measure the duration ratio center/border
+DDIZ_ratio_0 <- DDIZ_1 %>% 
+  dplyr::select(Trial, Arena, FN, Rep, Zone, UV_Time, Time, Dura_s) %>%
+  pivot_wider(names_from = Zone, values_from = c(Dura_s)) %>% 
+  mutate(Center = if_else(Border == 599.9730, 0.033333,
+                          if_else(Border == 599.7390, 1.633320,
+                                  if_else(Border == 599.4730, 0.533328,
+                                          if_else(Border == 599.3730, 0.166665,
+                                                  if_else(Border == 599.3390, 0.699993, Center))))),
+         Border = if_else(Center == 60.4661, 551.006, Border)) %>% 
+  
+  mutate(DIZ_ratio = Border/ Center) 
+DDIZ_ratio_0
+
+DDIZ_ratio <- DDIZ_ratio_0
+
+
+DDIZ_R_avg <- DDIZ_ratio %>% group_by(FN) %>% 
+  summarise(n = n(),
+            Bord_s_avg = mean(Border, na.rm=T),
+            Bord_s_sd = sd(Border, na.rm=T), 
+            Bord_s_se = Bord_s_sd / sqrt(n),
+            Cen_s_avg = mean(Center, na.rm=T),
+            Cen_s_sd = sd(Center, na.rm=T), 
+            Cen_s_se = Cen_s_sd / sqrt(n),
+            R_Dura_s_avg = mean(DIZ_ratio, na.rm=T),
+            R_Dura_s_sd = sd(DIZ_ratio, na.rm=T), 
+            R_Dura_s_se = R_Dura_s_sd / sqrt(n))
+                                                                   # R_Du_avg_log = mean(R_Du_log, na.rm=T),
+                                                                   # R_Du_sd_log = sd(R_Du_log, na.rm=T),
+                                                                   # R_Du_se_log = R_Du_sd_log / sqrt(n))
+
+DDIZ_R_avg
+
+DDIZ_ratio_b <- DDIZ_1 %>%  
+  dplyr::select(Trial, Arena, FN, Rep, Zone, UV_Time, Time, Dura_s) %>%
+  pivot_wider(names_from = Zone, values_from = c(Dura_s))  
+DDIZ_ratio_b
+
+DDIZ_avg_b <- DDIZ_ratio_b %>% group_by(FN) %>% 
+  summarise(n = n(),
+            Bord_s_med = median(Border, na.rm=T),
+            Bord_s_avg = mean(Border, na.rm=T),
+            Bord_s_sd = sd(Border, na.rm=T), 
+            Bord_s_se = Bord_s_sd / sqrt(n),
+            Cen_s_avg = mean(Center, na.rm=T),
+            Cen_s_sd = sd(Center, na.rm=T), 
+            Cen_s_se = Cen_s_sd / sqrt(n))
+
+DDIZ_avg_b
+
+
+```
+
+```{r Statistics DIZ ratio}
+#Test normality by FN
+df_normality <- DDIZ_ratio %>% group_by(FN) %>% 
+  summarise(normality = shapiro.test(DIZ_ratio)$p.value)
+df_normality
+
+Aov <- aov(DIZ_ratio~ FN, data= DDIZ_ratio) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+#Analyses RésID (1)us
+
+ggplot(DDIZ_ratio, aes(x=DIZ_ratio)) + geom_histogram(binwidth = 0.5)
+plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P > 0.05 H0 cannot be rejected normality verified
+
+#Test of variance
+bartlett.test(DIZ_ratio~ FN, data= DDIZ_ratio) #P-value > 0.05 --> equality of variance
+
+#Application of the Kruskal-wallis test 
+
+KW <- kruskal.test(DIZ_ratio~ FN, data= DDIZ_ratio)
+KW
+if (KW$p.value > 0.05) {
+  print("H0 is not rejected. The escape response due to the Vibrational and visual startle response is not influenced by the FN leachates")
+} else {
+  print("H0 is rejected. The escape response due to the Vibrational and visual startle response is influenced by the FN leachates")
+}
+library(PMCMRplus)
+
+MWU_res_n <- kwAllPairsDunnTest(DIZ_ratio~ FN, data= DDIZ_ratio, p.adjust.method = "holm")
+MWU_res_n
+
+# #Letters
+
+df_pval =  MWU_res_n$p.value
+df_pval
+
+df_pval2 = fullPTable(df_pval)
+df_pval2
+
+multcompLetters(df_pval2)
+label_n <- data.frame(label = c("a"  ,   "abc"  ,   "abc"   ,   "ab"  ,   "abc"    ,   "c"  ,   "abc"   ,   "bc"   ,    "c" ))
+label_n
+
+max_values <- DDIZ_ratio %>%
+  group_by(FN) %>%
+  summarize(max_value = max(DIZ_ratio, na.rm = T))
+max_values
+
+Star_ctl <- as_tibble(df_pval2, rownames = "FN") %>% 
+  dplyr::select(FN, CTL) %>% 
+  mutate(diff = if_else(CTL == 1 & FN == "CTL", NA,
+                        if_else(CTL >= 0.05, "ns",
+                                if_else(CTL < 0.0001, "****",
+                                        if_else(CTL < 0.001, "***",
+                                                if_else(CTL < 0.01, "**",
+                                                      if_else(CTL < 0.05, "*", NA)))))))
+Star_ctl
+
+MWU_n_Lett<- cbind(max_values, label_n, diff = Star_ctl$diff, UV_Time = c("0"))
+MWU_n_Lett
+
+MWU_n_Lett_DIZ_LOFF1_0_r <- MWU_n_Lett
+MWU_n_Lett_DIZ_LOFF1_0_r
+
+```
+
+
+```{r graph fin DIZ ratio}
+
+G1 <- DDIZ_ratio %>% ggplot(aes(x = FN, y = DIZ_ratio, fill = FN)) + 
+  geom_violin(fill = "white", aes(color = FN)) +
+  geom_boxplot(width = 0.1) + 
+  #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  scale_color_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Habituation to vibratory stimuli",
+       y = "Distance covered (mm)", 
+       x = "Fishing nets")  +
+  scale_x_discrete(labels = c("Blank H2O \nn = 48",
+                              "HPPE \u03B5\nØ4.25 mm \nn = 48",
+                              "PA6 \u03B1\nØ0.35 mm \nn = 48", 
+                              "PA6 \u03B2\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B2\nØ0.95 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.60 mm \nn = 48",
+                              "PBS \u03B4\nØ0.35 mm \nn = 48",
+                              "PBS \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G1 + 
+  geom_text(data = MWU_n_Lett, aes(x = FN, y = max_value, label = label),
+            size = 5, vjust = -0.7, color="black",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 34.105, df = 3, p < 0.0001) \nPostHoc test: Dunn with holm correction") +
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+```
+
+
+```{r Statistics DIZ Border}
+#Test normality by FN
+df_normality <- DDIZ_ratio_b %>% group_by(FN) %>% 
+  summarise(normality = shapiro.test(Border)$p.value)
+df_normality
+
+Aov <- aov(Border~ FN, data= DDIZ_ratio_b) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+#Analyses RésID (1)us
+
+ggplot(DDIZ_ratio, aes(x=Border)) + geom_histogram(binwidth = 0.5)
+plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P > 0.05 H0 cannot be rejected normality verified
+
+#Test of variance
+bartlett.test(DIZ_ratio~ FN, data= DDIZ_ratio_b) #P-value > 0.05 --> equality of variance
+
+#Application of the Kruskal-wallis test 
+
+KW <- kruskal.test(Border~ FN, data= DDIZ_ratio_b)
+KW
+if (KW$p.value > 0.05) {
+  print("H0 is not rejected. The escape response due to the Vibrational and visual startle response is not influenced by the FN leachates")
+} else {
+  print("H0 is rejected. The escape response due to the Vibrational and visual startle response is influenced by the FN leachates")
+}
+library(PMCMRplus)
+
+MWU_res_n <- kwAllPairsDunnTest(Border~ FN, data= DDIZ_ratio_b, p.adjust.method = "holm")
+MWU_res_n
+
+# #Letters
+
+df_pval =  MWU_res_n$p.value
+df_pval
+
+df_pval2 = fullPTable(df_pval)
+df_pval2
+
+multcompLetters(df_pval2)
+label_n <- data.frame(label = c("a"   ,  "abc"  ,   "abc"   ,   "ab"  ,   "abc"   ,    "c"   ,  "abc"    ,   "c"  ,    "bc"))
+label_n
+
+max_values <- DDIZ_ratio_b %>%
+  group_by(FN) %>%
+  summarize(max_value = max(Border, na.rm = T))
+max_values
+
+max_values_sd <- DDIZ_avg_b %>%
+  group_by(FN) %>%
+  summarize(max_value_sd = max(Bord_s_avg, na.rm = T)+Bord_s_sd) %>% dplyr::select(-FN)
+max_values_sd
+
+Star_ctl <- as_tibble(df_pval2, rownames = "FN") %>% 
+  dplyr::select(FN, CTL) %>% 
+  mutate(diff = if_else(CTL == 1 & FN == "CTL", NA,
+                        if_else(CTL >= 0.05, "ns",
+                                if_else(CTL < 0.0001, "****",
+                                        if_else(CTL < 0.001, "***",
+                                                if_else(CTL < 0.01, "**",
+                                                      if_else(CTL < 0.05, "*", NA)))))))
+Star_ctl
+
+MWU_n_Lett<- cbind(max_values, label_n, diff = Star_ctl$diff, UV_Time = c("0"))
+MWU_n_Lett
+
+MWU_n_Lett_DIZ_LOFF1_0 <- MWU_n_Lett
+MWU_n_Lett_DIZ_LOFF1_0
+
+```
+
+
+```{r graph fin DIZ Border}
+
+G1 <- DDIZ_ratio_b %>% ggplot(aes(x = FN, y = Border, fill = FN)) + 
+  geom_violin(fill = "white", aes(color = FN)) +
+  geom_boxplot(width = 0.1) + 
+  #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  scale_color_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Habituation to vibratory stimuli",
+       y = "Distance covered (mm)", 
+       x = "Fishing nets")  +
+  scale_x_discrete(labels = c("Blank H2O \nn = 48",
+                              "HPPE \u03B5\nØ4.25 mm \nn = 48",
+                              "PA6 \u03B1\nØ0.35 mm \nn = 48", 
+                              "PA6 \u03B2\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B2\nØ0.95 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.60 mm \nn = 48",
+                              "PBS \u03B4\nØ0.35 mm \nn = 48",
+                              "PBS \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G1 + 
+  geom_text(data = MWU_n_Lett, aes(x = FN, y = max_value, label = label),
+            size = 5, vjust = -0.7, color="black",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 34.105, df = 3, p < 0.0001) \nPostHoc test: Dunn with holm correction") +
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+G2 <- DDIZ_avg_b %>% ggplot(aes(x = FN, y = Bord_s_avg, fill = FN)) + 
+  geom_col(width = 0.5) + 
+  geom_errorbar(aes(ymin =Bord_s_avg-Bord_s_sd, ymax= Bord_s_avg+Bord_s_sd), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  scale_color_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Time in the peripheral zone ",
+       y = "Duration (s)", 
+       x = "Fishing nets")  +
+  scale_x_discrete(labels = c("Blank H2O \nn = 48",
+                              "HPPE \u03B5\nØ4.25 mm \nn = 48",
+                              "PA6 \u03B1\nØ0.35 mm \nn = 48", 
+                              "PA6 \u03B2\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B2\nØ0.95 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.60 mm \nn = 48",
+                              "PBS \u03B4\nØ0.35 mm \nn = 48",
+                              "PBS \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G2 + 
+  geom_text(data = MWU_n_Lett, aes(x = FN, y = max_value, label = label),
+            size = 5, vjust = -0.7, color="black",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 34.105, df = 3, p < 0.0001) \nPostHoc test: Dunn with holm correction") +
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+```
+
+##OFF2
+```{r data import new}
+DDIZ_3bis <- read_excel("Behaviour/240723_ED_t0/DIZ_OFF2.xlsx") %>%
+  rename("FN" = 'Selection Result',
+         "Rep" = "ID (1)",
+         "Time" = "Time bin",
+         "UV_Time" = "UV_Time (1)",
+         "Agi_time" = "Agi_time (1)",
+         "Dura_s" = "Duration...9",
+         "Dura_per" = "Duration...10") %>%
+  mutate(Time = as.factor(Time),
+         Time_Cat = as.factor(c("loff2")),
+         Trial = as.factor(gsub("    ", "_", Trial)),
+         UV_Time = as.factor(UV_Time),
+         Arena = as.factor(Arena),
+         state = as.factor("aa"),
+         Rep = as.factor(Rep),
+         Zone = as.factor(if_else(Zone == "In Border", "Border", "Center")),
+         FN = as.factor(if_else(FN == "PE", "HPPE_e425", FN))) %>%
+  mutate_if(is.character, as.double, na.rm = T)
+
+DDIZ_3bis
+
+DDIZ_3 <- DDIZ_3bis %>% filter(FN == if_else(grepl("c", Rep), "CTL",
+                                                  if_else(grepl("g", Rep), "PA_a35",
+                                                                if_else(grepl("h", Rep), "PA_b95",
+                                                                              if_else(grepl("i", Rep), "PA_b33",
+                                                  if_else(grepl("j", Rep), "PA_g60",
+                                                                if_else(grepl("k", Rep), "PA_g33",
+                                                                              if_else(grepl("l", Rep), "PBS_d60",
+                                                  if_else(grepl("m", Rep), "PBS_d35",
+                                                                if_else(grepl("n", Rep), "HPPE_e425", NA))))))))))
+DDIZ_3
+```
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is outliers
+DDIZ_avg_loff2 <- DDIZ_3 %>% group_by(FN, Zone, Time_Cat, Rep) %>%  summarise(n = n(),
+                                                          Dura_s_avg = mean(Dura_s, na.rm=T),
+                                                          Dura_s_sd = sd(Dura_s, na.rm=T),
+                                                          Dura_s_se = Dura_s_sd / sqrt(n))
+
+
+DDIZ_avg_loff2
+
+DDIZ_avg_border_loff2 <- DDIZ_3 %>% group_by(FN, Zone, Time_Cat) %>%  summarise(n = n(),
+                                                          Dura_s_avg = mean(Dura_s, na.rm=T),
+                                                          Dura_s_sd = sd(Dura_s, na.rm=T),
+                                                          Dura_s_se = Dura_s_sd / sqrt(n)) %>% filter(Zone == "Border")
+
+DDIZ_avg_border_loff2
+
+
+#To measure the duration ratio center/border
+DDIZ_ratio_loff2_0 <- DDIZ_3 %>% 
+  dplyr::select(Trial, Arena, FN, Rep, Zone, Agi_time, UV_Time, Time, Dura_s) %>%
+  pivot_wider(names_from = Zone, values_from = c(Dura_s)) %>% 
+  mutate(Center = if_else(Border == 599.9730, 0.033333,
+                          if_else(Border == 599.7390, 1.633320,
+                                  if_else(Border == 599.4730, 0.533328,
+                                          if_else(Border == 599.3730, 0.166665,
+                                                  if_else(Border == 599.3390, 0.699993, Center))))),
+         Border = if_else(Center == 60.4661, 551.006, Border)) %>% 
+  
+  mutate(DIZ_ratio = Border/ Center) 
+  #filter(!DIZ_ratio >2500, !Border <200)
+DDIZ_ratio_loff2_0
+
+DDIZ_ratio_loff2 <- DDIZ_ratio_loff2_0
+
+
+DDIZ_R_avg_loff2 <- DDIZ_ratio_loff2 %>% group_by(FN) %>% 
+  summarise(n = n(),
+            Bord_s_avg = mean(Border, na.rm=T),
+            Bord_s_sd = sd(Border, na.rm=T), 
+            Bord_s_se = Bord_s_sd / sqrt(n),
+            Cen_s_avg = mean(Center, na.rm=T),
+            Cen_s_sd = sd(Center, na.rm=T), 
+            Cen_s_se = Cen_s_sd / sqrt(n),
+            R_Dura_s_avg = mean(DIZ_ratio, na.rm=T),
+            R_Dura_s_sd = sd(DIZ_ratio, na.rm=T), 
+            R_Dura_s_se = R_Dura_s_sd / sqrt(n))
+                                                                   # R_Du_avg_log = mean(R_Du_log, na.rm=T),
+                                                                   # R_Du_sd_log = sd(R_Du_log, na.rm=T),
+                                                                   # R_Du_se_log = R_Du_sd_log / sqrt(n))
+
+DDIZ_R_avg_loff2
+
+DDIZ_ratio_loff2_b<- DDIZ_3 %>%  
+  dplyr::select(Trial, Arena, FN, Rep, Zone, UV_Time, Time, Dura_s) %>%
+  pivot_wider(names_from = Zone, values_from = c(Dura_s))  
+DDIZ_ratio_loff2_b
+
+DDIZ_avg_loff2_b <- DDIZ_ratio_loff2_b %>% group_by(FN) %>% 
+  summarise(n = n(),
+            Bord_s_med = median(Border, na.rm=T),
+            Bord_s_avg = mean(Border, na.rm=T),
+            Bord_s_sd = sd(Border, na.rm=T), 
+            Bord_s_se = Bord_s_sd / sqrt(n),
+            Cen_s_avg = mean(Center, na.rm=T),
+            Cen_s_sd = sd(Center, na.rm=T), 
+            Cen_s_se = Cen_s_sd / sqrt(n))
+
+DDIZ_avg_loff2_b
+
+```
+
+```{r Statistics DIZ ratio}
+#Test normality by FN
+df_normality <- DDIZ_ratio_loff2 %>% group_by(FN) %>% 
+  summarise(normality = shapiro.test(DIZ_ratio)$p.value)
+df_normality
+
+Aov <- aov(DIZ_ratio~ FN, data= DDIZ_ratio_loff2) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+#Analyses RésID (1)us
+
+ggplot(DDIZ_ratio_loff2, aes(x=DIZ_ratio)) + geom_histogram(binwidth = 0.5)
+plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P > 0.05 H0 cannot be rejected normality verified
+
+#Test of variance
+bartlett.test(DIZ_ratio~ FN, data= DDIZ_ratio_loff2) #P-value > 0.05 --> equality of variance
+
+#Application of the Kruskal-wallis test 
+
+KW <- kruskal.test(DIZ_ratio~ FN, data= DDIZ_ratio_loff2)
+KW
+if (KW$p.value > 0.05) {
+  print("H0 is not rejected. The escape response due to the Vibrational and visual startle response is not influenced by the FN leachates")
+} else {
+  print("H0 is rejected. The escape response due to the Vibrational and visual startle response is influenced by the FN leachates")
+}
+library(PMCMRplus)
+
+MWU_res_n <- kwAllPairsDunnTest(DIZ_ratio~ FN, data= DDIZ_ratio_loff2, p.adjust.method = "holm")
+MWU_res_n
+
+# #Letters
+
+df_pval =  MWU_res_n$p.value
+df_pval
+
+df_pval2 = fullPTable(df_pval)
+df_pval2
+
+multcompLetters(df_pval2)
+label_n_loff2 <- data.frame(label = c("a"   ,   "bc"    ,   "b"   ,   "ac"    ,   "b"   ,   "bc"   ,    "b"   ,  "abc" ,      "bc"))
+label_n
+
+max_values_loff2 <- DDIZ_ratio_loff2 %>%
+  group_by(FN) %>%
+  summarize(max_value = max(DIZ_ratio, na.rm = T))
+max_values_loff2
+
+MWU_n_Lett_loff2<- cbind(max_values_loff2, label_n_loff2)
+MWU_n_Lett_loff2
+
+```
+
+
+```{r graph fin DIZ ratio}
+
+G6 <- DDIZ_ratio_loff2 %>% ggplot(aes(x = FN, y = DIZ_ratio, fill = FN)) + 
+  geom_violin(fill = "white", aes(color = FN)) +
+  geom_boxplot(width = 0.1) + 
+  #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  scale_color_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Habituation to vibratory stimuli",
+       y = "Distance covered (mm)", 
+       x = "Fishing nets")  +
+  scale_x_discrete(labels = c("Blank H2O \nn = 48",
+                              "HPPE \u03B5\nØ4.25 mm \nn = 48",
+                              "PA6 \u03B1\nØ0.35 mm \nn = 48", 
+                              "PA6 \u03B2\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B2\nØ0.95 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.60 mm \nn = 48",
+                              "PBS \u03B4\nØ0.35 mm \nn = 48",
+                              "PBS \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G6 + 
+  geom_text(data = MWU_n_Lett_loff2, aes(x = FN, y = max_value, label = label),
+            size = 5, vjust = -0.7, color="black",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 34.105, df = 3, p < 0.0001) \nPostHoc test: Dunn with holm correction") +
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+```
+
+
+```{r Statistics DIZ Border}
+#Test normality by FN
+df_normality <- DDIZ_ratio_loff2_b %>% group_by(FN) %>% 
+  summarise(normality = shapiro.test(Border)$p.value)
+df_normality
+
+Aov <- aov(Border~ FN, data= DDIZ_ratio_loff2_b) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+#Analyses RésID (1)us
+
+ggplot(DDIZ_ratio_loff2_b, aes(x=Border)) + geom_histogram(binwidth = 0.5)
+plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P > 0.05 H0 cannot be rejected normality verified
+
+#Test of variance
+bartlett.test(DIZ_ratio~ FN, data= DDIZ_ratio_loff2_b) #P-value > 0.05 --> equality of variance
+
+#Application of the Kruskal-wallis test 
+
+KW <- kruskal.test(Border~ FN, data= DDIZ_ratio_loff2_b)
+KW
+if (KW$p.value > 0.05) {
+  print("H0 is not rejected. The escape response due to the Vibrational and visual startle response is not influenced by the FN leachates")
+} else {
+  print("H0 is rejected. The escape response due to the Vibrational and visual startle response is influenced by the FN leachates")
+}
+library(PMCMRplus)
+
+MWU_res_n <- kwAllPairsDunnTest(Border~ FN, data= DDIZ_ratio_loff2_b, p.adjust.method = "holm")
+MWU_res_n
+
+# #Letters
+
+df_pval =  MWU_res_n$p.value
+df_pval
+
+df_pval2 = fullPTable(df_pval)
+df_pval2
+
+multcompLetters(df_pval2)
+label_n <- data.frame(label = c("a"   ,    "a"    ,   "b"   ,    "a"   ,    "b"    ,   "b"    ,   "b"    ,   "b"   ,    "b"))
+label_n
+
+max_values_loff2_b <- DDIZ_ratio_loff2_b %>%
+  group_by(FN) %>%
+  summarize(max_value = max(Border, na.rm = T))
+max_values_loff2_b
+
+max_values_sd_loff2_b <- DDIZ_avg_loff2_b %>%
+  group_by(FN) %>%
+  summarize(max_value_sd = max(Bord_s_avg, na.rm = T)+Bord_s_sd) %>% dplyr::select(-FN)
+max_values_sd_loff2_b
+
+Star_ctl <- as_tibble(df_pval2, rownames = "FN") %>% 
+  dplyr::select(FN, CTL) %>% 
+  mutate(diff = if_else(CTL == 1 & FN == "CTL", NA,
+                        if_else(CTL >= 0.05, "ns",
+                                if_else(CTL < 0.0001, "****",
+                                        if_else(CTL < 0.001, "***",
+                                                if_else(CTL < 0.01, "**",
+                                                      if_else(CTL < 0.05, "*", NA)))))))
+Star_ctl
+
+MWU_n_Lett<- cbind(max_values_loff2_b, label_n, diff = Star_ctl$diff, UV_Time = c("0"))
+MWU_n_Lett
+
+MWU_n_Lett_DIZ_LOFF2_0 <- MWU_n_Lett
+MWU_n_Lett_DIZ_LOFF2_0
+
+```
+
+
+```{r graph fin DIZ Border}
+
+G7 <- DDIZ_ratio_loff2_b %>% ggplot(aes(x = FN, y = Border, fill = FN)) + 
+  geom_violin(fill = "white", aes(color = FN)) +
+  geom_boxplot(width = 0.1) + 
+  #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  scale_color_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Habituation to vibratory stimuli",
+       y = "Distance covered (mm)", 
+       x = "Fishing nets")  +
+  scale_x_discrete(labels = c("Blank H2O \nn = 48",
+                              "HPPE \u03B5\nØ4.25 mm \nn = 48",
+                              "PA6 \u03B1\nØ0.35 mm \nn = 48", 
+                              "PA6 \u03B2\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B2\nØ0.95 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.60 mm \nn = 48",
+                              "PBS \u03B4\nØ0.35 mm \nn = 48",
+                              "PBS \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G7 + 
+  geom_text(data = MWU_n_Lett_DIZ_LOFF2_0, aes(x = FN, y = max_value, label = label),
+            size = 5, vjust = -0.7, color="black",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 34.105, df = 3, p < 0.0001) \nPostHoc test: Dunn with holm correction") +
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+G8 <- DDIZ_avg_loff2_b %>% ggplot(aes(x = FN, y = Bord_s_avg, fill = FN)) + 
+  geom_col(width = 0.5) + 
+  geom_errorbar(aes(ymin =Bord_s_avg-Bord_s_sd, ymax= Bord_s_avg+Bord_s_sd), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  scale_color_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Habituation to vibratory stimuli",
+       y = "Distance covered (mm)", 
+       x = "Fishing nets")  +
+  scale_x_discrete(labels = c("Blank H2O \nn = 48",
+                              "HPPE \u03B5\nØ4.25 mm \nn = 48",
+                              "PA6 \u03B1\nØ0.35 mm \nn = 48", 
+                              "PA6 \u03B2\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B2\nØ0.95 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.60 mm \nn = 48",
+                              "PBS \u03B4\nØ0.35 mm \nn = 48",
+                              "PBS \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G8 + 
+  geom_text(data = MWU_n_Lett_DIZ_LOFF2_0, aes(x = FN, y = max_value, label = label),
+            size = 5, vjust = -0.7, color="black",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 34.105, df = 3, p < 0.0001) \nPostHoc test: Dunn with holm correction") +
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+```
+
+
+##TAPPING
+```{r data import new}
+
+DIZ_Tap1 <- read_excel("Behaviour/240723_ED_t0/DIZ_Tap1.xlsx")
+DIZ_Tap2 <- read_excel("Behaviour/240723_ED_t0/DIZ_Tap2.xlsx")
+DIZ_Tap3 <- read_excel("Behaviour/240723_ED_t0/DIZ_Tap3.xlsx")
+DIZ_Tap4 <- read_excel("Behaviour/240723_ED_t0/DIZ_Tap4.xlsx")
+DIZ_Tap5 <- read_excel("Behaviour/240723_ED_t0/DIZ_Tap5.xlsx")
+DIZ_Tap6 <- read_excel("Behaviour/240723_ED_t0/DIZ_Tap6.xlsx")
+DIZ_Tap7 <- read_excel("Behaviour/240723_ED_t0/DIZ_Tap7.xlsx")
+DIZ_Tap8 <- read_excel("Behaviour/240723_ED_t0/DIZ_Tap8.xlsx")
+DIZ_Tap9 <- read_excel("Behaviour/240723_ED_t0/DIZ_Tap9.xlsx")
+DIZ_Tap10 <- read_excel("Behaviour/240723_ED_t0/DIZ_Tap10.xlsx")
+DIZ_Tap11 <- read_excel("Behaviour/240723_ED_t0/DIZ_Tap11.xlsx")
+DIZ_Tap12 <- read_excel("Behaviour/240723_ED_t0/DIZ_Tap12.xlsx")
+DIZ_Tap13 <- read_excel("Behaviour/240723_ED_t0/DIZ_Tap13.xlsx")
+
+DIZ_4bis <- rbind(DIZ_Tap1, DIZ_Tap2, DIZ_Tap3, DIZ_Tap4, DIZ_Tap5, DIZ_Tap6, DIZ_Tap7, DIZ_Tap8, DIZ_Tap9, DIZ_Tap10, DIZ_Tap11, DIZ_Tap12, DIZ_Tap13) %>%
+  rename("FN" = 'Selection Result',
+         "Rep" = "ID (1)",
+         "Time" = "Time bin",
+         "UV_Time" = "UV_Time (1)",
+         "Agi_time" = "Agi_time (1)",
+         "Dura_s" = "Duration...9",
+         "Dura_per" = "Duration...10") %>%
+  mutate(Time = as.factor(Time),
+         Time_Cat = as.factor(c("tap")),
+         
+         Trial = as.factor(gsub("    ", "_", Trial)),
+         UV_Time = as.factor(UV_Time),
+         Arena = as.factor(Arena),
+         state = as.factor("aa"),
+         Rep = as.factor(Rep),
+         Zone = as.factor(if_else(Zone == "In Border", "Border", "Center")),
+         FN = as.factor(if_else(FN == "PE", "HPPE_e425", FN))) %>%
+  mutate_if(is.character, as.double, na.rm = T)
+
+DIZ_4bis
+
+DDIZ_4 <- DIZ_4bis %>% filter(FN == if_else(grepl("c", Rep), "CTL",
+                                                  if_else(grepl("g", Rep), "PA_a35",
+                                                                if_else(grepl("h", Rep), "PA_b95",
+                                                                              if_else(grepl("i", Rep), "PA_b33",
+                                                  if_else(grepl("j", Rep), "PA_g60",
+                                                                if_else(grepl("k", Rep), "PA_g33",
+                                                                              if_else(grepl("l", Rep), "PBS_d60",
+                                                  if_else(grepl("m", Rep), "PBS_d35",
+                                                                if_else(grepl("n", Rep), "HPPE_e425", NA))))))))))
+DDIZ_4
+```
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is outliers
+DDIZ_avg_tap <- DDIZ_4 %>% group_by(FN, Zone, Time_Cat, Rep) %>%  summarise(n = n(),
+                                                          Dura_s_avg = mean(Dura_s, na.rm=T),
+                                                          Dura_s_sd = sd(Dura_s, na.rm=T),
+                                                          Dura_s_se = Dura_s_sd / sqrt(n))
+
+
+DDIZ_avg_tap
+
+DDIZ_avg_border_tap <- DDIZ_4 %>% group_by(FN, Zone, Time_Cat) %>%  summarise(n = n(),
+                                                          Dura_s_avg = mean(Dura_s, na.rm=T),
+                                                          Dura_s_sd = sd(Dura_s, na.rm=T),
+                                                          Dura_s_se = Dura_s_sd / sqrt(n)) %>% filter(Zone == "Border")
+
+DDIZ_avg_border_tap
+
+
+#To measure the duration ratio center/border
+DDIZ_ratio_tap_0 <- DDIZ_4 %>% 
+  dplyr::select(Trial, Arena, FN, Rep, Zone, Agi_time, UV_Time, Time, Dura_s) %>%
+  pivot_wider(names_from = Zone, values_from = c(Dura_s)) %>% 
+  mutate(Center = if_else(Border == 599.9730, 0.033333,
+                          if_else(Border == 599.7390, 1.633320,
+                                  if_else(Border == 599.4730, 0.533328,
+                                          if_else(Border == 599.3730, 0.166665,
+                                                  if_else(Border == 599.3390, 0.699993, Center))))),
+         Border = if_else(Center == 60.4661, 551.006, Border)) %>% 
+  
+  mutate(DIZ_ratio = Border/ Center) 
+  #filter(!DIZ_ratio >2500, !Border <200)
+DDIZ_ratio_tap_0
+
+DDIZ_ratio_tap <- DDIZ_ratio_tap_0
+
+
+DDIZ_R_avg_tap <- DDIZ_ratio_tap %>% group_by(FN) %>% 
+  summarise(n = n(),
+            Bord_s_avg = mean(Border, na.rm=T),
+            Bord_s_sd = sd(Border, na.rm=T), 
+            Bord_s_se = Bord_s_sd / sqrt(n),
+            Cen_s_avg = mean(Center, na.rm=T),
+            Cen_s_sd = sd(Center, na.rm=T), 
+            Cen_s_se = Cen_s_sd / sqrt(n),
+            R_Dura_s_avg = mean(DIZ_ratio, na.rm=T),
+            R_Dura_s_sd = sd(DIZ_ratio, na.rm=T), 
+            R_Dura_s_se = R_Dura_s_sd / sqrt(n))
+                                                                   # R_Du_avg_log = mean(R_Du_log, na.rm=T),
+                                                                   # R_Du_sd_log = sd(R_Du_log, na.rm=T),
+                                                                   # R_Du_se_log = R_Du_sd_log / sqrt(n))
+
+DDIZ_R_avg_tap
+
+DDIZ_ratio_tap_b<- DDIZ_4 %>%  
+  dplyr::select(Trial, Arena, FN, Rep, Zone, UV_Time, Time, Dura_s) %>%
+  pivot_wider(names_from = Zone, values_from = c(Dura_s))  
+DDIZ_ratio_tap_b
+
+DDIZ_avg_tap_b <- DDIZ_ratio_tap_b %>% group_by(FN) %>% 
+  summarise(n = n(),
+            Bord_s_med = median(Border, na.rm=T),
+            Bord_s_avg = mean(Border, na.rm=T),
+            Bord_s_sd = sd(Border, na.rm=T), 
+            Bord_s_se = Bord_s_sd / sqrt(n),
+            Cen_s_avg = mean(Center, na.rm=T),
+            Cen_s_sd = sd(Center, na.rm=T), 
+            Cen_s_se = Cen_s_sd / sqrt(n))
+
+DDIZ_avg_tap_b
+
+```
+
+```{r Statistics DIZ ratio}
+#Test normality by FN
+df_normality <- DDIZ_ratio_tap %>% group_by(FN) %>% 
+  summarise(normality = shapiro.test(DIZ_ratio)$p.value)
+df_normality
+
+Aov <- aov(DIZ_ratio~ FN, data= DDIZ_ratio_tap) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+#Analyses RésID (1)us
+
+ggplot(DDIZ_ratio_tap, aes(x=DIZ_ratio)) + geom_histogram(binwidth = 0.5)
+plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P > 0.05 H0 cannot be rejected normality verified
+
+#Test of variance
+bartlett.test(DIZ_ratio~ FN, data= DDIZ_ratio_tap) #P-value > 0.05 --> equality of variance
+
+#Application of the Kruskal-wallis test 
+
+KW <- kruskal.test(DIZ_ratio~ FN, data= DDIZ_ratio_tap)
+KW
+if (KW$p.value > 0.05) {
+  print("H0 is not rejected. The escape response due to the Vibrational and visual startle response is not influenced by the FN leachates")
+} else {
+  print("H0 is rejected. The escape response due to the Vibrational and visual startle response is influenced by the FN leachates")
+}
+library(PMCMRplus)
+
+MWU_res_n <- kwAllPairsDunnTest(DIZ_ratio~ FN, data= DDIZ_ratio_tap, p.adjust.method = "holm")
+MWU_res_n
+
+# #Letters
+
+df_pval =  MWU_res_n$p.value
+df_pval
+
+df_pval2 = fullPTable(df_pval)
+df_pval2
+
+multcompLetters(df_pval2)
+label_n_tap <- data.frame(label = c("ab"   ,  "abc"   ,   "ab"    ,   "a"   ,    "c"   ,  "abc"   ,  "abc"   ,   "bc",     "abc"))
+label_n_tap
+
+max_values_tap <- DDIZ_ratio_tap %>%
+  group_by(FN) %>%
+  summarize(max_value = max(DIZ_ratio, na.rm = T))
+max_values_tap
+
+MWU_n_Lett_tap<- cbind(max_values_tap, label_n_tap)
+MWU_n_Lett_tap
+
+```
+
+
+```{r graph fin DIZ ratio}
+
+G9 <- DDIZ_ratio_tap %>% ggplot(aes(x = FN, y = DIZ_ratio, fill = FN)) + 
+  geom_violin(fill = "white", aes(color = FN)) +
+  geom_boxplot(width = 0.1) + 
+  #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  scale_color_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Habituation to vibratory stimuli",
+       y = "Distance covered (mm)", 
+       x = "Fishing nets")  +
+  scale_x_discrete(labels = c("Blank H2O \nn = 48",
+                              "HPPE \u03B5\nØ4.25 mm \nn = 48",
+                              "PA6 \u03B1\nØ0.35 mm \nn = 48", 
+                              "PA6 \u03B2\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B2\nØ0.95 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.60 mm \nn = 48",
+                              "PBS \u03B4\nØ0.35 mm \nn = 48",
+                              "PBS \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G9 + 
+  geom_text(data = MWU_n_Lett_tap, aes(x = FN, y = max_value, label = label),
+            size = 5, vjust = -0.7, color="black",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 34.105, df = 3, p < 0.0001) \nPostHoc test: Dunn with holm correction") +
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+```
+
+
+```{r Statistics DIZ Border}
+#Test normality by FN
+df_normality <- DDIZ_ratio_tap_b %>% group_by(FN) %>% 
+  summarise(normality = shapiro.test(Border)$p.value)
+df_normality
+
+Aov <- aov(Border~ FN, data= DDIZ_ratio_tap_b) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+#Analyses RésID (1)us
+
+ggplot(DDIZ_ratio_tap_b, aes(x=Border)) + geom_histogram(binwidth = 0.5)
+plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P > 0.05 H0 cannot be rejected normality verified
+
+#Test of variance
+bartlett.test(DIZ_ratio~ FN, data= DDIZ_ratio_tap_b) #P-value > 0.05 --> equality of variance
+
+#Application of the Kruskal-wallis test 
+
+KW <- kruskal.test(Border~ FN, data= DDIZ_ratio_tap_b)
+KW
+if (KW$p.value > 0.05) {
+  print("H0 is not rejected. The escape response due to the Vibrational and visual startle response is not influenced by the FN leachates")
+} else {
+  print("H0 is rejected. The escape response due to the Vibrational and visual startle response is influenced by the FN leachates")
+}
+library(PMCMRplus)
+
+MWU_res_n <- kwAllPairsDunnTest(Border~ FN, data= DDIZ_ratio_tap_b, p.adjust.method = "holm")
+MWU_res_n
+
+# #Letters
+
+df_pval =  MWU_res_n$p.value
+df_pval
+
+df_pval2 = fullPTable(df_pval)
+df_pval2
+
+multcompLetters(df_pval2)
+label_n <- data.frame(label = c("ab"  ,    "ab"  ,   "abc"    ,   "a"   ,   "cd"   ,    "d"   ,   "ab"  ,    "bc"  ,   "abc"))
+label_n
+
+max_values_tap_b <- DDIZ_ratio_tap_b %>%
+  group_by(FN) %>%
+  summarize(max_value = max(Border, na.rm = T))
+max_values_tap_b
+
+max_values_sd_tap_b <- DDIZ_avg_tap_b %>%
+  group_by(FN) %>%
+  summarize(max_value_sd = max(Bord_s_avg, na.rm = T)+Bord_s_sd) %>% dplyr::select(-FN)
+max_values_sd_tap_b
+
+Star_ctl <- as_tibble(df_pval2, rownames = "FN") %>% 
+  dplyr::select(FN, CTL) %>% 
+  mutate(diff = if_else(CTL == 1 & FN == "CTL", NA,
+                        if_else(CTL >= 0.05, "ns",
+                                if_else(CTL < 0.0001, "****",
+                                        if_else(CTL < 0.001, "***",
+                                                if_else(CTL < 0.01, "**",
+                                                      if_else(CTL < 0.05, "*", NA)))))))
+Star_ctl
+
+MWU_n_Lett<- cbind(max_values_tap_b, label_n, diff = Star_ctl$diff, UV_Time = c("0"))
+MWU_n_Lett
+
+MWU_n_Lett_DIZ_TAP_0 <- MWU_n_Lett
+MWU_n_Lett_DIZ_TAP_0
+
+```
+
+
+```{r graph fin DIZ Border}
+
+G10 <- DDIZ_ratio_tap_b %>% ggplot(aes(x = FN, y = Border, fill = FN)) + 
+  geom_violin(fill = "white", aes(color = FN)) +
+  geom_boxplot(width = 0.1) + 
+  #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  scale_color_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Habituation to vibratory stimuli",
+       y = "Distance covered (mm)", 
+       x = "Fishing nets")  +
+  scale_x_discrete(labels = c("Blank H2O \nn = 48",
+                              "HPPE \u03B5\nØ4.25 mm \nn = 48",
+                              "PA6 \u03B1\nØ0.35 mm \nn = 48", 
+                              "PA6 \u03B2\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B2\nØ0.95 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.60 mm \nn = 48",
+                              "PBS \u03B4\nØ0.35 mm \nn = 48",
+                              "PBS \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G10 + 
+  geom_text(data = MWU_n_Lett_DIZ_TAP_0, aes(x = FN, y = max_value, label = label),
+            size = 5, vjust = -0.7, color="black",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 34.105, df = 3, p < 0.0001) \nPostHoc test: Dunn with holm correction") +
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+G11 <- DDIZ_avg_tap_b %>% ggplot(aes(x = FN, y = Bord_s_avg, fill = FN)) + 
+  geom_col(width = 0.5) + 
+  geom_errorbar(aes(ymin =Bord_s_avg-Bord_s_sd, ymax= Bord_s_avg+Bord_s_sd), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  scale_color_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Habituation to vibratory stimuli",
+       y = "Distance covered (mm)", 
+       x = "Fishing nets")  +
+  scale_x_discrete(labels = c("Blank H2O \nn = 48",
+                              "HPPE \u03B5\nØ4.25 mm \nn = 48",
+                              "PA6 \u03B1\nØ0.35 mm \nn = 48", 
+                              "PA6 \u03B2\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B2\nØ0.95 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.33 mm \nn = 48",
+                              "PA6 \u03B3\nØ0.60 mm \nn = 48",
+                              "PBS \u03B4\nØ0.35 mm \nn = 48",
+                              "PBS \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G11 + 
+  geom_text(data = MWU_n_Lett_DIZ_TAP_0, aes(x = FN, y = max_value, label = label),
+            size = 5, vjust = -0.7, color="black",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 34.105, df = 3, p < 0.0001) \nPostHoc test: Dunn with holm correction") +
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+```

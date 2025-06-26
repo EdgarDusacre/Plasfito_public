@@ -1,0 +1,1446 @@
+---
+title: "Survival"
+author: "Edgar Dusacre"
+date: "2023-05-23"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r Insertion package, include=FALSE}
+library(ggplot2) 
+library(tidyr)
+library(purrr)
+library(tidyverse)
+library(ggrepel)
+library(ggpubr)
+library(knitr)
+library(yaml)
+library(dplyr) 
+library(matrixStats)
+library(EnvStats)
+library(stringr)
+library(gtable)
+library(grid)
+library(FSA)
+library(scales)
+library(wbstats)
+library(ggh4x)
+library(multcompView)
+library(report)
+library(ecotox)
+library(wesanderson)
+library(RColorBrewer)
+library(readr)
+library(readxl)
+library(gmodels)
+library(ggpattern)
+library(zoo)
+library(forcats)
+library(car)
+library(dunn.test)
+
+
+library(forcats)
+library(binom)
+library(lubridate)
+library(ade4)
+library(broom)
+library(rstatix)
+library(rcompanion)
+library(chron)
+library(PMCMRplus)
+```
+
+```{r Charger les palettes de couleurs, include=FALSE}
+Plasfito_C <- c("#80CAD0", "#36A7A7", "#276573", "#054959","#E3CCC0", "#F7EAE1", "#A48A7B", "#C6AF8D", "#49BED3", "#256CB4", "#008163", "#44B494", "#7BC6B9")
+
+Plasfito_color <- c("GreenP4" = "#80CAD0", "GreenP3" = "#36A7A7", "GreenP2" = "#276573", "GreenP1" = "#054959","Brown1" = "#E3CCC0", "Brown2" = "#F7EAE1", "Brown3" = "#A48A7B", "Brown4" = "#C6AF8D", "Turquoise1" = "#49BED3", "Blue1" = "#256CB4", "Green1" = "#008163", "Green2" = "#44B494", "Green3" = "#7BC6B9")
+
+List_color_Fr <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                   "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573")
+
+List_color <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                 "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573",
+                 "Euskadi" = "#054959")
+
+Plasfito_Tps <- c("5" = "#80CAD0", "15" = "#36A7A7", "30" = "#276573")
+
+
+#A part si vous souhaitez changer les couleurs do not touch.
+Ech_K2CR2O7<- c("K2CR2O7" = "#80CAD0")
+
+Tps_color <- c("5" = "#80CAD0" , "15" = "#36A7A7", "30" = "#276573")
+
+Dilu_color <- c("0.0125" = "#80CAD0" , "0.025" = "#36A7A7", "0.05" = "#276573", "0.1" = "#008163")
+
+Conc_color <- c("0.4125" = "#80CAD0" , "0.825" = "#36A7A7", "1.65" = "#276573", "3.3" = "#008163")
+Conc_color3 <- c("0.825" = "aquamarine", "1.65" = "#36A7A7", "3.3" = "#276573")
+
+Color_biolu_Pasaia <- c("Ech1" = "aquamarine", "Ech2" = "#36A7A7" , "DMSO" = "#A48A7B")
+
+Color_code_FN <- c("Blank H2O" = "#A48A7B", "ctl H2O" = "#256CB4", "PA α ø.35" = "#4fd355", "PA β ø.33" = "#ca98d3", "PA β ø.95" = "#6e217c", "PA γ ø.33" = "#92b78f", "PA γ ø.60" = "#bbb3bc", "PBS δ ø.35" = "#d3ad4f","PBS δ ø.60" = "#c68640", "HPPE ε ø4.25" = "#36A7A7")
+
+Color_code_red <- c("Blank H2O" = "#A48A7B", "ctl H2O" = "#256CB4", "PA γ ø.33" = "#92b78f", "PA γ ø.60" = "#bbb3bc", "PBS δ ø.35" = "#d3ad4f","PBS δ ø.60" = "#c68640", "HPPE ε ø4.25" = "#36A7A7")
+
+my_palette <- rev(brewer.pal(name="BrBG", n=11))[c(3, 4, 5, 7, 8, 9)]
+my_palette
+
+my_palette2 <- rev(brewer.pal(name="BrBG", n=11))[c(2, 4, 8)]
+my_palette2
+```
+
+
+```{r data import aa}
+Dead_aa <- read_excel("Development/Survival_aa.xlsx") %>% filter(FN != "benzo")  %>% 
+  mutate(Time = as.factor(Time)) %>% mutate(fq_dead = round(Dead/N_initial, digits = 2), 
+                                            per_dead = fq_dead*100,
+                                            fq_swim_disa = round(Swim_disa/N_initial, digits = 2), 
+                                            per_swim_disa = fq_swim_disa*100,
+                                            fq_body_curv = round(Body_curv/N_initial, digits = 2), 
+                                            per_body_curv = fq_body_curv*100,
+                                            KOdead = Dead+Swim_disa,
+                                            fq_KOdead = round(KOdead/N_initial, digits = 2), 
+                                            per_KOdead = fq_KOdead*100,
+                                            Conc = as.factor(Conc), 
+                                            UV_time = as.factor(UV_time))
+
+Dead_aa$UV_time <- gsub(",", ".", Dead_aa$UV_time) 
+Dead_aa
+
+#export the data
+write.csv(Dead_aa, "Development/Dead_aa_charlotte.csv")
+
+KOdead_df1 <- Dead_aa %>% dplyr::select(1:11) %>% 
+  pivot_longer(cols = c(Dead, Swim_disa, Body_curv),
+               names_to = "KOdead",
+               values_to = "Value",
+               values_drop_na = TRUE) %>% 
+  mutate(Time = as.factor(Time)) %>% mutate(fq_kodead = round(Value/N_initial, digits = 2), 
+                                            per_kodead = fq_kodead*100,
+                                            Conc = as.factor(Conc), 
+                                            UV_time = as.factor(UV_time))
+KOdead_df1
+
+KOdead_avg <- KOdead_df1 %>% group_by(FN, Agi_time, UV_time, Conc, state, Time, N_initial, KOdead) %>% 
+  summarise(avg_KOdead = mean(Value, na.rm =T),
+            sd_KOdead = sd(Value, na.rm =T))
+KOdead_avg
+
+```
+
+
+```{r Ctl Avg et stat}
+
+# Dead_aa_ctl <- Dead_aa %>%  filter(FN == "Blank H2O") %>% 
+#   group_by(FN, UV_time, Conc) %>% 
+#   summarise(med_D = median(Dead, na.rm = T),
+#             avg_D = mean(Dead, na.rm = T),
+#             sd_D = sd(Dead, na.rm = T),
+#             med_S = median(Swim_disa, na.rm = T),
+#             avg_S = mean(Swim_disa, na.rm = T),
+#             sd_S = sd(Swim_disa, na.rm = T),
+#             med_B = median(Body_curv, na.rm = T),
+#             avg_B = mean(Body_curv, na.rm = T),
+#             sd_B = sd(Body_curv, na.rm = T))
+# 
+# Dead_aa_ctl
+# 
+# 
+# Dead_aa_ctl_12_10 <- Dead_aa_ctl %>% filter(UV_time == "12.54", Conc == "10")
+# Dead_aa_ctl_12 <- Dead_aa_ctl %>% filter(UV_time == "12.54", Conc == "100")
+# Dead_aa_ctl_25 <- Dead_aa_ctl %>% filter(UV_time == "25.08")
+
+```
+
+```{r Normalization}
+
+# Dead_aa_aju <- Dead_aa %>% 
+#   mutate(Dead = if_else(UV_time == "12.54" & Conc == "10", (Dead * 1) / Dead_aa_ctl_12_10$avg_D,
+#                             if_else(UV_time == "12.54" & Conc == "100", (Dead * 1) / Dead_aa_ctl_12$avg_D,
+#                                     if_else(UV_time == "12.54" & Conc == "10", (Dead * 1) / Dead_aa_ctl_12_10$avg_D, NA))),
+#          Swim_disa = if_else(UV_time == "12.54" & Conc == "10", (Swim_disa * 1) / Dead_aa_ctl_12_10$avg_S,
+#                             if_else(UV_time == "12.54" & Conc == "100", (Swim_disa * 1) / Dead_aa_ctl_12$avg_S,
+#                                     if_else(UV_time == "12.54" & Conc == "10", (Swim_disa * 1) / Dead_aa_ctl_12_10$avg_S, NA))),
+#          Body_curv = if_else(UV_time == "12.54" & Conc == "10", (Body_curv * 1) / Dead_aa_ctl_12_10$avg_B,
+#                             if_else(UV_time == "12.54" & Conc == "100", (Body_curv * 1) / Dead_aa_ctl_12$avg_B,
+#                                     if_else(UV_time == "12.54" & Conc == "10", (Body_curv * 1) / Dead_aa_ctl_12_10$avg_B, NA))))
+# Dead_aa_aju
+# 
+# Dead_aa_aju_avg <- Dead_aa_all %>% 
+#   #filter(!Dead_aa1 >= 2900) %>% 
+#   mutate(aju_Dtot = if_else(UV_Time == "12.54", (Dead_aa1 * 100) / Dead_aa_ctl_12$Dtot_avg, 
+#                               if_else(UV_Time == "25.08", (Dead_aa1 * 100) / Dead_aa_ctl_25$Dtot_avg,  NA)))
+# Dead_aa_aju_avg
+# 
+# df_avg_BLA_avg <- Dead_aa_aju_avg %>% 
+#   group_by(FN, UV_Time) %>% 
+#   summarise(n = n(),
+#             avg_val_adj = mean(aju_Dtot), 
+#             sd_val_adj = sd(aju_Dtot),
+#             se_val_adj = sd_val_adj/sqrt(n)) %>% 
+#   mutate(endpt = as.factor("BLA"))
+#   
+# df_avg_BLA_avg
+```
+
+```{r Visualization}
+#Data of total dead Cons 100% & Agitation time 24h
+Visua <- Dead_aa %>% filter(Conc == "100", Agi_time == "24") %>% ggplot(aes(FN, Dead, fill = Time)) + 
+  geom_col(width = 0.3) +
+  facet_wrap(~state) +
+  scale_y_continuous(breaks = seq(0, 20, by = 2))
+Visua
+
+#Data of mean dead Cons 100%
+Visua_box <- Dead_aa %>% filter(Conc == "100") %>% ggplot(aes(FN, Dead, fill = Time)) + 
+  geom_boxplot(width = 0.3) +
+  facet_wrap(~state)
+Visua_box
+
+#Data of total swim_disa
+Visua <- Dead_aa %>% filter(Conc == "100", Agi_time == "24") %>% ggplot(aes(FN, Swim_disa, fill = Time)) + 
+  geom_col(width = 0.3) +
+  facet_wrap(~state) +
+  scale_y_continuous(breaks = seq(0, 20, by = 2))
+Visua
+
+#Data of mean swim_disa
+Visua_box <- Dead_aa %>% filter(Conc == "100") %>% ggplot(aes(FN, Swim_disa, fill = Time)) + 
+  geom_boxplot(width = 0.3) +
+  facet_wrap(~state)
+Visua_box
+
+#Data of total KO + Dead
+Visua <- Dead_aa %>% filter(Conc == "100", Agi_time == "24") %>% ggplot(aes(FN, KOdead, fill = Time)) + 
+  geom_col(width = 0.3) +
+  facet_wrap(~state) +
+  scale_y_continuous(breaks = seq(0, 20, by = 2))
+Visua
+
+#Data of total KO + Dead cumuled
+Visua <- KOdead_df1 %>% filter(Conc == "100", Agi_time == "24") %>% ggplot(aes(FN, per_kodead, fill = FN)) + 
+  geom_col(width = 0.3) +
+  facet_wrap(~KOdead) +
+  scale_y_continuous(breaks = seq(0, 50, by = 5)) +
+  theme_bw()
+Visua
+
+#Data of total KO + Dead cumuled
+Visua <- KOdead_df1 %>% filter(Conc == "100", Agi_time == "24", FN != "PA α ø.35" & FN != "PA β ø.33", FN != "PA β ø.95") %>% ggplot(aes(FN, per_kodead, fill = KOdead)) + 
+  geom_col(position=position_dodge(width = 0.4), width = 0.3) +
+  scale_y_continuous(breaks = seq(0, 80, by = 5)) +
+  facet_wrap(~UV_time) +
+  theme_bw()
+Visua
+
+```
+
+```{r data average}
+#Cumulated number of dead in 48h
+n <- Dead_aa %>% filter(Time == 48, Agi_time == "24") %>% 
+  dplyr::select(FN, UV_time, Conc, ID, N_initial) %>% 
+  group_by(FN, UV_time, Conc) %>% summarise(n = sum(N_initial))
+n
+
+Stat_dead_aa1 <- Dead_aa %>% filter(Agi_time == "24") %>% 
+  group_by(FN, Conc, UV_time) %>% 
+  summarise(sum_dead = sum(Dead),
+            sum_swim_disa = sum(Swim_disa),
+            sum_Body_curv = sum(Dead))
+Stat_dead_aa1
+
+Stat_dead_aa2 <- cbind(Stat_dead_aa1, n = n$n) %>% 
+  mutate(survived = n-sum_dead, 
+         died = sum_dead, 
+         swimmer = n-sum_swim_disa,
+         swim_disa = sum_swim_disa,
+         normal = n-sum_Body_curv,
+         Body_curv = sum_Body_curv,
+         fq_dead = round(sum_dead/n, digits = 2), 
+         per_dead = fq_dead*100,
+         fq_swim_disa = round(sum_swim_disa/n, digits = 2), 
+         per_swim_disa = fq_swim_disa*100,
+         fq_body_curv = round(sum_Body_curv/n, digits = 2), 
+         per_body_curv  = fq_body_curv*100) %>% 
+  arrange(desc(Conc))
+Stat_dead_aa2
+
+Stat_dead_aa3 <- cbind(Stat_dead_aa1, n = n$n) %>% 
+  mutate(survived = n-sum_dead, 
+         died = sum_dead,
+         swimmer = n-sum_swim_disa,
+         swim_disa = sum_swim_disa,
+         normal = n-sum_Body_curv,
+         Body_curv = sum_Body_curv,
+         fq_dead = round(sum_dead/n, digits = 2), 
+         per_dead = fq_dead*100,
+         fq_swim_disa = round(sum_swim_disa/n, digits = 2), 
+         per_swim_disa = fq_swim_disa*100,
+         fq_body_curv = round(sum_Body_curv/n, digits = 2), 
+         per_body_curv  = fq_body_curv*100) %>%  
+  ungroup() %>% dplyr::select(FN, UV_time, Conc, survived, died, swimmer, swim_disa, normal, Body_curv) %>% 
+  arrange(Conc, UV_time)
+Stat_dead_aa3
+
+Stat_dead_aa_10 <- Stat_dead_aa3 %>%  filter(Conc == "10")
+Stat_dead_aa_100 <- Stat_dead_aa3 %>%  filter(Conc == "100")
+
+```
+
+
+```{r stats Conc 100 AA & 6.27d}
+#dplyr::select the experiment
+Stat_dead_aa_100 <- Stat_dead_aa3 %>%  filter(Conc == "100")
+Stat_dead_aa_100 <- Stat_dead_aa_100 %>% filter(UV_time == "0")
+Stat_dead_aa_100
+
+# Create the contingency table
+contingency_table <- aggregate(cbind(survived, died, swimmer, swim_disa, normal, Body_curv) ~ FN, data = Stat_dead_aa_100, FUN = sum)
+contingency_table
+# Perform Fisher's exact test
+fisher_test <- list()
+
+# Get the unique treatment groups
+treatment_groups <- unique(contingency_table$FN)
+
+##Survival -------------
+
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    # Subset the contingency table for the current treatment and control groups
+    treatment_data <- subset(contingency_table, FN == treatment | FN == "Blank H2O")
+
+    # Create a contingency table for the Fisher's exact test
+    comparison_table <- matrix(c(treatment_data$died, treatment_data$survived), nrow = 2)
+
+    # Perform Fisher's exact test
+    fisher_test[[treatment]] <- fisher.test(comparison_table)
+  }
+}
+
+# Add significant differences to the tibble
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.001) {
+      significance_D <- "**"
+    } else if (p_value < 0.01) {
+      significance_D <- "*"
+    } else if (p_value < 0.05) {
+      significance_D <- "*"
+    } else {
+      significance_D <- "ns"
+    }
+    # Add the significance information to the original tibble
+    Stat_dead_aa_100$significance_D[Stat_dead_aa_100$FN == treatment] <- significance_D
+  } else {
+    Stat_dead_aa_100$significance_D[Stat_dead_aa_100$FN == "Blank H2O"] <- NA
+  }
+}
+
+# Print the modified tibble
+Stat_dead_aa_100_D <- Stat_dead_aa_100
+Stat_dead_aa_100_D
+
+##Swim disability -------------
+
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    # Subset the contingency table for the current treatment and control groups
+    treatment_data <- subset(contingency_table, FN == treatment | FN == "Blank H2O")
+
+    # Create a contingency table for the Fisher's exact test
+    comparison_table <- matrix(c(treatment_data$swim_disa, treatment_data$swimmer), nrow = 2)
+
+    # Perform Fisher's exact test
+    fisher_test[[treatment]] <- fisher.test(comparison_table)
+  }
+}
+
+# Add significant differences to the tibble
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.001) {
+      significance_S <- "**"
+    } else if (p_value < 0.01) {
+      significance_S <- "*"
+    } else if (p_value < 0.05) {
+      significance_S <- "*"
+    } else {
+      significance_S <- "ns"
+    }
+    # Add the significance information to the original tibble
+    Stat_dead_aa_100_D$significance_S[Stat_dead_aa_100_D$FN == treatment] <- significance_S
+  } else {
+    Stat_dead_aa_100_D$significance_S[Stat_dead_aa_100_D$FN == "Blank H2O"] <- NA
+  }
+}
+
+# Print the modified tibble
+Stat_dead_aa_100_DS <- Stat_dead_aa_100_D
+Stat_dead_aa_100_DS
+
+##Body curvature -------------
+
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    # Subset the contingency table for the current treatment and control groups
+    treatment_data <- subset(contingency_table, FN == treatment | FN == "Blank H2O")
+
+    # Create a contingency table for the Fisher's exact test
+    comparison_table <- matrix(c(treatment_data$Body_curv, treatment_data$normal), nrow = 2)
+
+    # Perform Fisher's exact test
+    fisher_test[[treatment]] <- fisher.test(comparison_table)
+  }
+}
+
+# Add significant differences to the tibble
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.001) {
+      significance_B <- "**"
+    } else if (p_value < 0.01) {
+      significance_B <- "*"
+    } else if (p_value < 0.05) {
+      significance_B <- "*"
+    } else {
+      significance_B <- "ns"
+    }
+    # Add the significance information to the original tibble
+    Stat_dead_aa_100_DS$significance_B[Stat_dead_aa_100_DS$FN == treatment] <- significance_B
+  } else {
+    Stat_dead_aa_100_DS$significance_B[Stat_dead_aa_100_DS$FN == "Blank H2O"] <- NA
+  }
+}
+
+# Print the modified tibble
+Stat_dead_aa_100_DSB_0 <- Stat_dead_aa_100_DS
+Stat_dead_aa_100_DSB_0
+
+```
+
+
+```{r stats Conc 100 AA & 6.27d}
+#dplyr::select the experiment
+Stat_dead_aa_100 <- Stat_dead_aa3 %>%  filter(Conc == "100")
+Stat_dead_aa_100 <- Stat_dead_aa_100 %>% filter(UV_time == "6.27")
+Stat_dead_aa_100
+
+# Create the contingency table
+contingency_table <- aggregate(cbind(survived, died, swimmer, swim_disa, normal, Body_curv) ~ FN, data = Stat_dead_aa_100, FUN = sum)
+contingency_table
+# Perform Fisher's exact test
+fisher_test <- list()
+
+# Get the unique treatment groups
+treatment_groups <- unique(contingency_table$FN)
+
+##Survival -------------
+
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    # Subset the contingency table for the current treatment and control groups
+    treatment_data <- subset(contingency_table, FN == treatment | FN == "Blank H2O")
+
+    # Create a contingency table for the Fisher's exact test
+    comparison_table <- matrix(c(treatment_data$died, treatment_data$survived), nrow = 2)
+
+    # Perform Fisher's exact test
+    fisher_test[[treatment]] <- fisher.test(comparison_table)
+  }
+}
+
+# Add significant differences to the tibble
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.001) {
+      significance_D <- "**"
+    } else if (p_value < 0.01) {
+      significance_D <- "*"
+    } else if (p_value < 0.05) {
+      significance_D <- "*"
+    } else {
+      significance_D <- "ns"
+    }
+    # Add the significance information to the original tibble
+    Stat_dead_aa_100$significance_D[Stat_dead_aa_100$FN == treatment] <- significance_D
+  } else {
+    Stat_dead_aa_100$significance_D[Stat_dead_aa_100$FN == "Blank H2O"] <- NA
+  }
+}
+
+# Print the modified tibble
+Stat_dead_aa_100_D <- Stat_dead_aa_100
+Stat_dead_aa_100_D
+
+##Swim disability -------------
+
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    # Subset the contingency table for the current treatment and control groups
+    treatment_data <- subset(contingency_table, FN == treatment | FN == "Blank H2O")
+
+    # Create a contingency table for the Fisher's exact test
+    comparison_table <- matrix(c(treatment_data$swim_disa, treatment_data$swimmer), nrow = 2)
+
+    # Perform Fisher's exact test
+    fisher_test[[treatment]] <- fisher.test(comparison_table)
+  }
+}
+
+# Add significant differences to the tibble
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.001) {
+      significance_S <- "**"
+    } else if (p_value < 0.01) {
+      significance_S <- "*"
+    } else if (p_value < 0.05) {
+      significance_S <- "*"
+    } else {
+      significance_S <- "ns"
+    }
+    # Add the significance information to the original tibble
+    Stat_dead_aa_100_D$significance_S[Stat_dead_aa_100_D$FN == treatment] <- significance_S
+  } else {
+    Stat_dead_aa_100_D$significance_S[Stat_dead_aa_100_D$FN == "Blank H2O"] <- NA
+  }
+}
+
+# Print the modified tibble
+Stat_dead_aa_100_DS <- Stat_dead_aa_100_D
+Stat_dead_aa_100_DS
+
+##Body curvature -------------
+
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    # Subset the contingency table for the current treatment and control groups
+    treatment_data <- subset(contingency_table, FN == treatment | FN == "Blank H2O")
+
+    # Create a contingency table for the Fisher's exact test
+    comparison_table <- matrix(c(treatment_data$Body_curv, treatment_data$normal), nrow = 2)
+
+    # Perform Fisher's exact test
+    fisher_test[[treatment]] <- fisher.test(comparison_table)
+  }
+}
+
+# Add significant differences to the tibble
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.001) {
+      significance_B <- "**"
+    } else if (p_value < 0.01) {
+      significance_B <- "*"
+    } else if (p_value < 0.05) {
+      significance_B <- "*"
+    } else {
+      significance_B <- "ns"
+    }
+    # Add the significance information to the original tibble
+    Stat_dead_aa_100_DS$significance_B[Stat_dead_aa_100_DS$FN == treatment] <- significance_B
+  } else {
+    Stat_dead_aa_100_DS$significance_B[Stat_dead_aa_100_DS$FN == "Blank H2O"] <- NA
+  }
+}
+
+# Print the modified tibble
+Stat_dead_aa_100_DSB_6 <- Stat_dead_aa_100_DS
+Stat_dead_aa_100_DSB_6
+
+```
+
+
+```{r stat Conc 10 AA & 12.54d}
+# Create the contingency table
+contingency_table <- aggregate(cbind(survived, died, swim_disa, Body_curv) ~ FN, data = Stat_dead_aa_10, FUN = sum)
+contingency_table
+# Perform Fisher's exact test
+fisher_test <- list()
+
+# Get the unique treatment groups
+treatment_groups <- unique(contingency_table$FN)
+
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    # Subset the contingency table for the current treatment and control groups
+    treatment_data <- subset(contingency_table, FN == treatment | FN == "Blank H2O")
+
+    # Create a contingency table for the Fisher's exact test
+    comparison_table <- matrix(c(treatment_data$died, treatment_data$survived), nrow = 2)
+
+    # Perform Fisher's exact test
+    fisher_test[[treatment]] <- fisher.test(comparison_table)
+  }
+}
+
+# Add significant differences to the tibble
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.001) {
+      significance <- "**"
+    } else if (p_value < 0.01) {
+      significance <- "*"
+    } else if (p_value < 0.05) {
+      significance <- "*"
+    } else {
+      significance <- NA
+    }
+    # Add the significance information to the original tibble
+    Stat_dead_aa_10$significance[Stat_dead_aa_10$FN == treatment] <- significance
+  } else {
+    Stat_dead_aa_10$significance[Stat_dead_aa_10$FN == "Blank H2O"] <- NA
+  }
+}
+
+# Print the modified tibble
+Stat_dead_aa_10
+
+# Print the results
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.05) {
+      significance <- "Significant"
+    } else {
+      significance <- "Not significant"
+    }
+    message("Comparison between Control and ", treatment, ": ", significance, " (p-value = ", p_value, ")")
+  }
+}
+
+```
+
+
+```{r stats Conc 100 AA & 12.54d}
+#dplyr::select the experiment
+Stat_dead_aa_100 <- Stat_dead_aa3 %>%  filter(Conc == "100")
+Stat_dead_aa_100 <- Stat_dead_aa_100 %>% filter(UV_time == "12.54")
+Stat_dead_aa_100
+
+# Create the contingency table
+contingency_table <- aggregate(cbind(survived, died, swimmer, swim_disa, normal, Body_curv) ~ FN, data = Stat_dead_aa_100, FUN = sum)
+contingency_table
+# Perform Fisher's exact test
+fisher_test <- list()
+
+# Get the unique treatment groups
+treatment_groups <- unique(contingency_table$FN)
+
+##Survival -------------
+
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    # Subset the contingency table for the current treatment and control groups
+    treatment_data <- subset(contingency_table, FN == treatment | FN == "Blank H2O")
+
+    # Create a contingency table for the Fisher's exact test
+    comparison_table <- matrix(c(treatment_data$died, treatment_data$survived), nrow = 2)
+
+    # Perform Fisher's exact test
+    fisher_test[[treatment]] <- fisher.test(comparison_table)
+  }
+}
+
+# Add significant differences to the tibble
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.001) {
+      significance_D <- "**"
+    } else if (p_value < 0.01) {
+      significance_D <- "*"
+    } else if (p_value < 0.05) {
+      significance_D <- "*"
+    } else {
+      significance_D <- "ns"
+    }
+    # Add the significance information to the original tibble
+    Stat_dead_aa_100$significance_D[Stat_dead_aa_100$FN == treatment] <- significance_D
+  } else {
+    Stat_dead_aa_100$significance_D[Stat_dead_aa_100$FN == "Blank H2O"] <- NA
+  }
+}
+
+# Print the modified tibble
+Stat_dead_aa_100_D <- Stat_dead_aa_100
+Stat_dead_aa_100_D
+
+##Swim disability -------------
+
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    # Subset the contingency table for the current treatment and control groups
+    treatment_data <- subset(contingency_table, FN == treatment | FN == "Blank H2O")
+
+    # Create a contingency table for the Fisher's exact test
+    comparison_table <- matrix(c(treatment_data$swim_disa, treatment_data$swimmer), nrow = 2)
+
+    # Perform Fisher's exact test
+    fisher_test[[treatment]] <- fisher.test(comparison_table)
+  }
+}
+
+# Add significant differences to the tibble
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.001) {
+      significance_S <- "**"
+    } else if (p_value < 0.01) {
+      significance_S <- "*"
+    } else if (p_value < 0.05) {
+      significance_S <- "*"
+    } else {
+      significance_S <- "ns"
+    }
+    # Add the significance information to the original tibble
+    Stat_dead_aa_100_D$significance_S[Stat_dead_aa_100_D$FN == treatment] <- significance_S
+  } else {
+    Stat_dead_aa_100_D$significance_S[Stat_dead_aa_100_D$FN == "Blank H2O"] <- NA
+  }
+}
+
+# Print the modified tibble
+Stat_dead_aa_100_DS <- Stat_dead_aa_100_D
+Stat_dead_aa_100_DS
+
+##Body curvature -------------
+
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    # Subset the contingency table for the current treatment and control groups
+    treatment_data <- subset(contingency_table, FN == treatment | FN == "Blank H2O")
+
+    # Create a contingency table for the Fisher's exact test
+    comparison_table <- matrix(c(treatment_data$Body_curv, treatment_data$normal), nrow = 2)
+
+    # Perform Fisher's exact test
+    fisher_test[[treatment]] <- fisher.test(comparison_table)
+  }
+}
+
+# Add significant differences to the tibble
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.001) {
+      significance_B <- "**"
+    } else if (p_value < 0.01) {
+      significance_B <- "*"
+    } else if (p_value < 0.05) {
+      significance_B <- "*"
+    } else {
+      significance_B <- "ns"
+    }
+    # Add the significance information to the original tibble
+    Stat_dead_aa_100_DS$significance_B[Stat_dead_aa_100_DS$FN == treatment] <- significance_B
+  } else {
+    Stat_dead_aa_100_DS$significance_B[Stat_dead_aa_100_DS$FN == "Blank H2O"] <- NA
+  }
+}
+
+# Print the modified tibble
+Stat_dead_aa_100_DSB_12 <- Stat_dead_aa_100_DS
+Stat_dead_aa_100_DSB_12
+
+```
+
+
+```{r stats Conc 100 AA & 25.08d}
+#dplyr::select the experiment
+Stat_dead_aa_100 <- Stat_dead_aa3 %>%  filter(Conc == "100")
+Stat_dead_aa_100 <- Stat_dead_aa_100 %>% filter(UV_time == "25.08")
+Stat_dead_aa_100
+
+# Create the contingency table
+contingency_table <- aggregate(cbind(survived, died, swimmer, swim_disa, normal, Body_curv) ~ FN, data = Stat_dead_aa_100, FUN = sum)
+contingency_table
+# Perform Fisher's exact test
+fisher_test <- list()
+
+# Get the unique treatment groups
+treatment_groups <- unique(contingency_table$FN)
+
+##Survival -------------
+
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    # Subset the contingency table for the current treatment and control groups
+    treatment_data <- subset(contingency_table, FN == treatment | FN == "Blank H2O")
+
+    # Create a contingency table for the Fisher's exact test
+    comparison_table <- matrix(c(treatment_data$died, treatment_data$survived), nrow = 2)
+
+    # Perform Fisher's exact test
+    fisher_test[[treatment]] <- fisher.test(comparison_table)
+  }
+}
+
+# Add significant differences to the tibble
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.001) {
+      significance_D <- "**"
+    } else if (p_value < 0.01) {
+      significance_D <- "*"
+    } else if (p_value < 0.05) {
+      significance_D <- "*"
+    } else {
+      significance_D <- "ns"
+    }
+    # Add the significance information to the original tibble
+    Stat_dead_aa_100$significance_D[Stat_dead_aa_100$FN == treatment] <- significance_D
+  } else {
+    Stat_dead_aa_100$significance_D[Stat_dead_aa_100$FN == "Blank H2O"] <- NA
+  }
+}
+
+# Print the modified tibble
+Stat_dead_aa_100_D <- Stat_dead_aa_100
+Stat_dead_aa_100_D
+
+##Swim disability -------------
+
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    # Subset the contingency table for the current treatment and control groups
+    treatment_data <- subset(contingency_table, FN == treatment | FN == "Blank H2O")
+
+    # Create a contingency table for the Fisher's exact test
+    comparison_table <- matrix(c(treatment_data$swim_disa, treatment_data$swimmer), nrow = 2)
+
+    # Perform Fisher's exact test
+    fisher_test[[treatment]] <- fisher.test(comparison_table)
+  }
+}
+
+# Add significant differences to the tibble
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.001) {
+      significance_S <- "**"
+    } else if (p_value < 0.01) {
+      significance_S <- "*"
+    } else if (p_value < 0.05) {
+      significance_S <- "*"
+    } else {
+      significance_S <- "ns"
+    }
+    # Add the significance information to the original tibble
+    Stat_dead_aa_100_D$significance_S[Stat_dead_aa_100_D$FN == treatment] <- significance_S
+  } else {
+    Stat_dead_aa_100_D$significance_S[Stat_dead_aa_100_D$FN == "Blank H2O"] <- NA
+  }
+}
+
+# Print the modified tibble
+Stat_dead_aa_100_DS <- Stat_dead_aa_100_D
+Stat_dead_aa_100_DS
+
+##Body curvature -------------
+
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    # Subset the contingency table for the current treatment and control groups
+    treatment_data <- subset(contingency_table, FN == treatment | FN == "Blank H2O")
+
+    # Create a contingency table for the Fisher's exact test
+    comparison_table <- matrix(c(treatment_data$Body_curv, treatment_data$normal), nrow = 2)
+
+    # Perform Fisher's exact test
+    fisher_test[[treatment]] <- fisher.test(comparison_table)
+  }
+}
+
+# Add significant differences to the tibble
+for (treatment in treatment_groups) {
+  if (treatment != "Blank H2O") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.001) {
+      significance_B <- "**"
+    } else if (p_value < 0.01) {
+      significance_B <- "*"
+    } else if (p_value < 0.05) {
+      significance_B <- "*"
+    } else {
+      significance_B <- "ns"
+    }
+    # Add the significance information to the original tibble
+    Stat_dead_aa_100_DS$significance_B[Stat_dead_aa_100_DS$FN == treatment] <- significance_B
+  } else {
+    Stat_dead_aa_100_DS$significance_B[Stat_dead_aa_100_DS$FN == "Blank H2O"] <- NA
+  }
+}
+
+# Print the modified tibble
+Stat_dead_aa_100_DSB_25 <- Stat_dead_aa_100_DS
+Stat_dead_aa_100_DSB_25
+
+```
+
+#Comparison using averages
+```{r Full table}
+#Mean of dead, swim disability and body curvature
+
+Dead_aa_100_1 <- Dead_aa %>%  filter(Conc == "100", Agi_time == "24") %>% 
+  group_by(FN, UV_time, ID, N_initial) %>% 
+  summarise(sum_D = sum(Dead), sum_D_fq = sum(fq_dead)) %>% 
+  mutate(survival = N_initial-sum_D,
+         survival_per = survival*100/N_initial) 
+Dead_aa_100_1
+
+S_B_aa_100 <- Dead_aa %>%  filter(Conc == "100", Agi_time == "24", Time == 48) %>% 
+  rename(sum_S = Swim_disa, sum_S_fq = fq_swim_disa, sum_B = Body_curv, sum_B_fq = fq_body_curv) %>% 
+  dplyr::select(FN, UV_time, ID, , N_initial, sum_S, sum_S_fq, sum_B, sum_B_fq) %>% 
+  mutate(normal_dvpt = N_initial-sum_B,
+         normal_dvpt_per = normal_dvpt*100/N_initial) 
+S_B_aa_100
+
+Dead_aa_100  <- Dead_aa_100_1 %>% left_join(S_B_aa_100)
+Dead_aa_100 
+
+
+Dead_aa_100_kin <- Dead_aa_100 %>% filter(FN != "PA α ø.35", FN != "PA β ø.33", FN != "PA γ ø.33",  FN != "PA β ø.95", FN != "PBS δ ø.35")
+Dead_aa_100_kin
+
+Dead_aa_100_2 <- Dead_aa_100 %>% group_by(FN, UV_time) %>% 
+  summarise(n = n(), #med_D = median(sum_D, na.rm = T),
+            avg_D = mean(sum_D, na.rm = T),
+            sd_D = sd(sum_D, na.rm = T),
+            avg_D_fq = mean(sum_D_fq, na.rm = T),
+            sd_D_fq = sd(sum_D_fq, na.rm = T),
+            #med_S = median(sum_S, na.rm = T),
+            avg_S = mean(sum_S, na.rm = T),
+            sd_S = sd(sum_S, na.rm = T),
+            avg_S_fq = mean(sum_S_fq, na.rm = T),
+            sd_S_fq = sd(sum_S_fq, na.rm = T),
+            #med_B = median(sum_B, na.rm = T),
+            avg_B = mean(sum_B, na.rm = T),
+            sd_B = sd(sum_B, na.rm = T),
+            avg_B_fq = mean(sum_B_fq, na.rm = T),
+            sd_B_fq = sd(sum_B_fq, na.rm = T))
+
+Dead_aa_100_2
+
+Dead_aa_100_2_WoE <- Dead_aa_100 %>% group_by(FN, UV_time) %>% 
+  summarise(n = n(), 
+            avg_surv = mean(survival_per, na.rm = T),
+            sd_surv = sd(survival_per, na.rm = T),
+    
+            avg_dvpt = mean(normal_dvpt_per, na.rm = T),
+            sd_dvpt = sd(normal_dvpt_per, na.rm = T))
+
+Dead_aa_100_2_WoE
+
+Blc_values1 <- Dead_aa_100_2 %>% filter(FN == "Blank H2O") %>% slice(rep(row_number(), each = 3)) %>% 
+  rename(sum_D = avg_D, sum_S = avg_S, sum_B = avg_B) %>% mutate_at(vars(sum_D, sum_S, sum_B), ~ round(., 0))
+Blc_values1
+BLC_Values <- bind_rows(replicate(3, Blc_values1, simplify = F)) %>% ungroup() %>% dplyr::select(-FN, -UV_time, -n, -sd_D, -sd_S, -sd_B)
+BLC_Values
+
+# Dead_aa_100_corr <- Dead_aa_100_kin %>%
+#   filter(FN != "Blank H2O") %>%
+#   bind_cols(BLC_Values) %>%
+#   mutate(
+#     sum_D_corr = sum_D...4 - sum_D...7,
+#     sum_S_corr = sum_S...5 - sum_S...8,
+#     sum_B_corr = sum_B...6 - sum_B...9) %>% 
+#   mutate_at(vars(sum_D_corr, sum_S_corr, sum_B_corr), ~ ifelse(. < 0, 0, .)) %>% 
+#   dplyr::select(-c(sum_D...4, sum_S...5, sum_B...6, sum_D...7, sum_S...8, sum_B...9))
+# 
+# Dead_aa_100_corr
+
+Dead_aa_100_Lavg <- Dead_aa_100_2 %>%
+  dplyr::select(FN, UV_time, avg_D, avg_S, avg_B) %>%
+  pivot_longer(cols = c(avg_D, avg_S, avg_B),
+               names_to = "endpt",
+               values_to = "Avg_endpt",
+               values_drop_na = T,
+               names_repair = "unique") 
+Dead_aa_100_Lavg
+
+Dead_aa_100_Lsd <- Dead_aa_100_2 %>%
+  dplyr::select(FN, UV_time, sd_D, sd_S, sd_B) %>%
+  pivot_longer(cols = c(sd_D, sd_S, sd_B),
+               names_to = "endpt_sd",
+               values_to = "sd_endpt",
+               values_drop_na = T,
+               names_repair = "unique")  %>% 
+  dplyr::select(-endpt_sd)
+Dead_aa_100_Lsd
+
+Dead_aa_100_L <- cbind(Dead_aa_100_Lavg, Dead_aa_100_Lsd) %>% 
+  dplyr::select(-FN...5, -UV_time...6) %>% 
+  rename(FN = FN...1, UV_Time = UV_time...2)
+Dead_aa_100_L
+
+#fq---
+
+Dead_aa_100_Lavg_fq <- Dead_aa_100_2 %>%
+  dplyr::select(FN, UV_time, avg_D_fq, avg_S_fq, avg_B_fq) %>%
+  pivot_longer(cols = c(avg_D_fq, avg_S_fq, avg_B_fq),
+               names_to = "endpt_fq",
+               values_to = "Avg_endpt_fq",
+               values_drop_na = T,
+               names_repair = "unique") 
+Dead_aa_100_Lavg_fq
+
+Dead_aa_100_Lsd_fq <- Dead_aa_100_2 %>%
+  dplyr::select(FN, UV_time, sd_D_fq, sd_S_fq, sd_B_fq) %>%
+  pivot_longer(cols = c(sd_D_fq, sd_S_fq, sd_B_fq),
+               names_to = "endpt_sd_fq",
+               values_to = "sd_endpt_fq",
+               values_drop_na = T,
+               names_repair = "unique")  %>% 
+  dplyr::select(-endpt_sd_fq)
+Dead_aa_100_Lsd_fq
+
+Dead_aa_100_L_fq <- cbind(Dead_aa_100_Lavg_fq, Dead_aa_100_Lsd_fq) %>% 
+  dplyr::select(-FN...5, -UV_time...6) %>% 
+  rename(FN = FN...1, UV_Time = UV_time...2)
+Dead_aa_100_L_fq
+
+#Fq of dead, swim disability and body curvature
+
+Stat_dead_aa5 <- rbind(Stat_dead_aa_100_DSB_0, Stat_dead_aa_100_DSB_6, Stat_dead_aa_100_DSB_12, Stat_dead_aa_100_DSB_25) %>% 
+  mutate(significance_D = if_else(significance_D == "ns", NA, significance_D),
+         significance_S = if_else(significance_S == "ns", NA, significance_S),
+         significance_B = if_else(significance_B == "ns", NA, significance_B)) 
+Stat_dead_aa5
+```
+
+```{r stat}
+Dead_aa_100_3 <- Dead_aa_100 %>%  filter(FN == "Blank H2O")
+Dead_aa_100_3 
+
+Aov <- aov(sum_D~UV_time, Dead_aa_100_3) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+#Analyses Résidus
+
+ggplot(Dead_aa_100_3, aes(x=sum_S)) + geom_histogram(binwidth = 0.5) 
+ggplot(Dead_aa_100_3, aes(x=sum_S)) + geom_density()
+#plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P > 0.05 H0 cannot be rejected normality verified
+
+#Test of variance
+bartlett.test(sum_S~UV_time, Dead_aa_100_3) #P-value > 0.05 --> equality of variance
+
+TukeyHSD(Aov)
+
+# # get (adjusted) weight means per group
+# model_means <- emmeans(object = Aov,
+#                        specs = "FN")
+# model_means
+# 
+# # add letters to each mean
+# model_means_cld <- cld(object = model_means,
+#                        adjust = "holm",
+#                        Letters = letters,
+#                        alpha = 0.05)
+# 
+# model_means_cld
+# 
+# tuk <- glht(Aov, linfct = mcp(FN = "Tukey"))
+# plot(tuk)
+
+#condition non respectee donc test de kruskal
+kruskal.test(sum_S~UV_time, Dead_aa_100_3)
+#P-value < 0.05, on rejette H0,au moins une des moyennes est significativement différente
+
+# MWU_res_n <- kwAllPairsDunnTest(sum_S_corr~factor(UV_time), Dead_aa_100_3, p.adjust.method = "holm")
+# MWU_res_n
+# 
+# df_pval =  MWU_res_n$p.value
+# df_pval
+# 
+# df_pval2 = fullPTable(df_pval)
+# df_pval2
+# 
+# multcompLetters(df_pval2)
+# label_n <- data.frame(label = c( "a"   ,  "ab"   ,   "b"  ,   "ab"   ,  "ab"   ,   "a"))
+# label_n
+# 
+# max_values <- Conc_100_12 %>%
+#   group_by(FN) %>%
+#   summarize(max_value = max(ajusted_BPM, na.rm = T))
+# max_values
+# 
+# Star_ctl <- as_tibble(df_pval2, rownames = "FN") %>%
+#   dplyr::select(FN, ctl) %>%
+#   mutate(diff = if_else(ctl == 1 & FN == "ctl", NA,
+#                         if_else(ctl >= 0.05, "ns",
+#                                 if_else(ctl < 0.0001, "****",
+#                                         if_else(ctl < 0.001, "***",
+#                                                 if_else(ctl < 0.01, "**",
+#                                                       if_else(ctl < 0.05, "*", NA)))))))
+# Star_ctl
+# 
+# MWU_n_Lett<- cbind(max_values, label_n, diff = Star_ctl$diff, UV_Time = c("12.54"), Conc = c("100"))
+# MWU_n_Lett
+
+```
+
+```{r stat FN vs Blank}
+Dead_aa_100_3 <- Dead_aa_100 %>%filter(UV_time == "25.08")
+Dead_aa_100_3 
+
+Aov <- aov(sum_D~FN, Dead_aa_100_3) ## P-value < 0.05 
+anova(Aov)
+report(Aov)
+summary.lm(Aov)
+
+#Analyses Résidus
+
+ggplot(Dead_aa_100_3, aes(x=sum_S)) + geom_histogram(binwidth = 0.5) 
+ggplot(Dead_aa_100_3, aes(x=sum_S)) + geom_density()
+plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P > 0.05 H0 cannot be rejected normality verified
+
+#Test of variance
+bartlett.test(sum_S~UV_time, Dead_aa_100_3) #P-value > 0.05 --> equality of variance
+
+TukeyHSD(Aov)
+
+# # get (adjusted) weight means per group
+# model_means <- emmeans(object = Aov,
+#                        specs = "FN")
+# model_means
+# 
+# # add letters to each mean
+# model_means_cld <- cld(object = model_means,
+#                        adjust = "holm",
+#                        Letters = letters,
+#                        alpha = 0.05)
+# 
+# model_means_cld
+# 
+# tuk <- glht(Aov, linfct = mcp(FN = "Tukey"))
+# plot(tuk)
+
+#condition non respectee donc test de kruskal
+# kruskal.test(sum_S~UV_time, Dead_aa_100_3)
+#P-value < 0.05, on rejette H0,au moins une des moyennes est significativement différente
+
+# MWU_res_n <- kwAllPairsDunnTest(sum_S_corr~factor(UV_time), Dead_aa_100_3, p.adjust.method = "holm")
+# MWU_res_n
+# 
+# df_pval =  MWU_res_n$p.value
+# df_pval
+# 
+# df_pval2 = fullPTable(df_pval)
+# df_pval2
+# 
+# multcompLetters(df_pval2)
+# label_n <- data.frame(label = c( "a"   ,  "ab"   ,   "b"  ,   "ab"   ,  "ab"   ,   "a"))
+# label_n
+# 
+# max_values <- Conc_100_12 %>%
+#   group_by(FN) %>%
+#   summarize(max_value = max(ajusted_BPM, na.rm = T))
+# max_values
+# 
+# Star_ctl <- as_tibble(df_pval2, rownames = "FN") %>%
+#   dplyr::select(FN, ctl) %>%
+#   mutate(diff = if_else(ctl == 1 & FN == "ctl", NA,
+#                         if_else(ctl >= 0.05, "ns",
+#                                 if_else(ctl < 0.0001, "****",
+#                                         if_else(ctl < 0.001, "***",
+#                                                 if_else(ctl < 0.01, "**",
+#                                                       if_else(ctl < 0.05, "*", NA)))))))
+# Star_ctl
+# 
+# MWU_n_Lett<- cbind(max_values, label_n, diff = Star_ctl$diff, UV_Time = c("12.54"), Conc = c("100"))
+# MWU_n_Lett
+
+```
+
+
+```{r Visualization}
+#Data of total dead
+
+CSI_2023 <- Dead_aa_100_L %>% filter(FN != "PA α ø.35", FN != "PA β ø.33", FN != "PA γ ø.33",  FN != "PA β ø.95", FN != "PBS δ ø.35")
+CSI_2023
+
+CSI_2023_publi <- CSI_2023 %>% mutate(UV_Time = if_else(UV_Time == "0", UV_Time,
+                                                              if_else(UV_Time == "6.27", "6",
+                                                                      if_else(UV_Time == "12.54", "12",
+                                                                              if_else(UV_Time == "25.08", "25", UV_Time)))))
+
+CSI_2023_publi$UV_Time = factor(CSI_2023_publi$UV_Time, levels=c('0','6','12','25'))
+
+Visua <- CSI_2023_publi %>% ggplot(aes(UV_Time, Avg_endpt, fill = endpt)) + 
+  geom_col(width = 0.6, position = position_dodge()) +
+  geom_errorbar(aes(ymin = Avg_endpt , ymax= Avg_endpt+sd_endpt), 
+                    position = position_dodge(width = 0.6), width = 0.25, size = 0.75) +
+  scale_y_continuous(limits = c(0,20)) +
+  facet_grid(~FN, scales = "free_x", labeller = labeller(FN = c("HPPE ε ø4.25" = "HPPE \u03B5 Ø4.25 \nn = 57",
+                              "PA γ ø.60" = "PA6 \u03B3 Ø.60 \nn = 57",
+                              "PBS δ ø.60" = "PBSAT \u03B4 Ø.60 \nn = 57",
+                              "Blank H2O" = "Blank H2O \nn = 57"))) +
+  scale_fill_manual(values = my_palette, 
+                    labels = c("Mortality", "Swimming disability", "Abnormal body curvature")) +
+  labs(title = "Dead fish, fish showing swimming disability and abnormal body curvature\nfollowing 48h of leachate exposure\n",
+       y = "Number of individuals",
+       x = "UV irradiation time (day)",
+       fill = "Endpoints") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = -4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = "bold"),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 18, face = "bold", margin = margin(t = 0, r = 0, b = 20, l = 0)),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.title= element_text(size = 14, face = "bold", vjust = 1, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        legend.text = element_text(size = 14),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.spacing.y = unit(0.2, 'cm'),
+        plot.margin = unit(c(1, 1, 2, 1), "cm")) +
+  guides(fill = guide_legend(byrow = TRUE))
+Visua
+
+# Visua +
+#   labs(caption = "Kruskal Wallis test: \n(H = 4, df = 3, p > 0.05)") + 
+#   theme(plot.caption = element_text(family = "serif", 
+#                face = "bold", 
+#                color = 1, 
+#                size = 14, 
+#                hjust = 0.999, 
+#                vjust = 180, 
+#                angle = 0, 
+#                lineheight = 1))
+
+```
+
+```{r Visualization Publi kinetic}
+#In number of individual
+#Data of total dead
+
+CSI_2023 <- Dead_aa_100_L %>% filter(FN != "PA α ø.35", FN != "PA β ø.33", FN != "PA γ ø.33",  FN != "PA β ø.95", FN != "PBS δ ø.35")
+CSI_2023
+
+CSI_2023_publi <- CSI_2023 %>% mutate(UV_Time = if_else(UV_Time == "0", UV_Time,
+                                                              if_else(UV_Time == "6.27", "6",
+                                                                      if_else(UV_Time == "12.54", "12",
+                                                                              if_else(UV_Time == "25.08", "25", UV_Time)))))
+
+CSI_2023_publi$UV_Time = factor(CSI_2023_publi$UV_Time, levels=c('0','6','12','25'))
+
+Visua <- CSI_2023_publi %>% ggplot(aes(UV_Time, Avg_endpt, fill = endpt)) + 
+  geom_col(width = 0.8, position = position_dodge()) +
+  geom_errorbar(aes(ymin = Avg_endpt , ymax= Avg_endpt+sd_endpt), 
+                    position = position_dodge(width = 0.8), width = 0.25, size = 0.75) +
+  scale_y_continuous(limits = c(0,15)) +
+  facet_grid(~FN, scales = "free_x", labeller = labeller(FN = c("HPPE ε ø4.25" = "HPPE",
+                              "PA γ ø.60" = "PA6",
+                              "PBS δ ø.60" = "PBS-PBAT",
+                              "Blank H2O" = "Control"))) +
+  scale_fill_manual(values = my_palette, 
+                    labels = c("Mortality", "Swimming disability", "Abnormal body curvature")) +
+  labs(#title = "Dead fish, fish showing swimming disability and abnormal body curvature\nfollowing 48h of leachate exposure",
+       y = "Number of individuals",
+       x = "UV time irradiation (day)",
+       fill = "Endpoints") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = -4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = "bold"),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 18, face = "bold", margin = margin(t = 0, r = 0, b = 20, l = 0)),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.title= element_text(size = 18, face = "bold", vjust = 1, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        legend.text = element_text(size = 18),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.spacing.y = unit(0.2, 'cm'),
+        plot.margin = unit(c(1, 1, 2, 1), "cm")) +
+  guides(fill = guide_legend(byrow = TRUE))
+Visua
+
+# Visua +
+#   labs(caption = "Kruskal Wallis test: \n(H = 4, df = 3, p > 0.05)") + 
+#   theme(plot.caption = element_text(family = "serif", 
+#                face = "bold", 
+#                color = 1, 
+#                size = 14, 
+#                hjust = 0.999, 
+#                vjust = 180, 
+#                angle = 0, 
+#                lineheight = 1))
+
+#In frequence
+#Data of total dead frequency
+
+CSI_2023 <- Dead_aa_100_L_fq %>% filter(FN != "PA α ø.35", FN != "PA β ø.33", FN != "PA γ ø.33",  FN != "PA β ø.95", FN != "PBS δ ø.35")
+CSI_2023
+
+CSI_2023_publi <- CSI_2023 %>% mutate(UV_Time = if_else(UV_Time == "0", UV_Time,
+                                                              if_else(UV_Time == "6.27", "6",
+                                                                      if_else(UV_Time == "12.54", "12",
+                                                                              if_else(UV_Time == "25.08", "25", UV_Time)))))
+
+CSI_2023_publi$UV_Time = factor(CSI_2023_publi$UV_Time, levels=c('0','6','12','25'))
+
+Visua <- CSI_2023_publi %>% ggplot(aes(UV_Time, Avg_endpt_fq, fill = endpt_fq)) + 
+  geom_col(width = 0.8, position = position_dodge()) +
+  geom_errorbar(aes(ymin = Avg_endpt_fq , ymax= Avg_endpt_fq+sd_endpt_fq), 
+                    position = position_dodge(width = 0.8), width = 0.25, size = 0.75) +
+  scale_y_continuous(limits = c(0,1), breaks = seq(0, 1, by = 0.10)) +
+  facet_grid(~FN, scales = "free_x", labeller = labeller(FN = c("HPPE ε ø4.25" = "HPPE-PP",
+                              "PA γ ø.60" = "PA6",
+                              "PBS δ ø.60" = "PBS-PBAT",
+                              "Blank H2O" = "BLANK"))) +
+  # scale_fill_manual(values = c("#256CB4", "#72dbfc","#ef6565"), 
+  #                   labels = c("Mortality", "Swimming disability", "Abnormal body curvature")) +
+  labs(#title = "Dead fish, fish showing swimming disability and abnormal body curvature\nfollowing 48h of leachate exposure",
+       y = "Frequency of affected individuals",
+       x = "Artificial aging time (day)",
+       fill = "Endpoints") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = -4, margin = margin(t = 0, r = 5, b = 20, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = "bold"),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 18, face = "bold", margin = margin(t = 0, r = 0, b = 20, l = 0)),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.title= element_text(size = 18, face = "bold", vjust = 1, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        legend.text = element_text(size = 18),
+        legend.position = "bottom",
+        plot.margin = unit(c(1, 1, 2, 1), "cm")) 
+Visua
+
+```
+
+
+
+```{r Visualization Publi 4-species}
+#In number of individual
+#Data of total dead
+
+CSI_2023 <- Dead_aa_100_L %>% filter(FN == "PA α ø.35" | FN == "PA β ø.33"| FN == "PA γ ø.33"|  FN == "PA β ø.95"| FN == "PBS δ ø.35")
+CSI_2023
+
+CSI_2023_publi <- CSI_2023 %>% mutate(UV_Time = if_else(UV_Time == "0", UV_Time,
+                                                              if_else(UV_Time == "6.27", "6",
+                                                                      if_else(UV_Time == "12.54", "12",
+                                                                              if_else(UV_Time == "25.08", "25", UV_Time)))))
+
+CSI_2023_publi$UV_Time = factor(CSI_2023_publi$UV_Time, levels=c('0','6','12','25'))
+
+Visua <- CSI_2023_publi %>% ggplot(aes(UV_Time, Avg_endpt, fill = endpt)) + 
+  geom_col(width = 0.8, position = position_dodge()) +
+  geom_errorbar(aes(ymin = Avg_endpt , ymax= Avg_endpt+sd_endpt), 
+                    position = position_dodge(width = 0.8), width = 0.25, size = 0.75) +
+  scale_y_continuous(limits = c(0,15)) +
+  facet_grid(~FN, scales = "free_x", labeller = labeller(FN = c("HPPE ε ø4.25" = "HPPE",
+                              "PA γ ø.60" = "PA6",
+                              "PBS δ ø.60" = "PBS-PBAT",
+                              "Blank H2O" = "Control"))) +
+  scale_fill_manual(values = my_palette, 
+                    labels = c("Mortality", "Swimming disability", "Abnormal body curvature")) +
+  labs(#title = "Dead fish, fish showing swimming disability and abnormal body curvature\nfollowing 48h of leachate exposure",
+       y = "Number of individuals",
+       x = "UV time irradiation (day)",
+       fill = "Endpoints") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = -4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = "bold"),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 18, face = "bold", margin = margin(t = 0, r = 0, b = 20, l = 0)),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.title= element_text(size = 18, face = "bold", vjust = 1, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        legend.text = element_text(size = 18),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.spacing.y = unit(0.2, 'cm'),
+        plot.margin = unit(c(1, 1, 2, 1), "cm")) +
+  guides(fill = guide_legend(byrow = TRUE))
+Visua
+
+# Visua +
+#   labs(caption = "Kruskal Wallis test: \n(H = 4, df = 3, p > 0.05)") + 
+#   theme(plot.caption = element_text(family = "serif", 
+#                face = "bold", 
+#                color = 1, 
+#                size = 14, 
+#                hjust = 0.999, 
+#                vjust = 180, 
+#                angle = 0, 
+#                lineheight = 1))
+
+#In frequence
+#Data of total dead frequency
+
+CSI_2023 <- Dead_aa_100_L_fq %>% filter(FN == "PA α ø.35" | FN == "PA β ø.33"| FN == "PA γ ø.33"|  FN == "PA β ø.95"| FN == "PBS δ ø.35")
+CSI_2023
+
+CSI_2023_publi <- CSI_2023 %>% mutate(UV_Time = if_else(UV_Time == "0", UV_Time,
+                                                              if_else(UV_Time == "6.27", "6",
+                                                                      if_else(UV_Time == "12.54", "12",
+                                                                              if_else(UV_Time == "25.08", "25", UV_Time)))))
+
+CSI_2023_publi$UV_Time = factor(CSI_2023_publi$UV_Time, levels=c('0','6','12','25'))
+CSI_2023_publi$endpt_fq = factor(CSI_2023_publi$endpt_fq, levels=c('avg_D_fq','avg_B_fq','avg_S_fq'))
+
+Visua <- CSI_2023_publi %>% 
+  filter(UV_Time == 0 | UV_Time == 25) %>% 
+  ggplot(aes(UV_Time, Avg_endpt_fq*100, fill = endpt_fq)) + 
+  geom_col(width = 0.8, position = position_dodge()) +
+  geom_errorbar(aes(ymin = Avg_endpt_fq*100 , ymax= Avg_endpt_fq*100+sd_endpt_fq*100), 
+                    position = position_dodge(width = 0.8), width = 0.25, size = 0.75) +
+  scale_y_continuous(limits = c(0,45), breaks = seq(0, 45, by = 5)) +
+  facet_grid(~FN, scales = "free_x", labeller = labeller(FN = c("PA α ø.35" = "PA α35",
+                              "PA β ø.33" = "PA β33",
+                              "PA γ ø.33" = "PA γ33",
+                              "PBS δ ø.35" = "PBS δ35"))) +
+  scale_fill_manual(values = c("#256CB4", "#72dbfc","#ef6565"),
+                    labels = c("Mortality", "Abnormal body curvature", "Swimming disability")) +
+  labs(#title = "Dead fish, fish showing swimming disability and abnormal body curvature\nfollowing 48h of leachate exposure",
+       y = "Percentage of affected individuals",
+       x = "Artificial aging time (day)",
+       fill = "Endpoints") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = -4, margin = margin(t = 0, r = 5, b = 20, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = "bold"),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 18, face = "bold", margin = margin(t = 0, r = 0, b = 20, l = 0)),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.title= element_text(size = 18, face = "bold", vjust = 1, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        legend.text = element_text(size = 18),
+        legend.position = "bottom",
+        plot.margin = unit(c(1, 1, 2, 1), "cm")) 
+Visua
+
+```

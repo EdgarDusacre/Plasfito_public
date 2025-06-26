@@ -1,0 +1,573 @@
+---
+title: "BSI"
+author: "Edgar Dusacre"
+date: "2023-07-17"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r Insertion package, include=FALSE}
+library(ggplot2) 
+library(tidyr)
+library(purrr)
+library(tidyverse)
+library(ggrepel)
+library(ggpubr)
+library(knitr)
+library(yaml)
+library(dplyr) 
+library(matrixStats)
+library(EnvStats)
+library(stringr)
+library(gtable)
+library(grid)
+library(FSA)
+library(scales)
+library(wbstats)
+library(ggh4x)
+library(multcompView)
+library(report)
+library(ecotox)
+library(wesanderson)
+library(RColorBrewer)
+library(readr)
+library(readxl)
+library(gmodels)
+library(ggpattern)
+library(zoo)
+library(forcats)
+library(car)
+library(dunn.test)
+
+
+library(forcats)
+library(binom)
+library(lubridate)
+library(ade4)
+library(broom)
+library(rstatix)
+library(rcompanion)
+library(chron)
+library(devtools)
+library(PMCMRplus)
+```
+
+```{r Charger les palettes de couleurs, include=FALSE}
+Plasfito_C <- c("#80CAD0", "#36A7A7", "#276573", "#054959","#E3CCC0", "#F7EAE1", "#A48A7B", "#C6AF8D", "#49BED3", "#256CB4", "#008163", "#44B494", "#7BC6B9")
+
+Plasfito_color <- c("GreenP4" = "#80CAD0", "GreenP3" = "#36A7A7", "GreenP2" = "#276573", "GreenP1" = "#054959","Brown1" = "#E3CCC0", "Brown2" = "#F7EAE1", "Brown3" = "#A48A7B", "Brown4" = "#C6AF8D", "Turquoise1" = "#49BED3", "Blue1" = "#256CB4", "Green1" = "#008163", "Green2" = "#44B494", "Green3" = "#7BC6B9")
+
+List_color_Fr <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                   "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573")
+
+List_color <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                 "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573",
+                 "Euskadi" = "#054959")
+
+Plasfito_Tps <- c("5" = "#80CAD0", "15" = "#36A7A7", "30" = "#276573")
+
+
+#A part si vous souhaitez changer les couleurs do not touch.
+Ech_K2CR2O7<- c("K2CR2O7" = "#80CAD0")
+
+Tps_color <- c("5" = "#80CAD0" , "15" = "#36A7A7", "30" = "#276573")
+
+Dilu_color <- c("0.0125" = "#80CAD0" , "0.025" = "#36A7A7", "0.05" = "#276573", "0.1" = "#008163")
+
+Conc_color <- c("0.4125" = "#80CAD0" , "0.825" = "#36A7A7", "1.65" = "#276573", "3.3" = "#008163")
+Conc_color3 <- c("0.825" = "aquamarine", "1.65" = "#36A7A7", "3.3" = "#276573")
+
+Color_biolu_Pasaia <- c("Ech1" = "aquamarine", "Ech2" = "#36A7A7" , "DMSO" = "#A48A7B")
+
+Color_real_FN <- c("dmso" = "#A48A7B", "CTL" = "#256CB4", "PA_a35" = "#4fd355", "PA_b33" = "#ca98d3", "PA_b95" = "#6e217c", "PA_g33" = "#92b78f", "PA_g60" = "#bbb3bc", "PBS_d35" = "#d3ad4f","PBS_d60" = "#c68640", "HPPE_e425" = "#36A7A7")
+
+my_palette <- rev(brewer.pal(name="BrBG", n=11))[c(1, 3, 5, 9, 11)]
+my_palette
+
+my_palette2 <- rev(brewer.pal(name="BrBG", n=11))[c(2, 3, 5, 8, 9)]
+my_palette2
+
+```
+
+```{r Global table}
+
+Global_avg <- rbind(df_avg_BLA_avg,
+                    df_avg_TPZ_avg,
+                    df_avg_VSR_avg,
+                    df_avg_AUC_avg,
+                    df_avg_TPZ_tap_avg,
+                    df_avg_VMR_avg,
+                    df_avg_AUC_OFF2_avg,
+                    df_avg_TPZ_loff2_avg) %>%
+  mutate(ctl_0 = round(avg_val_adj/100, digits = 2),
+         Bioassay = "Behavior",
+         Organism = "medaka")
+
+Global_avg
+
+Global <- General
+Global
+
+```
+
+<!-- #Correlation -->
+<!-- ```{r Correlation Endpoints} -->
+
+<!-- #Matrice de correlation entre les Endpoints -->
+
+<!-- df_correl12 <- Global %>%   -->
+<!--   ungroup() %>%  -->
+<!--   pivot_wider(names_from = endpt, values_from = c(med_Dtot_adj)) %>%  -->
+<!--   dplyr::select(-FN, -endpt_UV, -max_value, -diff, -ctl_0, -Bioassay, -Organism, -label, -sd_Dtot_adj, -se_Dtot_adj, -n, -UV_Time)  -->
+<!-- df_correl12 -->
+
+<!-- BLA <- df_correl12$BLA %>% na.omit() -->
+<!-- TPZ_BLA <- df_correl12$TPZ_BLA %>% na.omit()  -->
+<!-- VSR <- df_correl12$VSR %>% na.omit() -->
+<!-- Habituation <- df_correl12$Habituation %>% na.omit() -->
+<!-- TPZ_Tapping <- df_correl12$TPZ_Tapping %>% na.omit() -->
+<!-- VMR <- df_correl12$VMR %>% na.omit() -->
+<!-- Acclimatation_LOFF <- df_correl12$Acclimatation_LOFF %>% na.omit() -->
+<!-- TPZ_LOFF <- df_correl12$TPZ_LOFF %>% na.omit() -->
+
+<!-- df_correl <- tibble(BLA, TPZ_BLA, VSR, Habituation, TPZ_Tapping, VMR, Acclimatation_LOFF, TPZ_LOFF) -->
+<!-- df_correl -->
+
+<!-- # Calculer la matrice de corrélation -->
+<!-- cor_matrix <- cor(df_correl, method = "pearson", use = "pairwise.complete.obs") -->
+<!-- cor_matrix[upper.tri(cor_matrix)] <- NA -->
+<!-- cor_matrix  -->
+
+<!-- # Créer une matrice vide pour stocker les valeurs d'Adjusted R-squared -->
+<!-- adjusted_r_squared <- matrix(NA, ncol = ncol(df_correl), nrow = ncol(df_correl)) -->
+
+<!-- # Obtenir les noms des variables -->
+<!-- variable_names <- colnames(df_correl) -->
+
+<!-- # Ajouter les noms de variables comme noms de colonnes et de lignes -->
+<!-- colnames(adjusted_r_squared) <- variable_names -->
+<!-- rownames(adjusted_r_squared) <- variable_names -->
+
+<!-- # Boucle pour calculer les Adjusted R-squared pour chaque paire de variables -->
+<!-- for (i in 1:ncol(df_correl)) { -->
+<!--   for (j in 1:ncol(df_correl)) { -->
+<!--     if (i != j) { -->
+<!--       correlation <- cor.test(df_correl[[i]], df_correl[[j]], method = "pearson") -->
+<!--       adjusted_r_squared[i, j] <- correlation$estimate^2 -->
+<!--     } -->
+<!--   } -->
+<!-- } -->
+
+<!-- # Afficher la matrice des Adjusted R-squared avec les noms de variables -->
+
+<!-- adjusted_r_squared[upper.tri(adjusted_r_squared)] <- NA -->
+<!-- adjusted_r_squared  -->
+
+<!-- # Créer une matrice vide pour stocker les résultats -->
+<!-- final_matrix <- matrix("", nrow = ncol(cor_matrix), ncol = ncol(cor_matrix), dimnames = list(colnames(cor_matrix), colnames(cor_matrix))) -->
+
+<!-- # Boucle pour vérifier les conditions et remplir la matrice finale -->
+<!-- for (i in 1:ncol(cor_matrix)) { -->
+<!--   for (j in 1:ncol(cor_matrix)) { -->
+<!--     if (i != j) { -->
+<!--       if (!is.na(cor_matrix[i, j]) && cor_matrix[i, j] > 0.75 && adjusted_r_squared[i, j] > 0.75) { -->
+<!--         final_matrix[i, j] <- "corr" -->
+<!--       } else { -->
+<!--         final_matrix[i, j] <- "not_corr" -->
+<!--       } -->
+<!--     } -->
+<!--   } -->
+<!-- } -->
+
+<!-- # Afficher la matrice finale -->
+<!-- final_matrix[upper.tri(final_matrix)] <- NA -->
+<!-- final_matrix -->
+<!-- ``` -->
+
+
+
+# BSI based on the deviation from the respective control. 
+
+```{r Make individual score}
+
+Global_avg_sc <- Global_avg %>% dplyr::select(FN, UV_Time, Organism, Bioassay, endpt, n, ctl_0) %>%
+  mutate(score = if_else(!is.na(diff) & ctl_0 > 2, 5,
+                         if_else(!is.na(diff) & ctl_0 > 1.8 & ctl_0 <= 2, 4,
+                                 if_else(!is.na(diff) & ctl_0 > 1.6 & ctl_0 <= 1.8, 3,
+                                         if_else(!is.na(diff) & ctl_0 > 1.4 & ctl_0 <= 1.6, 2,
+                                                 if_else(!is.na(diff) & ctl_0 > 1.2 & ctl_0 <= 1.4, 1,
+                                                         if_else(!is.na(diff) & ctl_0 > 1 & ctl_0 <= 1.2, 0.5,
+                  if_else(!is.na(diff) & ctl_0 < 0, 5,
+                         if_else(!is.na(diff) & ctl_0 < 0.2 & ctl_0 >= 0, 4,
+                                 if_else(!is.na(diff) & ctl_0 < 0.4 & ctl_0 >= 0.2, 3,
+                                         if_else(!is.na(diff) & ctl_0 < 0.6 & ctl_0 >= 0.4, 2,
+                                                 if_else(!is.na(diff) & ctl_0 < 0.8 & ctl_0 >= 0.6, 1,
+                                                         if_else(!is.na(diff) & ctl_0 < 1 & ctl_0 >= 0.8, 0.5, NA)))))))))))))
+Global_avg_sc
+
+Global_sc <- Global %>%
+  dplyr::select(FN, UV_Time, Organism, Bioassay, endpt, endpt_UV, n, label, diff, ctl_0) %>%
+  mutate(score = if_else(!is.na(diff) & ctl_0 > 2, 5,
+                         if_else(!is.na(diff) & ctl_0 > 1.8 & ctl_0 <= 2, 4,
+                                 if_else(!is.na(diff) & ctl_0 > 1.6 & ctl_0 <= 1.8, 3,
+                                         if_else(!is.na(diff) & ctl_0 > 1.4 & ctl_0 <= 1.6, 2,
+                                                 if_else(!is.na(diff) & ctl_0 > 1.2 & ctl_0 <= 1.4, 1,
+                                                         if_else(!is.na(diff) & ctl_0 > 1 & ctl_0 <= 1.2, 0.5, 
+                  if_else(!is.na(diff) & ctl_0 < 0, 5,
+                         if_else(!is.na(diff) & ctl_0 < 0.2 & ctl_0 >= 0, 4,
+                                 if_else(!is.na(diff) & ctl_0 < 0.4 & ctl_0 >= 0.2, 3,
+                                         if_else(!is.na(diff) & ctl_0 < 0.6 & ctl_0 >= 0.4, 2,
+                                                 if_else(!is.na(diff) & ctl_0 < 0.8 & ctl_0 >= 0.6, 1,
+                                                         if_else(!is.na(diff) & ctl_0 < 1 & ctl_0 >= 0.8, 0.5, NA)))))))))))))
+
+Global_sc
+
+```
+
+```{r Make sum score}
+# avg_BSI_rep <- Global_rep_sc %>% filter(endpt != "Acclimatation_LOFF", FN != "CTL") %>% 
+#   group_by(FN, UV_Time, endpt, Organism, Bioassay) %>% 
+#   summarise(mean_score = mean(score, na.rm = T),
+#             sd_score = sd(score, na.rm = T))
+# avg_BSI_rep
+# 
+# sum_BSI_rep <- avg_BSI_rep %>% 
+#   group_by(FN, UV_Time, Organism, Bioassay) %>% 
+#   summarise(sum_score = sum(mean_score))
+# sum_BSI_rep
+
+Sum_BSI <- Global_sc %>% filter(endpt != "TPZ_LON", FN != "CTL") %>% 
+  group_by(FN, UV_Time, Organism, Bioassay) %>% 
+  summarise(sum_score = sum(score, na.rm = T))
+Sum_BSI
+
+```
+
+
+```{r Graph deviation median}
+G_score_med <- Global_sc %>% filter(endpt != "Acclimatation_LOFF", endpt != "TPZ_Tapping", endpt != "TPZ_LON", FN != "CTL") %>% 
+  ggplot(aes(x = UV_Time, y = score, fill = endpt)) +
+  geom_col(color = "white", width = 0.5) +
+  #scale_fill_manual(values = my_palette) +
+  scale_y_continuous(breaks = seq(-5, 15, by = 2)) +
+  facet_wrap(~FN, nrow = 2, labeller = labeller(FN = c("HPPE_e425" ="HPPE \u03B5\nØ4.25 mm",         
+                              "PA_a35" = "PA6 \u03B1\nØ0.35 mm", 
+                              "PA_b33" ="PA6 \u03B2\nØ0.33 mm",
+                              "PA_b95" ="PA6 \u03B2\nØ0.95 mm",
+                              "PA_g33" = "PA6 \u03B3\nØ0.33 mm",
+                              "PA_g60" = "PA6 \u03B3\nØ0.60 mm",
+                              "PBS_d35" = "PBS \u03B4\nØ0.35 mm",
+                              "PBS_d60" = "PBS \u03B4\nØ0.60 mm"))) +
+  labs(#title = "Effect of the fishing nets leachates on medaka fish",
+    y = "Behavioural stress indicator",
+       x = "UV irradiation time", 
+    fill = "Endpoints") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "right",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/2.5)
+
+G_score_med
+
+
+```
+
+```{r Graph deviation mean}
+G_score_avg <- Global_avg_sc %>% filter(endpt != "Acclimatation_LOFF", endpt != "TPZ_Tapping", endpt != "TPZ_LON", FN != "CTL") %>% 
+  ggplot(aes(x = UV_Time, y = score, fill = endpt)) +
+  geom_col(color = "white", width = 0.5) +
+  #scale_fill_manual(values = my_palette) +
+  scale_y_continuous(breaks = seq(-3, 15, by = 2)) +
+  facet_wrap(~FN, nrow = 2, labeller = labeller(FN = c("HPPE_e425" ="HPPE \u03B5\nØ4.25 mm",         
+                              "PA_a35" = "PA6 \u03B1\nØ0.35 mm", 
+                              "PA_b33" ="PA6 \u03B2\nØ0.33 mm",
+                              "PA_b95" ="PA6 \u03B2\nØ0.95 mm",
+                              "PA_g33" = "PA6 \u03B3\nØ0.33 mm",
+                              "PA_g60" = "PA6 \u03B3\nØ0.60 mm",
+                              "PBS_d35" = "PBS \u03B4\nØ0.35 mm",
+                              "PBS_d60" = "PBS \u03B4\nØ0.60 mm"))) +
+  labs(#title = "Effect of the fishing nets leachates on medaka fish",
+    y = "Behavioural stress indicator",
+       x = "UV irradiation time", 
+    fill = "Endpoints") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "right",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/2.5)
+
+G_score_avg
+
+
+```
+
+
+```{r Graph deviation median t0 / 25}
+
+Global_sc2 <- Global_sc %>%
+  mutate(UV_Time = sub("\\.\\d+", "", UV_Time))
+
+Global_sc3 <- Global_sc2 %>% mutate(endpt =
+  if_else(endpt == "TPZ_LOFF", "TPZ LOFF3",
+           if_else(endpt == "TPZ_BLA", "TPZ LOFF1",
+                   if_else(endpt == "TPZ_Tapping", "TPZ Tapping",
+                           if_else(endpt == "Acclimatization_LOFF", "ASD", endpt))))
+  )
+
+Global_sc3$endpt = factor(Global_sc3$endpt, levels=c("BLA",'TPZ LOFF1',"VSR", "TPZ Tapping", "Habituation",  "VMR", "ASD", "TPZ LOFF3"))
+Global_sc3$UV_Time = factor(Global_sc3$UV_Time, levels=c('0','6','12','25'))
+
+# # Export df
+library(writexl)
+write_xlsx(Global_sc3, "Behav_BSI_4sp.xlsx")
+
+
+#Graph publi final
+G_score_avg <- Global_sc %>% filter(endpt != "TPZ_LON", FN != "CTL", FN != "PA_a35", 
+                                    FN != "PA_b33", FN != "PA_g33",  FN != "PA_b95", FN != "PBS_d35") %>% 
+  mutate(endpt_abs = if_else(endpt == "BLA", "Locomotor activity",
+                             if_else(endpt == "VMR", "Visual motor response",
+                                     if_else(endpt == "ASD", "Acclim. sudden darkness",
+                                             if_else(grepl("TPZ", endpt), "Anxiety", endpt))))) %>% 
+  ggplot(aes(x = UV_Time, y = score, fill = endpt)) +
+  geom_col(color = "white", width = 0.5) +
+  #scale_fill_manual(values = my_palette) +
+  scale_y_continuous(breaks = seq(-3, 15, by = 2)) +
+  facet_wrap(~FN, nrow = 1, labeller = labeller(FN = c("HPPE_e425" ="HPPE-PP",
+                              "PA_g60" = "PA6",
+                              "PBS_d60" = "PBS-PBAT"))) +
+  labs(#title = expression(paste(italic("Oryzias latipes'"), " Behavioural Stress Index (BSI)")),
+       #title = "Effect of the fishing nets leachates on medaka fish",
+       y = "Behavioural stress index",
+       x = "UV irradiation time (day)", 
+    fill = "Endpoints") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        legend.position = "right",
+        legend.title = element_text(size = 20, face = 'bold', color = "black"),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 18, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/2.5)
+
+G_score_avg
+
+my_palette3 <- c( "#256CB4", "#ef6565", "#ca98d3", "#72dbfc", "aquamarine", "#6e217c", "#DFC27D", "#008163")
+my_palette3 <- c(
+  "#ca98d3",  # Orange
+  "#6A3D9A",  # Violet
+  "#256CB4",  # Bleu
+  "#72dbfc",  # Bleu clair
+  "#33A02C",  # Vert
+  "#FFD700",  # Jaune
+  "#ef6565",  # Rouge
+  "#B15928"   # Marron
+)
+my_palette3 <- rev(brewer.pal(name="RdBu", n=11))[c(2, 3, 5, 8, 9)]
+my_palette3
+
+
+#Graph graphical abstract
+G_score_avg <- Global_sc3 %>% filter(endpt != "TPZ_LON", 
+                                     #endpt != "ASD", 
+                                     FN != "CTL", 
+                                     FN == "PA_a35"| FN == "PA_b33"| FN == "PA_g33"| FN == "PBS_d35") %>% 
+  # mutate(endpt_abs = if_else(endpt == "BLA", "Locomotor activity",
+  #                            if_else(endpt == "VMR", "Visual motor response",
+  #                                    if_else(endpt == "ASD", "Acclim. to darkness",
+  #                                            if_else(grepl("TPZ", endpt), "Anxiety", endpt))))) %>% 
+  mutate(UV_Time = ifelse(UV_Time == "0", "non-aged", "aged"),
+         UV_Time = factor(UV_Time, levels = c("non-aged", "aged"))) %>%
+  ggplot(aes(x = UV_Time, y = score, fill = endpt)) +
+  geom_col(width = 0.5) +
+  scale_fill_viridis_d(option = "turbo") +
+  scale_y_continuous(breaks = seq(-3, 15, by = 1)) +
+  facet_wrap(~FN, nrow = 1, labeller = labeller(FN = c("PA_a35" ="PA α35",
+                              "PA_g33" = "PA γ33",
+                              "PBS_d35" = "PA δ35",
+                              "PA_b33" = "PA β33"))) +
+  labs(#title = expression(paste(italic("Oryzias latipes'"), " Behavioural Stress Index (BSI)")),
+       #title = expression(paste("Effect of the fishing nets leachates on", italic(" Oryzias latipes"))),
+       y = "Behavioral stress index",
+       x = "Artificial aging", 
+    fill = "Behavioral endpoints") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        legend.position = "right",
+        legend.title = element_text(size = 20, face = 'bold', color = "black"),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 18, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/2.5)
+
+G_score_avg
+
+
+#x-axis FN & Facet Days
+G_score_avg <- Global_sc %>% filter(endpt != "Acclimatation_LOFF", endpt != "TPZ_Tapping", endpt != "TPZ_LON", 
+                                        FN != "CTL", FN == "PA_a35"| FN == "PA_b33"| FN == "PA_g33"|  FN == "PA_b95"| FN == "PBS_d35") %>% 
+  ggplot(aes(x = FN, y = score, fill = endpt)) +
+  geom_col(color = "white", width = 0.5) +
+  #scale_fill_manual(values = my_palette) +
+  scale_y_continuous(breaks = seq(-3, 15, by = 2)) +
+  scale_x_discrete(labels = c("HPPE \u03B5\nØ4.25 \nn = 48",
+                              "PA6 \u03B3\nØ.60 \nn = 48",
+                              "PBS \u03B4\nØ.60 \nn = 48")) +
+  facet_wrap(~UV_Time, nrow = 1, labeller = labeller(UV_Time_f = c("0" = "0 days", "6.27" = "6.27 days", "12.54" = "12.54 days ", "25.08" = "25.08 days"))) +
+  labs(title = expression(paste(italic("Oryzias latipes'"), " Behavioural Stress Index (BSI)")),
+       #title = "Effect of the fishing nets leachates on medaka fish",
+       y = "Behavioural stress index",
+       x = "Fishing nets", 
+    fill = "Endpoints") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "right",
+        legend.title = element_text(size = 14, face = 'bold', color = "black"),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/2.5)
+
+G_score_avg
+
+
+```
+
+# BSI based on the significative toxicity compared to the respective control. 
+
+1 pt si *
+2 pt si **
+3 pt si ***
+4 pt si ****
+
+```{r Make individual score}
+
+Global_sc_stat <- General %>% dplyr::select(FN, UV_Time, Organism, Bioassay, endpt, endpt_UV, n, label, diff, ctl_0) %>% 
+  mutate(score = if_else(is.na(diff), 0,
+                         if_else(diff == "*", 1,
+                                 if_else(diff == "**", 2,
+                                         if_else(diff == "***", 3,
+                                                 if_else(diff == "****", 4, NA))))))
+Global_sc_stat
+
+Global_sc_stat < General %>% dplyr::select(FN, UV_Time, Organism, Bioassay, endpt, endpt_UV, n, label, diff, ctl_0) %>% 
+  mutate(score = if_else(is.na(diff), 0,
+                         if_else(diff == "*" & ctl_0 < 1, 1,
+                                 if_else(diff == "*" & ctl_0 > 1, 1,
+                                      if_else(diff == "**" & ctl_0 < 1, 2,
+                                              if_else(diff == "**" & ctl_0 > 1, 2,
+                                                    if_else(diff == "***" & ctl_0 < 1, 3,
+                                                            if_else(diff == "***" & ctl_0 > 1, 3,
+                                                                  if_else(diff == "****" & ctl_0 < 1, 4, 
+                                                                          if_else(diff == "****" & ctl_0 > 1, 4, NA))))))))))
+Global_sc_stat
+
+
+```
+
+```{r Make sum score}
+
+Sum_BSI_stat <- Global_sc_stat %>% filter(endpt != "Acclimatation_LOFF", FN != "CTL") %>% 
+  group_by(FN, UV_Time, Organism, Bioassay) %>% 
+  summarise(sum_score = sum(score, na.rm = T))
+Sum_BSI_stat
+
+```
+
+Because Acclimation_LOFF is correlated (cor coef > 75 and r^2 <75) with BLA and TPZ_Tapping with TPZ_LOFF, according to Villa et al., 2018 I have chosen to remove these two endpoints (Acclimation_LOFF and TPZ_Tapping)
+
+```{r Graph}
+
+G_score_stat <- Global_sc_stat %>% filter(endpt != "Acclimatation_LOFF", endpt != "TPZ_Tapping", FN != "CTL") %>% 
+  ggplot(aes(x = UV_Time, y = score, fill = endpt)) +
+  geom_col(color = "white", width = 0.4) +
+  #scale_fill_manual(values = my_palette) +
+  geom_hline(yintercept = 0) +
+  scale_y_continuous(breaks = seq(-6, 15, by = 2)) +
+  facet_wrap(~FN, nrow = 2, labeller = labeller(FN = c("HPPE_e425" ="HPPE \u03B5\nØ4.25 mm",          
+                              "PA_a35" = "PA6 \u03B1\nØ0.35 mm", 
+                              "PA_b33" ="PA6 \u03B2\nØ0.33 mm",
+                              "PA_b95" ="PA6 \u03B2\nØ0.95 mm",
+                              "PA_g33" = "PA6 \u03B3\nØ0.33 mm",
+                              "PA_g60" = "PA6 \u03B3\nØ0.60 mm",
+                              "PBS_d35" = "PBS \u03B4\nØ0.35 mm",
+                              "PBS_d60" = "PBS \u03B4\nØ0.60 mm"))) +
+  labs(#title = "Effect of the fishing nets leachates on medaka fish",
+    y = "Behavioural stress indicator",
+       x = "UV irradiation time", 
+    fill = "Endpoints") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "right",
+        legend.spacing.x = unit(0.3, 'cm'),
+        legend.spacing.y = unit(0.2, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "grey"),
+        legend.key.size = unit(0.6, "cm"),
+        legend.key.width = unit(0.6, "cm"),
+        legend.title.align = 0,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/2.5) +
+  guides(fill = guide_legend(byrow = TRUE))
+
+G_score_stat
+
+
+```
+

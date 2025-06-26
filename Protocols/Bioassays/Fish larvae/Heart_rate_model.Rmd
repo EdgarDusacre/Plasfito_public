@@ -1,0 +1,896 @@
+---
+title: "HR_ctl"
+author: "Edgar Dusacre"
+date: "2023-05-13"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r package upload}
+library(ggplot2)
+library(tidyr)
+library(forcats)
+library(dplyr)
+library(readxl) 
+library(readr)
+library(RColorBrewer)
+library(tidyverse)
+library(binom)
+library(lubridate)
+library(ade4)
+library(ggrepel)
+library(broom)
+library(ggpubr)
+library(rstatix)
+library(wesanderson)
+library(car)
+library(multcompView)
+library(rcompanion)
+library(PMCMRplus)
+library(emmeans)
+library(multcomp)
+```
+
+
+```{r Charger les palettes de couleurs, include=FALSE}
+Plasfito_C <- c("#80CAD0", "#36A7A7", "#276573", "#054959","#E3CCC0", "#F7EAE1", "#A48A7B", "#C6AF8D", "#49BED3", "#256CB4", "#008163", "#44B494", "#7BC6B9")
+
+Plasfito_color <- c("GreenP4" = "#80CAD0", "GreenP3" = "#36A7A7", "GreenP2" = "#276573", "GreenP1" = "#054959","Brown1" = "#E3CCC0", "Brown2" = "#F7EAE1", "Brown3" = "#A48A7B", "Brown4" = "#C6AF8D", "Turquoise1" = "#49BED3", "Blue1" = "#256CB4", "Green1" = "#008163", "Green2" = "#44B494", "Green3" = "#7BC6B9")
+
+List_color_Fr <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                   "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573")
+
+List_color <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                 "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573",
+                 "Euskadi" = "#054959")
+
+Plasfito_Tps <- c("5" = "#80CAD0", "15" = "#36A7A7", "30" = "#276573")
+
+
+#A part si vous souhaitez changer les couleurs do not touch.
+Ech_K2CR2O7<- c("K2CR2O7" = "#80CAD0")
+
+Tps_color <- c("5" = "#80CAD0" , "15" = "#36A7A7", "30" = "#276573")
+
+Dilu_color <- c("0.0125" = "#80CAD0" , "0.025" = "#36A7A7", "0.05" = "#276573", "0.1" = "#008163")
+
+Conc_color <- c("0.4125" = "#80CAD0" , "0.825" = "#36A7A7", "1.65" = "#276573", "3.3" = "#008163")
+Conc_color3 <- c("0.825" = "aquamarine", "1.65" = "#36A7A7", "3.3" = "#276573")
+
+Color_biolu_Pasaia <- c("Ech1" = "aquamarine", "Ech2" = "#36A7A7" , "aa" = "#A48A7B")
+
+Color_real_FN <- c("ctl" = "#A48A7B", "ctl H2O" = "#256CB4", "pa_a33" = "#4fd355", "pa_b33" = "#ca98d3", "pa_b95" = "#6e217c", "pa_g33" = "#92b78f", "pa_g60" = "#4fd355", "pbs_d35" = "#d3ad4f","pbs_d60" = "#c68640", "pe_e4.25" = "#36A7A7", "hppe_e4.25" = "#36A7A7")
+
+Color_Coco<- c("PBS 0.35 r1" = "#33aa3c", 
+"PBS 0.35 r2" = "#0a7011",
+"PBS 0.60 r1" = "#C6AF8D", 
+"PBS 0.60 r2" = "#A48A7B",
+"PA 6 0.33 r1" = "#80CAD0", 
+"PA 6 0.33 r2" = "#054959",
+"PA 6 0.60 r1" = "#0096FC",
+"PA 6 0.60 r2" = "#0039D8",
+"PBS 0.35 pHa" = "#9beaa1")
+
+Color_UV_Time <- c("Solvent ctl" = "#A48A7B", "ctl H2O" = "#256CB4", "10" = "aquamarine", "100" = "#36A7A7")
+```
+
+
+```{r fct n}
+stat_box_data <- function(y, upper_limit = max(BPM_ajusted$ajusted_BPM) * 1.15) {
+  return( 
+    data.frame(
+      y = 0.95 * upper_limit,
+      label = paste('n =', length(y), '\n',
+                    'mean =', round(mean(y), 1), '\n')
+    )
+  )
+}
+
+stat_box_data <- function(y, lower_limit = min(BPM_ajusted$ajusted_BPM) * 1.15) {
+  return( 
+    data.frame(
+      y = 0.95 * lower_limit,
+      label = paste('n =', length(y))
+    )
+  )
+}
+```
+
+```{r data import}
+#Import data leachates AA 12.54J 10% concentration
+HR_ctl_12.54_10 <- read_excel("Hearth rate/HR_analysis_180323.xlsx") %>% 
+  rename(N = BPS_n) %>% 
+  # filter(ID== "ctl2") %>% 
+  dplyr::select(-`Video File` ,-BPS_se, -BPM_se, -BPM_n) %>% 
+  mutate(UV_Time = "12.54", Conc = "10")
+HR_ctl_12.54_10
+
+HR_ctl_12.54_10 %>%
+  ggplot(aes(x = ID, y = BPM, fill=UV_Time)) +
+  geom_boxplot(notch = F)+
+  theme_minimal()
+
+#Import data leachates AA 12.54J 100% concentration
+HR_ctl_12.54_100 <- read_excel("Hearth rate/HR_analysis_180523.xlsx") %>% 
+  rename(N = BPS_n, FN = Conditions) %>% 
+  dplyr::select(-`Video File` ,-BPS_se, -BPM_se, -BPM_n) %>% 
+  mutate(UV_Time = "12.54", Conc = "100", time = ifelse(grepl("48", FN), 48, 24)) %>% 
+  mutate(FN = if_else(FN == "BLC", "ctl", FN)) 
+  #filter(ID== "k1")
+HR_ctl_12.54_100
+
+HR_ctl_12.54_100 %>%
+  ggplot(aes(x = ID, y = BPM, fill=UV_Time)) +
+  geom_boxplot(notch = F)+
+  theme_minimal()
+
+#Import data leachates AA 25.08J 100% concentration
+HR_ctl_25.08_100 <- read_excel("Hearth rate/HR_analysis_130623.xlsx") %>% 
+  rename(N = BPS_n,) %>% 
+  dplyr::select(-`Video File` ,-BPS_se, -BPM_se, -BPM_n) %>% 
+  mutate(UV_Time = "25.08", Conc = "100", time = ifelse(grepl("48", FN), 48, 24)) %>% 
+  mutate(FN = if_else(FN == "BLC", "ctl", FN))   
+  #filter(FN== "ctl")
+HR_ctl_25.08_100
+
+HR_ctl_25.08_100 %>%
+  ggplot(aes(x = ID, y = BPM, fill=FN)) +
+  geom_boxplot(notch = F)+
+  theme_minimal()
+
+#Import data leachates AA T0 100% concentration
+HR_ctl_0_100 <- read_excel("Hearth rate/HR_analysis_240723.xlsx") %>% 
+  filter(!grepl("[opzr]",  ID)) %>% 
+  mutate(FN = if_else(grepl("c", ID), "ctl", 
+                      if_else(grepl("g", ID), "pa_a33",
+                              if_else(grepl("h", ID), "pa_b95",
+                                      if_else(grepl("i", ID), "pa_b33",
+                                              if_else(grepl("j", ID), "pa_g60",
+                                                      if_else(grepl("k", ID), "pa_g33",
+                                                              if_else(grepl("l", ID), "pbs_d60",
+                                                                      if_else(grepl("m", ID), "pbs_d35",
+                                                                              if_else(grepl("n", ID), "hppe_e4.25", NA)))))))))) %>% 
+  rename(N = BPS_n) %>% 
+  dplyr::select(-`Video File` ,-BPS_se, -BPM_se, -BPM_n) %>% 
+  mutate(UV_Time = "0", Conc = "100", time = 24, Hole = "1") %>% 
+  filter(!FN == "ctl" | !BPM < 125,
+         !FN == "ctl" | !BPM > 225,
+         !ID ==  "h2" | !BPM > 200,
+         !ID ==  "m3" | !BPM < 100,
+         !ID ==  "n1" | !BPM < 100)
+HR_ctl_0_100
+
+HR_ctl_0_100 %>%
+  ggplot(aes(x = ID, y = BPM, fill=FN)) +
+  geom_boxplot(notch = F)+
+  theme_minimal()
+
+#Import data leachates AA 6.27d 100% concentration
+HR_ctl_6.27_100 <- read_excel("Hearth rate/HR_analysis_240723.xlsx") %>% 
+  filter(grepl("[opzr]",  ID)) %>% 
+  mutate(FN = if_else(grepl("z", ID), "ctl", 
+                      if_else(grepl("o", ID), "pa_g60",
+                                      if_else(grepl("p", ID), "pbs_d60",
+                                                      if_else(grepl("r", ID), "hppe_e4.25", NA))))) %>%
+  
+  mutate(ID = if_else(grepl("z1", ID), "c1",
+                      if_else(grepl("z2", ID), "c2",
+                              if_else(grepl("z3", ID), "c3",
+                                      if_else(grepl("o1", ID), "j1",
+                                              if_else(grepl("o2", ID), "j2",
+                                                      if_else(grepl("o3", ID), "j3",
+                                                              if_else(grepl("p1", ID), "l1",
+                                                                      if_else(grepl("p2", ID), "l2",
+                                                                              if_else(grepl("p3", ID), "l3",
+                                                                                      if_else(grepl("r1", ID), "n1", 
+                                                                                              if_else(grepl("r2", ID), "n2", 
+                                                                                                      if_else(grepl("r3", ID), "n3", NA))))))))))))) %>%
+  rename(N = BPS_n) %>% 
+  dplyr::select(-`Video File` ,-BPS_se, -BPM_se, -BPM_n) %>% 
+  mutate(UV_Time = "6.27", Conc = "100", time = 24, Hole = "1") %>% 
+  filter(!FN == "ctl" | !BPM < 150,
+         !FN == "ctl" | !BPM >250,
+         !ID == "j2" | !BPM < 100)
+HR_ctl_6.27_100
+
+HR_ctl_6.27_100 %>%
+  ggplot(aes(x = ID, y = BPM, fill=FN)) +
+  geom_boxplot(notch = F)+
+  theme_minimal()
+
+
+HR_aa_tot <- rbind(HR_ctl_0_100, HR_ctl_6.27_100, HR_ctl_12.54_10, HR_ctl_12.54_100, HR_ctl_25.08_100) %>% 
+  filter(FN != "ctl" | ID != "ctl2" | Hole != "1" | Subject != "S04") %>%
+  filter(FN != "ctl" | ID != "ctl1" | Hole != "1" | Subject != "S03") %>%
+  filter(FN != "ctl" | ID != "ctl1" | Hole != "2" | Subject != "S01") %>%
+  filter(FN != "ctl" | ID != "ctl3" | Hole != "2" | Subject != "S03") %>%
+  filter(FN != "gen" | ID != "gen1" | Hole != "2" | Subject != "S03") %>%
+  filter(FN != "gen" | ID != "gen3" | Hole != "1" | Subject != "S02") %>%
+  filter(FN != "pbs_d35_n" | ID != "m3" | Hole != "1" | Subject != "S04") %>%
+  filter(FN != "pe_e4.25_n" | ID != "n3" | Hole != "1" | Subject != "S04") %>% 
+  filter(FN != "ctl" | ID != "BLC1" | Hole != "1" | Subject != "S01") %>%
+  filter(FN != "ctl" | ID != "BLC2" | Hole != "2" | Subject != "S01") %>% 
+  filter(FN != "PAg60_24h" | ID != "h3" | Hole != "2" | Subject != "S01") %>%
+  filter(FN != "PAg33_24h" | ID != "i1" | Hole != "1" | Subject != "S01") %>%
+  filter(FN != "PAg33_24h" | ID != "i2" | Hole != "1" | Subject != "S01") %>%
+  filter(FN != "PBSd60_24h" | ID != "k2" | Hole != "1" | Subject != "S01") %>%
+  filter(FN != "PBSd60_24h" | ID != "k2" | Hole != "1" | Subject != "S03") %>%
+  filter(FN != "PBSd60_48h" | ID != "l1" | Hole != "2" | Subject != "S04") %>%
+  filter(FN != "PBSd60_48h" | ID != "l1" | Hole != "2" | Subject != "S04") %>%
+  filter(FN != "PBSd35_24h" | ID != "m1" | Hole != "2" | Subject != "S02") %>%
+  filter(FN != "PBSd35_24h" | ID != "m1" | Hole != "2" | Subject != "S03") %>%
+  filter(FN != "PBSd35_24h" | ID != "m2" | Hole != "1" | Subject != "S03") %>%
+  filter(FN != "PBSd35_24h" | ID != "m3" | Hole != "1" | Subject != "S03") %>%
+  filter(FN != "PBSd35_24h" | ID != "m3" | Hole != "2" | Subject != "S02") %>%
+  filter(FN != "PEe425_24h" | ID != "n2" | Hole != "2" | Subject != "S01") %>%
+  filter(FN != "PEe425_24h" | ID != "n2" | Hole != "1" | Subject != "S03") %>%
+  filter(FN != "PEe425_24h" | ID != "n3" | Hole != "2" | Subject != "S03") %>%
+  filter(FN != "PEe425_24h" | ID != "n3" | Hole != "1" | Subject != "S02") %>%
+  filter(FN != "pe_e4.25_n" | ID != "n3" | Hole != "1" | Subject != "S04") %>%
+  filter(FN != "pe_e4.25_n" | ID != "n3" | Hole != "1" | Subject != "S03") %>%
+  mutate(FN = str_remove(FN, "_[nu]"),
+         FN = if_else(FN == "PAg33_24h", "pa_g33", FN),
+         FN = if_else(FN == "PAg60_24h", "pa_g60", FN),
+         FN = if_else(FN == "PBSd35_24h", "pbs_d35", FN),
+         FN = if_else(FN == "PBSd60_24h", "pbs_d60", FN),
+         FN = if_else(FN == "PBSd60_48h", "pbs_d60", FN),
+         FN = if_else(FN == "PEe425_24h", "hppe_e4.25", FN),
+         FN = if_else(FN == "pe_e4.25", "hppe_e4.25", FN),
+         UV_Time = as.factor(UV_Time)) %>% 
+  mutate(UV_Time = factor(UV_Time, levels = c("0", "6.27", "12.54", "25.08")))
+HR_aa_tot
+
+#export data
+write.csv(HR_aa_tot, "HR_aa_tot_charlotte.csv")
+
+HR_aa_tot %>% filter(Conc != 10) %>% 
+  ggplot(aes(x = ID, y = BPM, fill=UV_Time)) +
+  geom_boxplot(notch = F)+
+  geom_jitter(width = 0.1) +
+  theme_minimal()
+```
+
+```{r full average}
+aa_avg_full <- HR_aa_tot %>% 
+  group_by(UV_Time, FN, Conc) %>% 
+  summarise(n = n(),
+            mean = mean(BPM), 
+            sd = sd(BPM),
+            se = sd/sqrt(n))
+aa_avg_full
+```
+
+```{r Average}
+Avg_N <- HR_aa_tot %>% filter(Conc == "100", time == "24") %>% group_by(FN, UV_Time) %>% summarise(n = n())
+Avg_N 
+
+max(Avg_N$n)
+```
+
+```{r aa ctl }
+HR_ctl <- HR_aa_tot  %>% filter(FN == "ctl", time == "24")
+HR_ctl
+
+HR_ctl %>%
+  ggplot(aes(x = FN, y = BPM, fill=Conc)) +
+  geom_boxplot(notch = F)+
+  facet_grid(~UV_Time) +
+  theme_minimal()+
+  labs(y = "Rythme cardiaque (BPM)",
+       title = "Comparaison des aa")+
+  theme(axis.title.x = element_blank())+
+  annotate(geom="text", x= "ctl", y=40, label="n=18        n=20",
+           color="black", parse = F, size = 3)+
+  annotate(geom="text", x="ctl", y=230, label="a                                                                                  a",
+           color="black", parse = F, size = 3)
+
+```
+
+
+```{r nice df}
+nice_df0 <- BPM_ajusted %>% filter(Conc == "100", FN != "gen") %>% 
+  mutate(Conc = if_else(FN == "ctl", "H2O Blank", Conc)) %>% 
+  mutate(UV_Time = if_else(UV_Time == "0", UV_Time,
+                           if_else(UV_Time == "6.27", "6",
+                                   if_else(UV_Time == "12.54", "12",
+                                           if_else(UV_Time == "25.08", "25", UV_Time))))) %>% 
+  mutate(FN = if_else(FN == "pa_a33", "pa_a35", FN)) %>% 
+  filter(FN != "gen", time == "24", 
+         FN != "gen", FN == "ctl" | FN == "pa_a35" | 
+         FN == "pa_b33" | FN == "pa_g33" |  FN == "pbs_d35",
+         UV_Time == "0" | UV_Time == "25") %>% 
+  rename(UV_time = UV_Time)
+nice_df0
+
+
+```
+
+```{r Average }
+aa_avg <- nice_df0 %>% 
+  group_by(FN, UV_time) %>% 
+  summarise(n = n(),
+            mean = mean(ajusted_BPM), 
+            sd = sd(ajusted_BPM),
+            se = sd/sqrt(n))
+aa_avg
+
+#export xslx
+library(writexl)
+write_xlsx(aa_avg, "HR_4sp.xlsx")
+
+```
+
+
+```{r statistic Blank vs FN t0}
+nice_df <- nice_df0 %>% filter(UV_time == "0")
+
+#normality
+normality_test <- nice_df %>%
+  group_by(FN, UV_time) %>%
+  summarise(normality_pvalue = shapiro.test(ajusted_BPM)$p.value)
+normality_test
+
+#Variance homogeneity
+bartlett_test_FN <- bartlett.test(ajusted_BPM ~ FN, data = nice_df)
+bartlett_test_FN
+
+# Diviser le dataframe par Treatment
+df_list <- nice_df %>%
+  group_by(FN, UV_time) %>%
+  group_split() 
+df_list
+
+
+df_to_bind <- df_list[[1]]
+
+# Supprimer des df si non necessaires
+#df_list <- df_list[c(-1)]
+
+# Lier le dataframe df_to_bind à tous les autres dataframes dans la liste
+df_list <- lapply(df_list, function(df) bind_rows(df, df_to_bind))
+df_list <- df_list[c(-1)]
+df_list
+
+results <- list()
+
+for (i in seq_along(df_list)) {
+  df_sub <- df_list[[i]]
+  states <- unique(df_sub$FN)
+  UV_time <- unique(df_sub$UV_time)[1]  # Prendre la première valeur unique de Time
+  for (j in 1:(length(states) - 1)) {
+    for (k in (j + 1):length(states)) {
+      sample1 <- df_sub[df_sub$FN == states[j], "ajusted_BPM"]$ajusted_BPM
+      sample2 <- df_sub[df_sub$FN == states[k], "ajusted_BPM"]$ajusted_BPM
+      test_result <- wilcox.test(sample1, sample2, paired = FALSE)
+      result <- tibble(
+        FN = df_sub$FN[1],
+        UV_time = UV_time,
+        vs = paste(states[j], states[k], sep = "_vs_"),
+        df = test_result$parameter,
+        p_value = test_result$p.value,
+        W = test_result$statistic)
+      results <- c(results, list(result))
+    }
+  }
+}
+
+results_t0 <- bind_rows(results) %>% 
+  mutate(p_value = if_else(is.na(p_value), 0, p_value)) %>%  
+  na.omit() %>% 
+  separate(vs, into = c("state1", "blank"), sep = "_vs_", remove = T) %>% 
+  dplyr::select(-state1) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "####", 
+                        if_else(p_value < 0.001, "###",
+                                if_else(p_value < 0.01, "##",
+                                        if_else(p_value < 0.05, "#", NA))))) %>% 
+  mutate(FN = case_when(
+    FN == "BLC" ~ "BLANK",
+    FN == "PA_a35" ~ "PA α35",
+    FN == "PA_b33" ~ "PA β33",
+    FN == "PA_g33" ~ "PA γ33",
+    FN == "PBS_d35" ~ "PBS δ35",
+    TRUE ~ FN
+  ))
+
+results_t0
+
+```
+
+
+```{r statistic Blank vs FN t25}
+nice_df <- nice_df0 %>% filter(UV_time == "25")
+
+#normality
+normality_test <- nice_df %>%
+  group_by(FN, UV_time) %>%
+  summarise(normality_pvalue = shapiro.test(ajusted_BPM)$p.value)
+normality_test
+
+#Variance homogeneity
+bartlett_test_FN <- bartlett.test(ajusted_BPM ~ FN, data = nice_df)
+bartlett_test_FN
+
+# Diviser le dataframe par Treatment
+df_list <- nice_df %>%
+  group_by(FN, UV_time) %>%
+  group_split() 
+df_list
+
+
+df_to_bind <- df_list[[1]]
+
+# Supprimer des df si non necessaires
+#df_list <- df_list[c(-1)]
+
+# Lier le dataframe df_to_bind à tous les autres dataframes dans la liste
+df_list <- lapply(df_list, function(df) bind_rows(df, df_to_bind))
+df_list <- df_list[c(-1)]
+df_list
+
+results <- list()
+
+for (i in seq_along(df_list)) {
+  df_sub <- df_list[[i]]
+  states <- unique(df_sub$FN)
+  UV_time <- unique(df_sub$UV_time)[1]  # Prendre la première valeur unique de Time
+  for (j in 1:(length(states) - 1)) {
+    for (k in (j + 1):length(states)) {
+      sample1 <- df_sub[df_sub$FN == states[j], "ajusted_BPM"]$ajusted_BPM
+      sample2 <- df_sub[df_sub$FN == states[k], "ajusted_BPM"]$ajusted_BPM
+      test_result <- wilcox.test(sample1, sample2, paired = FALSE)
+      result <- tibble(
+        FN = df_sub$FN[1],
+        UV_time = UV_time,
+        vs = paste(states[j], states[k], sep = "_vs_"),
+        df = test_result$parameter,
+        p_value = test_result$p.value,
+        W = test_result$statistic)
+      results <- c(results, list(result))
+    }
+  }
+}
+
+results_t25 <- bind_rows(results) %>% 
+  mutate(p_value = if_else(is.na(p_value), 0, p_value)) %>%  
+  na.omit() %>% 
+  separate(vs, into = c("state1", "blank"), sep = "_vs_", remove = T) %>% 
+  dplyr::select(-state1) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "####", 
+                        if_else(p_value < 0.001, "###",
+                                if_else(p_value < 0.01, "##",
+                                        if_else(p_value < 0.05, "#", NA))))) %>% 
+  mutate(FN = case_when(
+    FN == "BLC" ~ "BLANK",
+    FN == "PA_a35" ~ "PA α35",
+    FN == "PA_b33" ~ "PA β33",
+    FN == "PA_g33" ~ "PA γ33",
+    FN == "PBS_d35" ~ "PBS δ35",
+    TRUE ~ FN
+  ))
+
+results_t25
+
+```
+
+```{r resultrs blc}
+results_blc <- bind_rows(results_t0, results_t25) %>%
+   mutate(FN = case_when(
+    FN == "ctl" ~ "BLANK",
+    FN == "pa_a35" ~ "PA α35",
+    FN == "pa_b33" ~ "PA β33",
+    FN == "pa_g33" ~ "PA γ33",
+    FN == "pbs_d35" ~ "PBS δ35",
+    TRUE ~ FN
+  )) %>% 
+  arrange(FN) %>% 
+  mutate(ypos = c(125, 125, 158, 158, 139, 139, 122, 122))
+results_blc
+```
+
+
+```{r statistic t0 vs t25}
+
+#normality
+normality_test <- nice_df0 %>%
+  group_by(FN, UV_time) %>%
+  summarise(normality_pvalue = shapiro.test(ajusted_BPM)$p.value)
+normality_test
+
+#Variance homogeneity
+bartlett_test_time <- bartlett.test(ajusted_BPM ~ UV_time, data = nice_df0)
+bartlett_test_time
+bartlett_test_FN <- bartlett.test(ajusted_BPM ~ FN, data = nice_df0)
+bartlett_test_FN
+
+#histo and density
+nice_df0 %>%
+  ggplot(aes(x = ajusted_BPM, fill = FN)) +
+  geom_histogram() +
+  geom_density() +
+  facet_wrap(FN~UV_time, scales = "free_y", nrow = 2)
+
+#normality of all the data
+# Diviser le dataframe par Treatment
+df_list <- nice_df0 %>%
+  filter(!(FN %in% c("ctl"))) %>% 
+  group_by(FN) %>%
+  group_split()
+df_list
+
+results <- list()
+
+#MWU test 
+for (i in seq_along(df_list)) {
+  df_sub <- df_list[[i]]
+  Times <- unique(df_sub$UV_time)
+  for (j in 1:(length(Times) - 1)) {
+    for (k in (j + 1):length(Times)) {
+      sample1 <- df_sub[df_sub$UV_time == Times[j], "ajusted_BPM"]$ajusted_BPM
+      sample2 <- df_sub[df_sub$UV_time == Times[k], "ajusted_BPM"]$ajusted_BPM
+      test_result <- wilcox.test(sample1, sample2, paired = F)
+      result <- tibble(
+        Treatment = df_sub$FN[1],
+        vs = paste(Times[j], Times[k], sep = "_vs_"),
+        df = test_result$parameter,
+        p_value = test_result$p.value,
+        W = test_result$statistic)
+      results <- c(results, list(result))}}}
+
+results_MU <- bind_rows(results) %>% 
+  mutate(p_value = if_else(is.na(p_value), 0, p_value)) %>%  
+  na.omit() %>% 
+  separate(vs, into = c("Time1", "Time2"), sep = "_vs_", remove = T) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "****", 
+                        if_else(p_value < 0.001, "***",
+                                if_else(p_value < 0.01, "**",
+                                        if_else(p_value < 0.05, "*", "ns"))))) %>% 
+  rename(FN = Treatment) %>% 
+  mutate(FN = case_when(
+    FN == "ctl" ~ "BLANK",
+    FN == "pa_a35" ~ "PA α35",
+    FN == "pa_b33" ~ "PA β33",
+    FN == "pa_g33" ~ "PA γ33",
+    FN == "pbs_d35" ~ "PBS δ35",
+    TRUE ~ FN
+  ))
+results_MU
+
+
+```
+
+
+No significant difference between the FN AA time independently. 
+No significant difference between the AA time generally.
+No significant difference between the FN generally.
+No significant difference between the FN AA time interaction.
+
+```{r Stat ANOVA 1 factors t0}
+
+df_anova <- nice_df0 %>% 
+  filter(FN != "ctl", UV_time == "0") 
+df_anova
+
+aov <- aov(ajusted_BPM ~ FN, data = df_anova)
+summary(aov)
+
+#check normality and heteroscedasticity
+  df_anova %>% 
+    #filter(Time == "ctl" | Time == "t0") %>% 
+    ggplot(aes(x = ajusted_BPM)) + geom_histogram() + facet_wrap(~FN)
+  plot(aov)
+  shapiro.test(residuals(aov))
+  bartlett.test(ajusted_BPM ~ FN, data = df_anova)
+  
+# TukeyHSD(aov)
+# 
+# emm <- emmeans(aov, ~ FN)
+# emm
+# 
+# # Perform Tukey's HSD test
+# res_t0 <- tibble(cld(emm, 
+#                      adjust = "sidak", 
+#                      Letters = letters, 
+#                      alpha = 0.05)) %>% 
+#   rename(diff_lett = ".group") %>% 
+#   mutate(diff_lett = gsub(" ", "", diff_lett)) %>% 
+#   mutate(UV_time = "25") %>% 
+#   mutate(FN = if_else(grepl("pa_g33", FN), "PA γ33",
+#                      if_else(grepl("pbs_d35", FN), "PBS δ35", 
+#                              if_else(grepl("pa_b33", FN), "PA β33", 
+#                                      if_else(grepl("pa_a35", FN), "PA α35", 
+#                                              if_else(grepl("hppe_e425", FN), "HPPE ε4.25", FN)))))) %>% 
+#   #diff lett minuscule to capital letters
+#   mutate(diff_lett = gsub("a", "A", diff_lett),
+#          diff_lett = gsub("b", "B", diff_lett),
+#          diff_lett = gsub("c", "C", diff_lett),
+#          diff_lett = gsub("d", "D", diff_lett)) 
+# 
+# res_t0
+
+#------------KW-----------------#
+
+#condition non respectee donc test de kruskal
+kruskal.test(ajusted_BPM ~ FN, data = df_anova)
+
+#P-value < 0.05, on rejette H0,au moins une des moyennes est significativement différente
+MWU_res_n <- kwAllPairsDunnTest(ajusted_BPM ~ as.factor(FN), data = df_anova, p.adjust.method = "holm")
+MWU_res_n
+
+df_pval =  MWU_res_n$p.value
+df_pval
+
+df_pval2 = fullPTable(df_pval)
+df_pval2
+
+Lett <- multcompLetters(df_pval2)
+Wlett <- as.vector(unlist(Lett$Letters))
+
+label_n <- data.frame(label = Wlett)
+label_n
+
+Star_ctl <- as_tibble(df_pval2, rownames = "FN") %>% 
+  dplyr::select(FN)
+Star_ctl
+
+MWU_t0 <- cbind(label_n, diff = Star_ctl$FN) %>% 
+  rename(FN = diff) %>% 
+  mutate(FN = case_when(
+    FN == "ctl" ~ "BLANK",
+    FN == "pa_a35" ~ "PA α35",
+    FN == "pa_b33" ~ "PA β33",
+    FN == "pa_g33" ~ "PA γ33",
+    FN == "pbs_d35" ~ "PBS δ35",
+    TRUE ~ FN
+  ))
+MWU_t0
+ 
+```
+
+```{r Stat ANOVA 1 factors t25}
+
+df_anova <- nice_df0 %>% 
+  filter(FN != "ctl", UV_time == "25") 
+df_anova
+
+aov <- aov(ajusted_BPM ~ FN, data = df_anova)
+summary(aov)
+
+#check normality and heteroscedasticity
+  df_anova %>% 
+    #filter(Time == "ctl" | Time == "t0") %>% 
+    ggplot(aes(x = ajusted_BPM)) + geom_histogram() + facet_wrap(~FN)
+  plot(aov)
+  shapiro.test(residuals(aov))
+  bartlett.test(ajusted_BPM ~ FN, data = df_anova)
+  
+TukeyHSD(aov)
+
+emm <- emmeans(aov, ~ FN)
+emm
+
+# Perform Tukey's HSD test
+res_t25 <- tibble(cld(emm, 
+                     adjust = "sidak", 
+                     Letters = letters, 
+                     alpha = 0.05)) %>% 
+  rename(diff_lett = ".group") %>% 
+  mutate(diff_lett = gsub(" ", "", diff_lett)) %>% 
+  mutate(UV_time = "25") %>% 
+  mutate(FN = if_else(grepl("pa_g33", FN), "PA γ33",
+                     if_else(grepl("pbs_d35", FN), "PBS δ35", 
+                             if_else(grepl("pa_b33", FN), "PA β33", 
+                                     if_else(grepl("pa_a35", FN), "PA α35", 
+                                             if_else(grepl("hppe_e425", FN), "HPPE ε4.25", FN)))))) %>% 
+  #diff lett minuscule to capital letters
+  mutate(diff_lett = gsub("a", "A", diff_lett),
+         diff_lett = gsub("b", "B", diff_lett),
+         diff_lett = gsub("c", "C", diff_lett),
+         diff_lett = gsub("d", "D", diff_lett)) 
+
+res_t25
+ 
+```
+
+```{r Graph 4-species}
+library(plotly)
+library(ggpattern)
+
+Color_real_FN5 <- c("Control" = "#256CB4", "BLANK" = "#A48A7B", "PA α35" = "#4fd355", "PA β33" = "#ca98d3", "PA β95" = "#6e217c", "PA γ33" = "#92b78f", "PA γ60" = "#bbb3bc", "PBS δ35" = "#d3ad4f","PBS δ60" = "#c68640", "HPPE ε4.25" = "#36A7A7")
+
+nice_df0$UV_time = factor(nice_df0$UV_time, levels=c('0','25'))
+
+
+G_df_fin <- nice_df0 %>%
+  mutate(UV_time = ifelse(UV_time == "0", "non-aged", "aged"),
+         UV_time = factor(UV_time, levels = c("non-aged", "aged"))) %>%
+   mutate(FN = case_when(
+    FN == "ctl" ~ "BLANK",
+    FN == "pa_a35" ~ "PA α35",
+    FN == "pa_b33" ~ "PA β33",
+    FN == "pa_g33" ~ "PA γ33",
+    FN == "pbs_d35" ~ "PBS δ35",
+    TRUE ~ FN
+  )) %>% 
+  ggplot(aes(x = FN, y = ajusted_BPM, fill = FN, pattern = UV_time)) +
+  geom_hline(yintercept = 100, colour = "black", linetype = "dashed") +
+  geom_boxplot_pattern(width = 0.5, position = position_dodge(width = 0.5), pattern_density = 0.1, 
+                   pattern_fill = "white", pattern_color = "white", pattern_spacing = 0.015, show.legend = T) +
+  scale_pattern_discrete(na.value = "none", choices = c("non-aged" = "none", "aged" = "stripe"), 
+                         limits = c("non-aged", "aged")) +
+  
+  stat_summary(fun = mean, 
+               geom = "point", 
+               size = 3, 
+               color = "red3", 
+               position = position_dodge(width = 0.5)) +
+  scale_y_continuous(limits = c(58, 171), breaks = seq(60,171, by = 10)) +
+  scale_fill_manual(values = Color_real_FN5,
+                    #labels = c("BLANK", "PA α35", "PA β33", "PA γ33", "PA δ35")
+                    ) +
+  # facet_wrap(~FN_grid, nrow = 1, scales = "free_x", labeller = labeller(FN_grid = c("BLC_PA_a35" ="PA α35",
+  #                             "BLC_PA_g33" = "PA γ33",
+  #                             "BLC_PBS_d35" = "PA δ35",
+  #                             "BLC_PA_b33" = "PA β33"))) +
+  labs(#title = expression(paste("Bioluminescence inhibition of the marine bacteria ", italic("Aliivibrio fisheri"), " exposed to FN leachate")),
+       #subtitle = "Bioassay with 100% leachate \nData normalized with the control values",
+       x = "Fishing nets",
+       y = "Heart rate (%)",
+       pattern = "Artificial aging") +
+  theme_bw() +
+  theme(legend.position = "none") +
+  #geom_hline(aes(yintercept = 20), color = "red", linetype = "dashed", linewidth = 0.8) +
+   theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        legend.title = element_text(size = 18, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),,
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.key.spacing.y = unit(0.3, 'cm'),
+        legend.spacing.y = unit(5, 'cm'),
+        legend.text = element_text(size = 16, face = 'bold', color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.position = "right",
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) +
+  guides(fill = "none")
+G_df_fin
+
+
+G_df_fin +
+  # labs(caption = "Statistics:\nOne-Way ANOVA\n Post hoc test: Tukey HSD\nletters = p-value < 0.05\nn = 6") +
+  # theme(plot.caption = element_text(family = "serif",
+  #              face = "bold",
+  #              color = 1,
+  #              size = 12,
+  #              hjust = 0.999,
+  #              vjust = 258,
+  #              angle = 0,
+  #              lineheight = 1)) +
+  #Stat FN vs. BLC
+  geom_text(data = results_blc, aes(x = FN, y = ypos, label = diff),
+            position = position_dodge(width=0.5),
+            size = 8, color = "red4",
+            show.legend = FALSE,
+            na.rm = TRUE) +
+  #Stat FN:t0 
+  geom_text(data = MWU_t0, aes(x = FN, y = 168, label = label),
+            hjust = 1.4,
+            size = 8, color = "black",
+            show.legend = FALSE,
+            na.rm = TRUE) +
+  #Stat FN:t25 
+  geom_text(data = res_t25, aes(x = FN, y = 168, label = diff_lett),
+            hjust = -0.1,
+            size = 8, color = "#ff7575",
+            show.legend = FALSE,
+            na.rm = TRUE) +
+  geom_bracket(aes(xmin = 1.87 , xmax= 2.13, 
+                           y.position = 112,
+                           label = "*"),
+                       size = 1.2,
+               label.size = 7,
+                       data = subset(results_MU, FN == "PA α35"),
+               inherit.aes = FALSE) +
+  geom_bracket(aes(xmin = 2.87 , xmax= 3.13, 
+                           y.position = 147,
+                           label = "*"),
+                       size = 1.2,
+               label.size = 7,
+                       data = subset(results_MU, FN == "PA β33"),
+               inherit.aes = FALSE) 
+
+
+
+
+```
+
+
+```{r General plot with statistics 0 / 25.08 facet FN 100% Publi 4-species}
+
+# Add max_values to MWU_df
+MWU_df2 <- rbind(MWU_n_Lett_PBSd60_100, MWU_n_Lett_PAg60_100, MWU_n_Lett_HPPE_100) %>% 
+  mutate(UV_Time = factor(UV_Time, levels = c("0", "6.27", "12.54", "25.08")))
+MWU_df2 
+
+BPM_ajusted_publi <- Conc_100 %>% mutate(UV_Time = if_else(UV_Time == "0", UV_Time,
+                                                              if_else(UV_Time == "6.27", "6",
+                                                                      if_else(UV_Time == "12.54", "12",
+                                                                              if_else(UV_Time == "25.08", "25", UV_Time)))))
+BPM_ajusted_publi
+
+BPM_ajusted_publi$UV_Time = factor(BPM_ajusted_publi$UV_Time, levels=c('0','6','12','25'))
+
+Avg_HR_ibr <- BPM_ajusted_publi %>% 
+  filter(FN != "gen", time == "24", FN == "pa_a33" | FN == "pa_b33"| FN == "pa_g33"|  FN == "pa_b95"| FN == "pbs_d35" | FN == "ctl", UV_Time == "0" | UV_Time == "25") %>%
+  ungroup() %>% 
+  dplyr::select(FN, ID, UV_Time, ajusted_BPM) %>% 
+  group_by(FN, ID, UV_Time) %>%
+  summarise(avg_bpm_adj = mean(ajusted_BPM, na.rm = TRUE)) 
+Avg_HR_ibr
+
+#export df
+library(writexl)
+write_xlsx(Avg_HR_ibr, "Avg_HR_ibr_4sp.xlsx")
+
+# Make the plot
+BoxBPM <- BPM_ajusted_publi %>% filter(FN != "gen", time == "24", 
+                                       FN != "gen", FN == "ctl" | FN == "pa_a33" | 
+                                         FN == "pa_b33" | FN == "pa_g33" |  FN == "pbs_d35",
+                                       UV_Time == "0" | UV_Time == "25") %>%
+  ggplot(aes(x = UV_Time, y = ajusted_BPM, fill = FN)) +
+  geom_boxplot(width = 0.2, position = position_dodge(width = 0.6), coef = 1.5) +
+  facet_grid(~FN, scales = "free_x", labeller = labeller(FN = c("PA α ø.35" = "PA α35",
+                              "PA β ø.33" = "PA β33",
+                              "PA γ ø.33" = "PA γ33",
+                              "PBS δ ø.35" = "PBS δ35",
+                              ctl = "BLANK"))) +
+  stat_summary(fun = mean, 
+               geom = "point", 
+               size = 2, 
+               color = "red3", 
+               position = position_dodge(width = 0.6)) +
+  geom_hline(yintercept = 100, colour = "black", linetype = "dashed") +
+  scale_y_continuous(limits = c(70, 140), breaks = seq(70, 140, by = 10)) +
+  scale_fill_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(x = "Artificial aging time (day)",
+       y = "Heartbeat (%)",
+       #title = expression(paste("Effect of artificially aged FN leachates on ", italic("Oryzias latipes'"), " heart rate")),
+       fill = "Treatment" ) +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+BoxBPM
+
+MWU_df3 <- MWU_df2 %>% filter(FN != "pa_a33", FN != "pa_b33", FN != "pa_g33",  FN != "pa_b95", FN != "pbs_d35") %>% 
+  mutate(UV_Time = if_else(UV_Time == "0", UV_Time,
+                                                              if_else(UV_Time == "6.27", "6",
+                                                                      if_else(UV_Time == "12.54", "12",
+                                                                              if_else(UV_Time == "25.08", "25", UV_Time))))) %>% 
+  mutate(diff = c(NA, NA, NA, NA, NA, NA, NA, NA, NA, "**", NA, NA))
+
+BoxBPM + 
+  geom_text(data = MWU_df3, aes(x = UV_Time, y = max_value, label = label),
+            size = 5, vjust = -1.5, color="black", 
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  geom_text(data = MWU_df3, aes(x = UV_Time, y = 113, label = diff),
+            size = 7, vjust = 0, color="black", 
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F)
+
+```
+
