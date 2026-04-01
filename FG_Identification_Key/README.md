@@ -7,7 +7,7 @@ DOI of the published article: https://doi.org/10.1016/j.marpolbul.2025.119090
 This repository contains all the information and files related to the "identification key of the fishing gear washed up on the coastlines or collected in the aquatic environment." 
 
 You'll be able to find:
-  - The R code we used to analyze the data - Folder "R"
+  - The R code we used to analyze the data - Folder "Software" --> "R"
   - A datasheet to sort the fishing gear you collected during a beach cleaning or the realization of a sampling protocol. 
   - The bank of images we used to create the initial photo guide (actualized when necessary). 
   - The Beaufort scale is in French, English, and Spanish.
