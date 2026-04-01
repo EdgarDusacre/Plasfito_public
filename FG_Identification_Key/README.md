@@ -1,9 +1,10 @@
 
-# All the data and methods are being submitted to a scientific journal. We will update this repository as soon as the article is published
+# The method and results were published in 2026 in the scientific journal Marine Pollution Bulletin at the following URL. 
+DOI of the published article: https://doi.org/10.1016/j.marpolbul.2025.119090 
 
-## Fishing gear Identification Key
+## Fishing Gear Identification Key
 
-This repository shares all the information and files about the "identification key of the fishing gear washed up on the coastlines or collected in the aquatic environment." 
+This repository contains all the information and files related to the "identification key of the fishing gear washed up on the coastlines or collected in the aquatic environment." 
 
 You'll be able to find:
   - The R code we used to analyze the data - Folder "R"
