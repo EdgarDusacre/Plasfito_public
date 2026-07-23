@@ -1,0 +1,103 @@
+# DMSO Extraction Data — Toxicity Profiles of New and End-of-Life Fishing Nets
+
+Data supporting the manuscript:
+
+> Dusacre, E., González-Soto, N., Combes, Y., Clérandeau, C., Receveur, J., Le Floch, S., Morin, B., Cajaraville, M. P., & Cachot, J. **Comparison of toxicity profiles of DMSO extracts of new and end-of-life oil-based and partially biobased and biodegradable fishing nets.** Submitted to *Ecotoxicology and Environmental Safety*.
+
+Corresponding author: Edgar Dusacre — edgdus@mba.ac.uk — Marine Biological Association of the UK
+
+---
+
+## Overview
+
+Fishing nets (FNs) release plastic-associated chemicals into the marine environment throughout their operational life and after disposal. This dataset supports a study comparing the chemical content and ecotoxicological hazard of DMSO extracts from **eight fishing net types**, each sampled as both a **new** and an **end-of-life (EOL)** panel (16 extracts in total):
+
+| Net code | Polymer | Gear type |
+|---|---|---|
+| PE-PP ε4.25 | Polyethylene–polypropylene | Trawl net |
+| PA α35 | Polyamide 6 | Gillnet |
+| PA β33 | Polyamide 6 | Gillnet |
+| PA β95 | Polyamide 6 | Gillnet |
+| PA γ33 | Polyamide 6 | Gillnet |
+| PA γ60 | Polyamide 6 | Gillnet |
+| PBS δ35 | Biobased/biodegradable PBS-PBAT | Gillnet |
+| PBS δ60 | Biobased/biodegradable PBS-PBAT | Gillnet |
+
+For each net, DMSO extracts were characterised chemically (metals and organic additives) and tested for toxicity across three complementary bioassays. Data files in this repository correspond to the results reported in the main text figures/tables and supplementary material (Figures S1–S9, Tables S1–S3).
+
+## Repository structure
+
+> **Note:** the folder layout below reflects the analyses described in the manuscript. Please check it against the actual file/folder names in this directory and adjust as needed — rename this section to match exactly what is present in `DMSO_extraction/data`.
+
+```
+DMSO_extraction/
+└── data/
+    ├── chemistry/
+    │   ├── metals_ICP-OES.csv          # Metallic element concentrations per FN extract (µg/L)
+    │   └── organics_SBSE-GC-MS-MS.csv  # PAHs, alkylphenols, PBDEs, phthalates, non-phthalate plasticizers (µg/L)
+    ├── microtox/
+    │   └── A_fischeri_bioluminescence.csv   # Bioluminescence inhibition (%) across dilution series, per extract
+    ├── cell_viability/
+    │   ├── RTL-W1_viability.csv        # PrestoBlue/AlamarBlue viability data, per extract and concentration
+    │   └── RTL-W1_ROS.csv              # ROS production data
+    ├── medaka_behaviour/
+    │   ├── larvae_mortality.csv
+    │   ├── larvae_heart_rate.csv
+    │   └── larvae_VLSR_VLMR.csv        # Vibrational/light startle and motor response endpoints
+    ├── IBR_index/
+    │   └── IBR_scores.csv              # Integrated Biomarker Response index per FN extract
+    └── supplementary/
+        ├── Table_S1_metals_LOQ_recovery.csv
+        ├── Table_S2_organics_LOD_LOQ.csv
+        └── Table_S3_EC20_values.csv
+```
+
+## Methods summary
+
+Full methodological details are provided in the manuscript; a brief summary is given here for context.
+
+**Extraction.** DMSO extracts were prepared from new and EOL panels of each fishing net type by soaking net pieces in DMSO; extracts were subsequently diluted for chemical analysis and bioassays.
+
+**Chemical characterisation.**
+- Metals: quantified by Inductively Coupled Plasma – Optical Emission Spectrometry (ICP-OES) after 1% dilution of DMSO extracts.
+- Organic compounds (23 PAHs, including 16 EPA priority PAHs, alkylphenols, PBDEs, phthalates, and non-phthalate plasticizers): quantified by Stir Bar Sorptive Extraction – Gas Chromatography – Tandem Mass Spectrometry (SBSE-GC-MS/MS), with perdeuterated PAH and deuterium-labelled internal standards. Limits of detection (LOD) and quantification (LOQ) were calculated by the calibration curve method (Shrivastava, 2011).
+
+**Toxicity assays.**
+- **Microtox® assay** (*Aliivibrio fischeri*): acute bioluminescence inhibition assay across a five-point dilution series (0.01–3.33 mg/mL) per FN extract, with negative controls.
+- **RTL-W1 cell line** (rainbow trout liver cells): cytotoxicity via cell viability assay and reactive oxygen species (ROS) production.
+- **Japanese medaka larvae**: mortality, heart rate, and behavioural responses (vibrational and light startle/motor responses — VLSR/VLMR) following exposure to DMSO extracts diluted in seawater/tap water (1/3 v/v).
+
+**Integrated Biomarker Response (IBR) index.** Calculated per FN extract from bioluminescence inhibition, RTL-W1 viability, and medaka behavioural/physiological endpoints, using the `ibr_std()` and `ibr_index()` functions from the R package `IBRtools` (Resende & Pereira, 2024), following the method of Devin et al. (2014) and Sanchez et al. (2013). ROS data were excluded from the IBR calculation (see manuscript for rationale).
+
+**Statistical analysis.** Performed in R (version 4.3.1) and RStudio (2024.04.0+735). Group comparisons used Kruskal–Wallis tests followed by Dunn's post-hoc test with Holm's correction; pairwise comparisons used Mann–Whitney U-tests; associations between chemistry and toxicity endpoints were assessed by Spearman's correlation with Benjamini–Hochberg (BH) correction.
+
+## Data dictionary
+
+For each CSV file, please confirm/complete the following (add as a `data_dictionary.csv` or expand this table):
+
+| Column | Description | Units |
+|---|---|---|
+| `net_code` | Fishing net identifier (e.g. PA γ60) | — |
+| `polymer` | Polymer type (PE-PP, PA6, PBS-PBAT) | — |
+| `status` | New or end-of-life (EOL) | — |
+| `replicate` | Biological/technical replicate number | — |
+| `analyte` / `endpoint` | Measured compound or toxicological endpoint | — |
+| `concentration` | Measured concentration or extract dilution | µg/L or mg/mL |
+| `value` | Measured response (e.g. % inhibition, viability, heart rate) | endpoint-specific |
+
+## How to cite
+
+If you use this dataset, please cite the associated manuscript (full citation to be updated on acceptance/publication) and this repository:
+
+```
+Dusacre, E. et al. (2026). Comparison of toxicity profiles of DMSO extracts of new and end-of-life oil-based and partially biobased and biodegradable fishing nets [Data set]. GitHub.
+https://github.com/EdgarDusacre/Plasfito_public/tree/main/DMSO_extraction/data
+```
+
+## License
+
+*(Specify a license, e.g. CC-BY 4.0, and add a `LICENSE` file to the repository root if not already present.)*
+
+## Contact
+
+Edgar Dusacre — Marine Biological Association of the UK — edgdus@mba.ac.uk
