@@ -1,0 +1,2220 @@
+---
+title: "Fish behavior"
+author: "Edgar Dusacre"
+date: "13/06/2023"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r Insertion package, include=FALSE}
+library(ggplot2) 
+library(tidyr)
+library(purrr)
+library(tidyverse)
+library(ggrepel)
+library(ggpubr)
+library(knitr)
+library(yaml)
+library(dplyr) 
+library(matrixStats)
+library(EnvStats)
+library(stringr)
+library(gtable)
+library(grid)
+library(FSA)
+library(scales)
+library(wbstats)
+library(ggh4x)
+library(multcompView)
+library(report)
+library(ecotox)
+library(wesanderson)
+library(RColorBrewer)
+library(readr)
+library(readxl)
+library(gmodels)
+library(ggpattern)
+library(zoo)
+library(forcats)
+library(car)
+library(dunn.test)
+
+
+
+library(forcats)
+library(binom)
+library(lubridate)
+library(ade4)
+library(broom)
+library(rstatix)
+library(rcompanion)
+library(chron)
+library(devtools)
+library(PMCMRplus)
+library(grDevices)
+```
+
+```{r Charger les palettes de couleurs, include=FALSE}
+Plasfito_C <- c("#80CAD0", "#36A7A7", "#276573", "#054959","#E3CCC0", "#F7EAE1", "#A48A7B", "#C6AF8D", "#49BED3", "#256CB4", "#008163", "#44B494", "#7BC6B9")
+
+Plasfito_color <- c("GreenP4" = "#80CAD0", "GreenP3" = "#36A7A7", "GreenP2" = "#276573", "GreenP1" = "#054959","Brown1" = "#E3CCC0", "Brown2" = "#F7EAE1", "Brown3" = "#A48A7B", "Brown4" = "#C6AF8D", "Turquoise1" = "#49BED3", "Blue1" = "#256CB4", "Green1" = "#008163", "Green2" = "#44B494", "Green3" = "#7BC6B9")
+
+List_color_Fr <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                   "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573")
+
+List_color <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                 "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573",
+                 "Euskadi" = "#054959")
+
+Plasfito_Tps <- c("5" = "#80CAD0", "15" = "#36A7A7", "30" = "#276573")
+
+
+#A part si vous souhaitez changer les couleurs do not touch.
+Ech_K2CR2O7<- c("K2CR2O7" = "#80CAD0")
+
+Tps_color <- c("5" = "#80CAD0" , "15" = "#36A7A7", "30" = "#276573")
+
+Dilu_color <- c("0.0125" = "#80CAD0" , "0.025" = "#36A7A7", "0.05" = "#276573", "0.1" = "#008163")
+
+Conc_color <- c("0.4125" = "#80CAD0" , "0.825" = "#36A7A7", "1.65" = "#276573", "3.3" = "#008163")
+Conc_color3 <- c("0.825" = "aquamarine", "1.65" = "#36A7A7", "3.3" = "#276573")
+
+Color_biolu_Pasaia <- c("Ech1" = "aquamarine", "Ech2" = "#36A7A7" , "DMSO" = "#A48A7B")
+
+Color_real_FN <- c("dmso" = "#A48A7B", "CTL" = "#256CB4", "PA_a35" = "#4fd355", "PA_b33" = "#ca98d3", "PA_b95" = "#6e217c", "PA_g33" = "#92b78f", "PA_g60" = "#bbb3bc", "PBS_d35" = "#d3ad4f","PBS_d60" = "#c68640", "HPPE_e425" = "#36A7A7")
+```
+
+
+Pour l'analyse poisson, tout run n'est pas forcément utile, mieux vaut faire analyse par analyse car on retrouve parfois les mêmes noms.
+
+# BLA LOFF 
+```{r data import new}
+# Mettre le bon trajet dossier adapté :
+
+BLA_OFF_all <- rbind(BLA_OFF_n, BLA_OFF_u) 
+BLA_OFF_all
+```
+
+
+```{r Outliers 25 100%}
+#Boxplot by replicates to see if there are outliers
+
+Outliers <- BLA_OFF_all %>% 
+  ggplot(aes(FN, Dist_tot1, fill = state)) + 
+  geom_violin(fill = NA, aes(color = FN), width = 1) +
+  geom_boxplot(width = 0.3) 
+
+Outliers
+```
+
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is outliers
+BLA_OFF_avg_Rep <- BLA_OFF_all %>% group_by(FN, Rep, state) %>%  summarise(n = n(), 
+                                                          Vel_avg = mean(Vel_avg1, na.rm=T),
+                                                          Vel_sd = sd(Vel_avg1, na.rm=T), 
+                                                          Vel_se = Vel_sd / sqrt(n),
+                                                          Dist_avg = mean(Dist_avg1, na.rm=T),
+                                                          Dist_sd = sd(Dist_avg1, na.rm=T), 
+                                                          Dist_se = Dist_sd / sqrt(n),
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n)) %>% dplyr::select(-Vel_sd, -Dist_sd, -Dtot_sd) %>% mutate(ID = "LOFF")
+
+BLA_OFF_avg_Rep
+
+BLA_OFF_avg <- BLA_OFF_all %>% group_by(FN, state) %>%  summarise(n = n(), 
+                                                          Vel_avg = mean(Vel_avg1, na.rm=T),
+                                                          Vel_sd = sd(Vel_avg1, na.rm=T), 
+                                                          Vel_se = Vel_sd / sqrt(n),
+                                                          Dist_avg = mean(Dist_avg1, na.rm=T),
+                                                          Dist_sd = sd(Dist_avg1, na.rm=T), 
+                                                          Dist_se = Dist_sd / sqrt(n),
+                                                          Dtot_med = median(Dist_tot1, na.rm=T),
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n),
+                                                          Dtot_low = quantile(Dist_tot1, probs = 0.025, na.rm= T), 
+                                                          Dtot_up = quantile(Dist_tot1, probs = 0.975, na.rm= T)) #%>% select(-Vel_sd, -Dist_sd, -Dtot_sd) %>% mutate(ID = "LOFF")
+  
+
+BLA_OFF_avg 
+
+```
+
+```{r Graph}
+
+BLA_OFF_avg %>% 
+  arrange(desc(state)) %>% 
+  ggplot(aes(x= FN, y = Dtot_med, fill = state)) + 
+  geom_col(width =0.5, position = position_dodge()) +
+  geom_errorbar(aes(ymin= ifelse(Dtot_med-Dtot_se < 0, 0, Dtot_med-Dtot_se), ymax=Dtot_med+Dtot_se), width=0.08, size = 1, position=position_dodge(width=0.5)) +
+  scale_fill_brewer(palette = "Paired") +
+  theme_bw()
+
+```
+
+```{r Ctl Avg et stat}
+
+BLA_OFF_avg_ctl <- BLA_OFF_all %>% filter(FN == "dmso") %>% 
+  #filter(!Dist_tot1 >= 2900) %>% 
+  group_by(FN, state) %>%  
+  summarise(n = n(), 
+            Vel_avg = mean(Vel_avg1, na.rm=T),
+            Vel_sd = sd(Vel_avg1, na.rm=T), 
+            Vel_se = Vel_sd / sqrt(n),
+            Dist_avg = mean(Dist_avg1, na.rm=T),
+            Dist_sd = sd(Dist_avg1, na.rm=T), 
+            Dist_se = Dist_sd / sqrt(n),
+            Dtot_med = median(Dist_tot1, na.rm=T),
+            Dtot_avg = mean(Dist_tot1, na.rm=T),
+            Dtot_sd = sd(Dist_tot1, na.rm=T), 
+            Dtot_se = Dtot_sd / sqrt(n),
+            Dtot_low = quantile(Dist_tot1, probs = 0.025, na.rm= T), 
+            Dtot_up = quantile(Dist_tot1, probs = 0.975, na.rm= T)) #%>% select(-Vel_sd, -Dist_sd, -Dtot_sd) %>% mutate(ID = "LOFF")
+  
+
+BLA_OFF_avg_ctl
+
+BLA_OFF_ctl_n <- BLA_OFF_avg_ctl %>% filter(state == "n")
+BLA_OFF_ctl_u <- BLA_OFF_avg_ctl %>% filter(state == "u")
+
+```
+
+```{r Normalisation des données autour du CTL}
+
+#Adjusted with the blank median
+Dist_tot_aju <- BLA_OFF_all %>% 
+  mutate(aju_Dtot = if_else(state == "n", (Dist_tot1 * 100) / BLA_OFF_ctl_n$Dtot_med,
+                            if_else(state == "u", (Dist_tot1 * 100) / BLA_OFF_ctl_u$Dtot_med,  NA)))
+Dist_tot_aju
+
+#raw data ready for IBR analysis
+IBR_BLA_OFF <- Dist_tot_aju %>% 
+  mutate(endpt = "BLA_OFF") %>% 
+  select(Arena, FN, Rep, state, endpt, aju_Dtot) %>% filter(FN != "benzo") %>% 
+  rename(value = aju_Dtot)
+IBR_BLA_OFF
+
+#Adjusted with the blank average
+Dist_tot_aju_avg <- BLA_OFF_all %>% 
+  mutate(aju_Dtot = if_else(state == "n", (Dist_tot1 * 100) / BLA_OFF_ctl_n$Dtot_avg,
+                            if_else(state == "u", (Dist_tot1 * 100) / BLA_OFF_ctl_u$Dtot_avg,  NA))) 
+Dist_tot_aju_avg
+
+df_avg_BLA_avg <- Dist_tot_aju_avg %>% 
+  group_by(FN, state) %>% 
+  summarise(n = n(),
+            avg_val_adj = mean(aju_Dtot), 
+            sd_val_adj = sd(aju_Dtot),
+            se_val_adj = sd_val_adj/sqrt(n)) %>% 
+  mutate(endpt = as.factor("BLA_OFF"))
+  
+df_avg_BLA_avg
+
+df_avg_BLA <- Dist_tot_aju %>% 
+  group_by(FN, state) %>% 
+  summarise(n = n(),
+            med_Dtot_adj = median(aju_Dtot), 
+            sd_Dtot_adj = sd(aju_Dtot),
+            se_Dtot_adj = sd_Dtot_adj/sqrt(n)) %>% 
+  mutate(endpt = as.factor("BLA_OFF"))
+
+df_avg_BLA$endpt_UV <- paste(df_avg_BLA$endpt, df_avg_BLA$state, sep = "_")  
+  
+df_avg_BLA
+
+```
+
+```{r Visualisation}
+BoxDtot <- Dist_tot_aju %>% 
+  ggplot(aes(x = FN, y = aju_Dtot, fill = state)) +
+  geom_boxplot(width = 0.2, position = position_dodge(width = 0.6)) +
+  stat_summary(fun = mean, 
+               geom = "point", 
+               size = 2, 
+               color = "red3", 
+               position = position_dodge(width = 0.6)) +
+  geom_hline(yintercept = 100, colour = "black", linetype = "dashed") +
+  scale_y_continuous(limits = c(0, 1250)) +
+  theme_minimal() +
+  labs(x = "Fishing nets",
+       y = "Heart bate (% of the control)",
+       title = expression(paste("Effect of aa leachates on the cardiac rhythm of ", italic("Oryzias latipes"))),
+       subtitle = "Concentration plastic eq.= 0.33 mg/ml",
+       fill = "Treatment" ) +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 14, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "top",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold'),
+        legend.key.size = unit(1.5, "cm"),
+        legend.key.width = unit(0.5, "cm"),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+BoxDtot
+```
+
+```{r Statistics}
+Dunn_all_BLA <- rbind(MWU_n_Lett_BLAOFF_new %>% mutate(state = "n"), MWU_u_Lett_BLAOFF_used %>% mutate(state = "u")) 
+Dunn_all_BLA
+```
+
+```{r final table}
+Dunn_all_BLA_s <- Dunn_all_BLA %>%  dplyr::select(-max_value)
+Dunn_all_BLA_s
+
+BLA_OFF_all_f <- df_avg_BLA %>% left_join(Dunn_all_BLA_s) %>% arrange(state) %>% mutate(diff = if_else(diff == "ns", NA, diff))
+BLA_OFF_all_f
+```
+
+```{r Heatmap BLA}
+
+max_Dtot_BLA <- max(BLA_OFF_all_f$med_Dtot_adj)
+max_Dtot_BLA
+
+min_Dtot_BLA <- 100-(max_Dtot_BLA-100)+1
+min_Dtot_BLA
+
+
+HM_BLA <- BLA_OFF_all_f %>% filter(FN != "dmso", FN != "benzo") %>% 
+  ggplot(aes(x = FN, y = factor(endpt_UV, levels = rev(unique(endpt_UV))), fill = med_Dtot_adj)) +
+  geom_tile(height = 1, width = 1) +
+  scale_fill_gradient2(low = "#36A7A7", high = "#b751ca", mid = "white", 
+   midpoint = 100, limit = c(min_Dtot_BLA-1, max_Dtot_BLA), 
+   breaks = round(c(0, 100, max_Dtot_BLA), digits = 0), 
+   guide = "colourbar") +
+  scale_x_discrete(labels = c("PA6 \u03B1 35 \nn = 48",
+                              "PA6 \u03B2 33 \nn = 48",
+                              "PA6 \u03B2 95 \nn = 48",
+                              "PBS-PBAT \n\u03B4 35\nn = 48",
+                              "PBS-PBAT \n\u03B4 60\nn = 48",
+                              "HPPE-PP \n\u03B5 4.25\nn = 48",
+                              "PA6 \u03B3 33\nn = 48",
+                              "PA6 \u03B3 60\nn = 48")) +
+  labs(#title = "Effect of the fishing nets leachates on medaka fish",
+       x = "Fishing nets",
+       fill = "Blank H2O = 100",
+       legend.box.just = "center") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "top",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0.5,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/8) +
+  guides(fill = guide_colourbar(title.position="top", 
+                                title.vjust = 2, 
+                                ticks.colour = "black", 
+                                barheight = unit( 0.3 , "in" ),))
+
+HM_BLA + geom_text(aes(FN, endpt_UV, label = round(med_Dtot_adj, digits = 1)), color = "black", size = 3.5, fontface = "bold") +
+  geom_text(aes(FN, endpt_UV, label = diff), size = 5, vjust = 2, color = "black", fontface = "bold")
+
+
+```
+
+# BLA LON
+```{r data import new}
+# Mettre le bon trajet dossier adapté :
+
+BLA_LON_all <- rbind(BLA_ON_n, BLA_ON_u) 
+BLA_LON_all
+```
+
+
+```{r Outliers 25 100%}
+#Boxplot by replicates to see if there are outliers
+
+Outliers <- BLA_LON_all %>% 
+  ggplot(aes(FN, Dist_tot1, fill = state)) + 
+  geom_violin(fill = NA, aes(color = FN), width = 1) +
+  geom_boxplot(width = 0.3) 
+
+Outliers
+```
+
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is outliers
+BLA_LON_avg_Rep <- BLA_LON_all %>% group_by(FN, Rep, state) %>%  summarise(n = n(), 
+                                                          Vel_avg = mean(Vel_avg1, na.rm=T),
+                                                          Vel_sd = sd(Vel_avg1, na.rm=T), 
+                                                          Vel_se = Vel_sd / sqrt(n),
+                                                          Dist_avg = mean(Dist_avg1, na.rm=T),
+                                                          Dist_sd = sd(Dist_avg1, na.rm=T), 
+                                                          Dist_se = Dist_sd / sqrt(n),
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n)) %>% dplyr::select(-Vel_sd, -Dist_sd, -Dtot_sd) %>% mutate(ID = "LOFF")
+
+BLA_LON_avg_Rep
+
+BLA_LON_avg <- BLA_LON_all %>% group_by(FN, state) %>%  summarise(n = n(), 
+                                                          Vel_avg = mean(Vel_avg1, na.rm=T),
+                                                          Vel_sd = sd(Vel_avg1, na.rm=T), 
+                                                          Vel_se = Vel_sd / sqrt(n),
+                                                          Dist_avg = mean(Dist_avg1, na.rm=T),
+                                                          Dist_sd = sd(Dist_avg1, na.rm=T), 
+                                                          Dist_se = Dist_sd / sqrt(n),
+                                                          Dtot_med = median(Dist_tot1, na.rm=T),
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n),
+                                                          Dtot_low = quantile(Dist_tot1, probs = 0.025, na.rm= T), 
+                                                          Dtot_up = quantile(Dist_tot1, probs = 0.975, na.rm= T)) #%>% select(-Vel_sd, -Dist_sd, -Dtot_sd) %>% mutate(ID = "LOFF")
+  
+
+BLA_LON_avg 
+
+```
+
+```{r Graph}
+
+BLA_LON_avg %>% 
+  arrange(desc(state)) %>% 
+  ggplot(aes(x= FN, y = Dtot_med, fill = state)) + 
+  geom_col(width =0.5, position = position_dodge()) +
+  geom_errorbar(aes(ymin= ifelse(Dtot_med-Dtot_se < 0, 0, Dtot_med-Dtot_se), ymax=Dtot_med+Dtot_se), width=0.08, size = 1, position=position_dodge(width=0.5)) +
+  scale_fill_brewer(palette = "Paired") +
+  theme_bw()
+
+```
+
+```{r Ctl Avg et stat}
+
+BLA_LON_avg_ctl <- BLA_LON_all %>% filter(FN == "dmso") %>% 
+  #filter(!Dist_tot1 >= 2900) %>% 
+  group_by(FN, state) %>%  
+  summarise(n = n(), 
+            Vel_avg = mean(Vel_avg1, na.rm=T),
+            Vel_sd = sd(Vel_avg1, na.rm=T), 
+            Vel_se = Vel_sd / sqrt(n),
+            Dist_avg = mean(Dist_avg1, na.rm=T),
+            Dist_sd = sd(Dist_avg1, na.rm=T), 
+            Dist_se = Dist_sd / sqrt(n),
+            Dtot_med = median(Dist_tot1, na.rm=T),
+            Dtot_avg = mean(Dist_tot1, na.rm=T),
+            Dtot_sd = sd(Dist_tot1, na.rm=T), 
+            Dtot_se = Dtot_sd / sqrt(n),
+            Dtot_low = quantile(Dist_tot1, probs = 0.025, na.rm= T), 
+            Dtot_up = quantile(Dist_tot1, probs = 0.975, na.rm= T)) #%>% select(-Vel_sd, -Dist_sd, -Dtot_sd) %>% mutate(ID = "LOFF")
+  
+
+BLA_LON_avg_ctl
+
+BLA_LON_ctl_n <- BLA_LON_avg_ctl %>% filter(state == "n")
+BLA_LON_ctl_u <- BLA_LON_avg_ctl %>% filter(state == "u")
+
+```
+
+```{r Normalisation des données autour du CTL}
+
+Dist_tot_aju <- BLA_LON_all %>% 
+  mutate(aju_Dtot = if_else(state == "n", (Dist_tot1 * 100) / BLA_LON_ctl_n$Dtot_med,
+                            if_else(state == "u", (Dist_tot1 * 100) / BLA_LON_ctl_u$Dtot_med,  NA)))
+Dist_tot_aju
+
+#raw data ready for IBR analysis
+IBR_BLA_ON <- Dist_tot_aju %>% 
+  mutate(endpt = "BLA_ON") %>% 
+  select(Arena, FN, Rep, state, endpt, aju_Dtot) %>% filter(FN != "benzo") %>% 
+  rename(value = aju_Dtot)
+IBR_BLA_ON
+
+Dist_tot_aju_avg <- BLA_LON_all %>% 
+  mutate(aju_Dtot = if_else(state == "n", (Dist_tot1 * 100) / BLA_LON_ctl_n$Dtot_avg,
+                            if_else(state == "u", (Dist_tot1 * 100) / BLA_LON_ctl_u$Dtot_avg,  NA)))
+Dist_tot_aju_avg
+
+df_avg_BLAON_avg <- Dist_tot_aju_avg %>% 
+  group_by(FN, state) %>% 
+  summarise(n = n(),
+            avg_val_adj = mean(aju_Dtot), 
+            sd_val_adj = sd(aju_Dtot),
+            se_val_adj = sd_val_adj/sqrt(n)) %>% 
+  mutate(endpt = as.factor("BLA_LON"))
+  
+df_avg_BLAON_avg
+
+df_avg_BLAON <- Dist_tot_aju %>% 
+  group_by(FN, state) %>% 
+  summarise(n = n(),
+            med_Dtot_adj = median(aju_Dtot), 
+            sd_Dtot_adj = sd(aju_Dtot),
+            se_Dtot_adj = sd_Dtot_adj/sqrt(n)) %>% 
+  mutate(endpt = as.factor("BLA_LON"))
+
+df_avg_BLAON$endpt_UV <- paste(df_avg_BLAON$endpt, df_avg_BLAON$state, sep = "_")  
+  
+df_avg_BLAON
+
+```
+
+```{r Visualisation}
+BoxDtot <- Dist_tot_aju %>% 
+  ggplot(aes(x = FN, y = aju_Dtot, fill = state)) +
+  geom_boxplot(width = 0.2, position = position_dodge(width = 0.6)) +
+  stat_summary(fun = mean, 
+               geom = "point", 
+               size = 2, 
+               color = "red3", 
+               position = position_dodge(width = 0.6)) +
+  geom_hline(yintercept = 100, colour = "black", linetype = "dashed") +
+  scale_y_continuous(limits = c(0, 400)) +
+  theme_minimal() +
+  labs(x = "Fishing nets",
+       y = "Heart bate (% of the control)",
+       title = expression(paste("Effect of aa leachates on the cardiac rhythm of ", italic("Oryzias latipes"))),
+       subtitle = "Concentration plastic eq.= 0.33 mg/ml",
+       fill = "Treatment" ) +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 14, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "top",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold'),
+        legend.key.size = unit(1.5, "cm"),
+        legend.key.width = unit(0.5, "cm"),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+BoxDtot
+```
+
+```{r Statistics}
+Dunn_all_BLA_ON <- rbind(MWU_n_Lett_BLAON_new %>% mutate(state = "n"), MWU_u_Lett_BLAON_used %>% mutate(state = "u")) 
+Dunn_all_BLA_ON
+```
+
+```{r final table}
+Dunn_all_BLAON_s <- Dunn_all_BLA_ON %>%  dplyr::select(-max_value)
+Dunn_all_BLAON_s
+
+BLA_LON_all_f <- df_avg_BLAON %>% left_join(Dunn_all_BLAON_s) %>% arrange(state) %>% mutate(diff = if_else(diff == "ns", NA, diff))
+BLA_LON_all_f
+
+```
+
+```{r Heatmap BLA_ON}
+
+max_Dtot_BLA_ON <- max(BLA_LON_all_f$med_Dtot_adj)
+max_Dtot_BLA_ON
+
+min_Dtot_BLA_ON <- 100-(max_Dtot_BLA_ON-100)+1
+min_Dtot_BLA_ON
+
+
+HM_BLA_ON <- BLA_LON_all_f %>% filter(FN != "dmso", FN != "benzo") %>% 
+  ggplot(aes(x = FN, y = factor(endpt_UV, levels = rev(unique(endpt_UV))), fill = med_Dtot_adj)) +
+  geom_tile(height = 1, width = 1) +
+  scale_fill_gradient2(low = "#36A7A7", high = "#b751ca", mid = "white", 
+   midpoint = 100, limit = c(min_Dtot_BLA_ON-1, max_Dtot_BLA_ON), 
+   breaks = round(c(0, 100, max_Dtot_BLA_ON), digits = 0), 
+   guide = "colourbar") +
+  scale_x_discrete(labels = c("PA6 \u03B1 35 \nn = 48",
+                              "PA6 \u03B2 33 \nn = 48",
+                              "PA6 \u03B2 95 \nn = 48",
+                              "PBS-PBAT \n\u03B4 60\nn = 48",
+                              "PBS-PBAT \n\u03B4 35\nn = 48",
+                              "HPPE-PP \n\u03B5 4.25\nn = 48",
+                              "PA6 \u03B3 33\nn = 48",
+                              "PA6 \u03B3 60\nn = 48")) +
+  labs(#title = "Effect of the fishing nets leachates on medaka fish",
+       x = "Fishing nets",
+       fill = "Blank H2O = 100",
+       legend.box.just = "center") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "top",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0.5,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/8) +
+  guides(fill = guide_colourbar(title.position="top", 
+                                title.vjust = 2, 
+                                ticks.colour = "black", 
+                                barheight = unit( 0.3 , "in" ),))
+
+HM_BLA_ON + geom_text(aes(FN, endpt_UV, label = round(med_Dtot_adj, digits = 1)), color = "black", size = 3.5, fontface = "bold") +
+  geom_text(aes(FN, endpt_UV, label = diff), size = 5, vjust = 2, color = "black", fontface = "bold")
+
+
+```
+
+# VLSR
+```{r data import new}
+# Mettre le bon trajet dossier adapté :
+
+VLSR_all <- rbind(VLSR_stimu_n, VLSR_stimu_u) 
+VLSR_all
+```
+
+
+```{r Outliers 25 100%}
+#Boxplot by replicates to see if there are outliers
+
+Outliers <- VLSR_all %>% 
+  ggplot(aes(FN, Dist_tot1, fill = state)) + 
+  geom_violin(fill = NA, aes(color = FN), width = 1) +
+  geom_boxplot(width = 0.3) 
+
+Outliers
+```
+
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is outliers
+VLSR_avg_Rep <- VLSR_all %>% group_by(FN, Rep, state) %>%  summarise(n = n(), 
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n)) %>% dplyr::select(-Dtot_sd) %>% mutate(ID = "LOFF")
+
+VLSR_avg_Rep
+
+VLSR_avg <- VLSR_all %>% group_by(FN, state) %>%  summarise(n = n(), 
+                                                          Dtot_med = median(Dist_tot1, na.rm=T),
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n),
+                                                          Dtot_low = quantile(Dist_tot1, probs = 0.025, na.rm= T), 
+                                                          Dtot_up = quantile(Dist_tot1, probs = 0.975, na.rm= T)) #%>% select(-Vel_sd, -Dist_sd, -Dtot_sd) %>% mutate(ID = "LOFF")
+  
+
+VLSR_avg 
+
+```
+
+```{r Graph}
+
+VLSR_avg %>% 
+  arrange(desc(state)) %>% 
+  ggplot(aes(x= FN, y = Dtot_med, fill = state)) + 
+  geom_col(width =0.5, position = position_dodge()) +
+  geom_errorbar(aes(ymin= ifelse(Dtot_med-Dtot_se < 0, 0, Dtot_med-Dtot_se), ymax=Dtot_med+Dtot_se), width=0.08, size = 1, position=position_dodge(width=0.5)) +
+  scale_fill_brewer(palette = "Paired") +
+  theme_bw()
+
+```
+
+```{r Ctl Avg et stat}
+
+VLSR_avg_ctl <- VLSR_all %>% filter(FN == "dmso") %>% 
+  #filter(!Dist_tot1 >= 2900) %>% 
+  group_by(FN, state) %>%  
+  summarise(n = n(), 
+            Dtot_med = median(Dist_tot1, na.rm=T),
+            Dtot_avg = mean(Dist_tot1, na.rm=T),
+            Dtot_sd = sd(Dist_tot1, na.rm=T), 
+            Dtot_se = Dtot_sd / sqrt(n),
+            Dtot_low = quantile(Dist_tot1, probs = 0.025, na.rm= T), 
+            Dtot_up = quantile(Dist_tot1, probs = 0.975, na.rm= T)) #%>% select(-Vel_sd, -Dist_sd, -Dtot_sd) %>% mutate(ID = "LOFF")
+  
+
+VLSR_avg_ctl
+
+VLSR_ctl_n <- VLSR_avg_ctl %>% filter(state == "n")
+VLSR_ctl_u <- VLSR_avg_ctl %>% filter(state == "u")
+
+```
+
+```{r Normalisation des données autour du CTL}
+
+Dist_tot_aju <- VLSR_all %>% 
+  mutate(aju_Dtot = if_else(state == "n", (Dist_tot1 * 100) / VLSR_ctl_n$Dtot_med,
+                            if_else(state == "u", (Dist_tot1 * 100) / VLSR_ctl_u$Dtot_med,  NA)))
+Dist_tot_aju
+
+#raw data ready for IBR analysis
+IBR_VLSR <- Dist_tot_aju %>% 
+  mutate(endpt = "VLSR") %>% 
+  select(Arena, FN, Rep, state, endpt, aju_Dtot) %>% filter(FN != "benzo") %>% 
+  rename(value = aju_Dtot)
+IBR_VLSR
+
+Dist_tot_aju_avg <- VLSR_all %>% 
+  mutate(aju_Dtot = if_else(state == "n", (Dist_tot1 * 100) / VLSR_ctl_n$Dtot_avg,
+                            if_else(state == "u", (Dist_tot1 * 100) / VLSR_ctl_u$Dtot_avg,  NA)))
+Dist_tot_aju_avg
+
+df_avg_VLSR_avg <- Dist_tot_aju_avg %>% 
+  group_by(FN, state) %>% 
+  summarise(n = n(),
+            avg_val_adj = mean(aju_Dtot, na.rm = T), 
+            sd_val_adj = sd(aju_Dtot, na.rm = T),
+            se_val_adj = sd_val_adj/sqrt(n)) %>% 
+  mutate(endpt = as.factor("VLSR"))
+  
+df_avg_VLSR_avg
+
+df_avg_VLSR <- Dist_tot_aju %>% 
+  group_by(FN, state) %>% 
+  summarise(n = n(),
+            med_Dtot_adj = median(aju_Dtot, na.rm = T), 
+            sd_Dtot_adj = sd(aju_Dtot, na.rm = T),
+            se_Dtot_adj = sd_Dtot_adj/sqrt(n)) %>% 
+  mutate(endpt = as.factor("VLSR"))
+
+df_avg_VLSR$endpt_UV <- paste(df_avg_VLSR$endpt, df_avg_VLSR$state, sep = "_")  
+  
+df_avg_VLSR
+
+```
+
+```{r Visualisation}
+BoxDtot <- Dist_tot_aju %>% 
+  ggplot(aes(x = FN, y = aju_Dtot, fill = state)) +
+  geom_boxplot(width = 0.2, position = position_dodge(width = 0.6)) +
+  stat_summary(fun = mean, 
+               geom = "point", 
+               size = 2, 
+               color = "red3", 
+               position = position_dodge(width = 0.6)) +
+  geom_hline(yintercept = 100, colour = "black", linetype = "dashed") +
+  scale_y_continuous(limits = c(0, 400)) +
+  theme_minimal() +
+  labs(x = "Fishing nets",
+       y = "Heart bate (% of the control)",
+       title = expression(paste("Effect of aa leachates on the cardiac rhythm of ", italic("Oryzias latipes"))),
+       subtitle = "Concentration plastic eq.= 0.33 mg/ml",
+       fill = "Treatment" ) +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 14, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "top",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold'),
+        legend.key.size = unit(1.5, "cm"),
+        legend.key.width = unit(0.5, "cm"),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+BoxDtot
+```
+
+```{r Statistics}
+Dunn_all_VLSR <- rbind(MWU_n_Lett_VLSR_new %>% mutate(state = "n"), MWU_u_Lett_VLSR_used %>% mutate(state = "u")) 
+Dunn_all_VLSR
+```
+
+```{r final table}
+Dunn_all_VLSR_s <- Dunn_all_VLSR %>%  dplyr::select(-max_value)
+Dunn_all_VLSR_s
+
+VLSR_all_f <- df_avg_VLSR %>% left_join(Dunn_all_VLSR_s) %>% arrange(state) %>% mutate(diff = if_else(diff == "ns", NA, diff))
+VLSR_all_f
+
+```
+
+```{r Heatmap VLSR}
+
+max_Dtot_VLSR <- max(VLSR_all_f$med_Dtot_adj)
+max_Dtot_VLSR
+
+min_Dtot_VLSR <- 100-(max_Dtot_VLSR-100)+1
+min_Dtot_VLSR
+
+
+HM_VLSR <- VLSR_all_f %>% filter(FN != "dmso", FN != "benzo") %>% 
+  ggplot(aes(x = FN, y = factor(endpt_UV, levels = rev(unique(endpt_UV))), fill = med_Dtot_adj)) +
+  geom_tile(height = 1, width = 1) +
+  scale_fill_gradient2(low = "#36A7A7", high = "#b751ca", mid = "white", 
+   midpoint = 100, limit = c(20, 180), 
+   breaks = round(c(20, 100, 180), digits = 0), 
+   guide = "colourbar") +
+  scale_x_discrete(labels = c("PA6 \u03B1 35 \nn = 48",
+                              "PA6 \u03B2 33 \nn = 48",
+                              "PA6 \u03B2 95 \nn = 48",
+                              "PBS-PBAT \n\u03B4 60\nn = 48",
+                              "PBS-PBAT \n\u03B4 35\nn = 48",
+                              "HPPE-PP \n\u03B5 4.25\nn = 48",
+                              "PA6 \u03B3 33\nn = 48",
+                              "PA6 \u03B3 60\nn = 48")) +
+  labs(#title = "Effect of the fishing nets leachates on medaka fish",
+       x = "Fishing nets",
+       fill = "Blank H2O = 100",
+       legend.box.just = "center") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "top",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0.5,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/8) +
+  guides(fill = guide_colourbar(title.position="top", 
+                                title.vjust = 2, 
+                                ticks.colour = "black", 
+                                barheight = unit( 0.3 , "in" ),))
+
+HM_VLSR + geom_text(aes(FN, endpt_UV, label = round(med_Dtot_adj, digits = 1)), color = "black", size = 3.5, fontface = "bold") +
+  geom_text(aes(FN, endpt_UV, label = diff), size = 5, vjust = 2, color = "black", fontface = "bold")
+
+
+```
+
+
+# VLMR
+```{r data import new}
+# Mettre le bon trajet dossier adapté :
+
+VLMR_all <- rbind(VLMR_n, VLMR_u) 
+VLMR_all
+```
+
+
+```{r Outliers 25 100%}
+#Boxplot by replicates to see if there are outliers
+
+Outliers <- VLMR_all %>% 
+  ggplot(aes(FN, Dist_tot1, fill = state)) + 
+  geom_violin(fill = NA, aes(color = FN), width = 1) +
+  geom_boxplot(width = 0.3) 
+
+Outliers
+```
+
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is outliers
+VLMR_avg_Rep <- VLMR_all %>% group_by(FN, Rep, state) %>%  summarise(n = n(), 
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n)) %>% dplyr::select(-Dtot_sd) %>% mutate(ID = "LOFF")
+
+VLMR_avg_Rep
+
+VLMR_avg <- VLMR_all %>% group_by(FN, state) %>%  summarise(n = n(), 
+                                                          Dtot_med = median(Dist_tot1, na.rm=T),
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n),
+                                                          Dtot_low = quantile(Dist_tot1, probs = 0.025, na.rm= T), 
+                                                          Dtot_up = quantile(Dist_tot1, probs = 0.975, na.rm= T)) #%>% select(-Vel_sd, -Dist_sd, -Dtot_sd) %>% mutate(ID = "LOFF")
+  
+
+VLMR_avg 
+
+```
+
+```{r Graph}
+
+VLMR_avg %>% 
+  arrange(desc(state)) %>% 
+  ggplot(aes(x= FN, y = Dtot_med, fill = state)) + 
+  geom_col(width =0.5, position = position_dodge()) +
+  geom_errorbar(aes(ymin= ifelse(Dtot_med-Dtot_se < 0, 0, Dtot_med-Dtot_se), ymax=Dtot_med+Dtot_se), width=0.08, size = 1, position=position_dodge(width=0.5)) +
+  scale_fill_brewer(palette = "Paired") +
+  theme_bw()
+
+```
+
+```{r Ctl Avg et stat}
+
+VLMR_avg_ctl <- VLMR_all %>% filter(FN == "dmso") %>% 
+  #filter(!Dist_tot1 >= 2900) %>% 
+  group_by(FN, state) %>%  
+  summarise(n = n(), 
+            Dtot_med = median(Dist_tot1, na.rm=T),
+            Dtot_avg = mean(Dist_tot1, na.rm=T),
+            Dtot_sd = sd(Dist_tot1, na.rm=T), 
+            Dtot_se = Dtot_sd / sqrt(n),
+            Dtot_low = quantile(Dist_tot1, probs = 0.025, na.rm= T), 
+            Dtot_up = quantile(Dist_tot1, probs = 0.975, na.rm= T)) #%>% select(-Vel_sd, -Dist_sd, -Dtot_sd) %>% mutate(ID = "LOFF")
+  
+
+VLMR_avg_ctl
+
+VLMR_ctl_n <- VLMR_avg_ctl %>% filter(state == "n")
+VLMR_ctl_u <- VLMR_avg_ctl %>% filter(state == "u")
+
+```
+
+```{r Normalisation des données autour du CTL}
+
+Dist_tot_aju <- VLMR_all %>% 
+  mutate(aju_Dtot = if_else(state == "n", (Dist_tot1 * 100) / VLMR_ctl_n$Dtot_med,
+                            if_else(state == "u", (Dist_tot1 * 100) / VLMR_ctl_u$Dtot_med,  NA)))
+Dist_tot_aju
+
+#raw data ready for IBR analysis
+IBR_VLMR <- Dist_tot_aju %>% 
+  mutate(endpt = "VLMR") %>% 
+  select(Arena, FN, Rep, state, endpt, aju_Dtot) %>% filter(FN != "benzo") %>% 
+  rename(value = aju_Dtot)
+IBR_VLMR
+
+Dist_tot_aju_avg <- VLMR_all %>% 
+  mutate(aju_Dtot = if_else(state == "n", (Dist_tot1 * 100) / VLMR_ctl_n$Dtot_avg,
+                            if_else(state == "u", (Dist_tot1 * 100) / VLMR_ctl_u$Dtot_avg,  NA)))
+Dist_tot_aju_avg
+
+df_avg_VLMR_avg <- Dist_tot_aju_avg %>% 
+  group_by(FN, state) %>% 
+  summarise(n = n(),
+            avg_val_adj = mean(aju_Dtot, na.rm = T), 
+            sd_val_adj = sd(aju_Dtot, na.rm = T),
+            se_val_adj = sd_val_adj/sqrt(n)) %>% 
+  mutate(endpt = as.factor("VLMR"))
+  
+df_avg_VLMR_avg
+
+df_avg_VLMR <- Dist_tot_aju %>% 
+  group_by(FN, state) %>% 
+  summarise(n = n(),
+            med_Dtot_adj = median(aju_Dtot, na.rm = T), 
+            sd_Dtot_adj = sd(aju_Dtot, na.rm = T),
+            se_Dtot_adj = sd_Dtot_adj/sqrt(n)) %>% 
+  mutate(endpt = as.factor("VLMR"))
+
+df_avg_VLMR$endpt_UV <- paste(df_avg_VLMR$endpt, df_avg_VLMR$state, sep = "_")  
+  
+df_avg_VLMR
+
+```
+
+```{r Visualisation}
+BoxDtot <- Dist_tot_aju %>% 
+  ggplot(aes(x = FN, y = aju_Dtot, fill = state)) +
+  geom_boxplot(width = 0.2, position = position_dodge(width = 0.6)) +
+  stat_summary(fun = mean, 
+               geom = "point", 
+               size = 2, 
+               color = "red3", 
+               position = position_dodge(width = 0.6)) +
+  geom_hline(yintercept = 100, colour = "black", linetype = "dashed") +
+  scale_y_continuous(limits = c(0, 400)) +
+  theme_minimal() +
+  labs(x = "Fishing nets",
+       y = "Heart bate (% of the control)",
+       title = expression(paste("Effect of aa leachates on the cardiac rhythm of ", italic("Oryzias latipes"))),
+       subtitle = "Concentration plastic eq.= 0.33 mg/ml",
+       fill = "Treatment" ) +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 14, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "top",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold'),
+        legend.key.size = unit(1.5, "cm"),
+        legend.key.width = unit(0.5, "cm"),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+BoxDtot
+```
+
+```{r Statistics}
+Dunn_all_VLMR <- rbind(MWU_n_Lett_VLMR_new %>% mutate(state = "n"), MWU_u_Lett_VLMR_used %>% mutate(state = "u")) 
+Dunn_all_VLMR
+```
+
+```{r final table}
+Dunn_all_VLMR_s <- Dunn_all_VLMR %>%  dplyr::select(-max_value)
+Dunn_all_VLMR_s
+
+VLMR_all_f <- df_avg_VLMR %>% left_join(Dunn_all_VLMR_s) %>% arrange(state) %>% mutate(diff = if_else(diff == "ns", NA, diff))
+VLMR_all_f
+
+```
+
+```{r Heatmap VLMR}
+
+max_Dtot_VLMR <- max(VLMR_all_f$med_Dtot_adj)
+max_Dtot_VLMR
+
+min_Dtot_VLMR <- 100-(max_Dtot_VLMR-100)+1
+min_Dtot_VLMR
+
+
+HM_VLMR <- VLMR_all_f %>% filter(FN != "dmso", FN != "benzo") %>% 
+  ggplot(aes(x = FN, y = factor(endpt_UV, levels = rev(unique(endpt_UV))), fill = med_Dtot_adj)) +
+  geom_tile(height = 1, width = 1) +
+  scale_fill_gradient2(low = "#36A7A7", high = "#b751ca", mid = "white", 
+   midpoint = 100, limit = c(20, 180), 
+   breaks = round(c(20, 100, 180), digits = 0), 
+   guide = "colourbar") +
+  scale_x_discrete(labels = c("PA6 \u03B1 35 \nn = 48",
+                              "PA6 \u03B2 33 \nn = 48",
+                              "PA6 \u03B2 95 \nn = 48",
+                              "PBS-PBAT \n\u03B4 60\nn = 48",
+                              "PBS-PBAT \n\u03B4 35\nn = 48",
+                              "HPPE-PP \n\u03B5 4.25\nn = 48",
+                              "PA6 \u03B3 33\nn = 48",
+                              "PA6 \u03B3 60\nn = 48")) +
+  labs(#title = "Effect of the fishing nets leachates on medaka fish",
+       x = "Fishing nets",
+       fill = "Blank H2O = 100",
+       legend.box.just = "center") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "top",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0.5,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/8) +
+  guides(fill = guide_colourbar(title.position="top", 
+                                title.vjust = 2, 
+                                ticks.colour = "black", 
+                                barheight = unit( 0.3 , "in" ),))
+
+HM_VLMR + geom_text(aes(FN, endpt_UV, label = round(med_Dtot_adj, digits = 1)), color = "black", size = 3.5, fontface = "bold") +
+  geom_text(aes(FN, endpt_UV, label = diff), size = 5, vjust = 2, color = "black", fontface = "bold")
+
+
+```
+
+
+
+# AUC_OFF2
+```{r data import new}
+# Mettre le bon trajet dossier adapté :
+
+AUC_OFF2_all <- rbind(AUC_results_used %>% mutate(state = "u"), AUC_results_new %>% mutate(state = "n")) 
+AUC_OFF2_all
+```
+
+
+```{r Outliers 25 100%}
+#Boxplot by replicates to see if there are outliers
+
+Outliers <- AUC_OFF2_all %>% 
+  ggplot(aes(FN, AUC, fill = state)) + 
+  geom_violin(fill = NA, aes(color = FN), width = 1) +
+  geom_boxplot(width = 0.3) +
+  geom_jitter(width = 0.18, alpha = 0.5, color = "red3") 
+
+Outliers
+```
+
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is outliers
+AUC_OFF2_avg_Rep <- AUC_OFF2_all %>% group_by(FN, Rep, state) %>%  summarise(n = n(), 
+                                                          AUC_OFF2_avg = mean(AUC, na.rm=T),
+                                                          AUC_OFF2_sd = sd(AUC, na.rm=T), 
+                                                          AUC_OFF2_se = AUC_OFF2_sd / sqrt(n)) 
+AUC_OFF2_avg_Rep
+
+AUC_OFF2_avg <- AUC_OFF2_all %>% group_by(FN, state) %>%  summarise(n = n(), 
+                                                          AUC_OFF2_med = median(AUC, na.rm=T),
+                                                          AUC_OFF2_avg = mean(AUC, na.rm=T),
+                                                          AUC_OFF2_sd = sd(AUC, na.rm=T), 
+                                                          AUC_OFF2_se = AUC_OFF2_sd / sqrt(n),
+                                                          AUC_OFF2_low = quantile(AUC, probs = 0.025, na.rm= T), 
+                                                          AUC_OFF2_up = quantile(AUC, probs = 0.975, na.rm= T)) 
+
+AUC_OFF2_avg 
+
+```
+
+```{r Graph}
+
+AUC_OFF2_avg %>% 
+  arrange(desc(state)) %>% 
+  ggplot(aes(x= FN, y = AUC_OFF2_med, fill = state)) + 
+  geom_col(width =0.5, position = position_dodge()) +
+  geom_errorbar(aes(ymin= ifelse(AUC_OFF2_med-AUC_OFF2_se < 0, 0, AUC_OFF2_med-AUC_OFF2_se), ymax=AUC_OFF2_med+AUC_OFF2_se), width=0.08, size = 1, position=position_dodge(width=0.5)) +
+  scale_fill_brewer(palette = "Paired") +
+  theme_bw()
+
+```
+
+```{r Ctl Avg et stat}
+
+AUC_OFF2_avg_ctl <- AUC_OFF2_all %>% filter(FN == "dmso") %>% 
+  group_by(FN, state) %>%  
+  summarise(n = n(), 
+            AUC_OFF2_med = median(AUC, na.rm=T),
+            AUC_OFF2_avg = mean(AUC, na.rm=T),
+            AUC_OFF2_sd = sd(AUC, na.rm=T), 
+            AUC_OFF2_se = AUC_OFF2_sd / sqrt(n),
+            AUC_OFF2_low = quantile(AUC, probs = 0.025, na.rm= T), 
+            AUC_OFF2_up = quantile(AUC, probs = 0.975, na.rm= T)) 
+
+AUC_OFF2_avg_ctl
+
+AUC_OFF2_ctl_n <- AUC_OFF2_avg_ctl %>% filter(state == "n")
+AUC_OFF2_ctl_u <- AUC_OFF2_avg_ctl %>% filter(state == "u")
+
+# #test_t
+# #HO = les deux groupes ont la meme moyenne
+# #H1 = les deux groupes ont des moyennes differentes 
+# stat_ctl <- AUC_OFF2_all %>% filter(FN == "CTL")
+# test <- t.test(AUC~ state, stat_ctl, var.equal=TRUE)
+# test
+# #p-value = 0.55 > 0.05, on ne rejette pas H0 
+# 
+# #Normalité 
+# #H0 = distribution normale 
+# #H1 = pas de distribution normale
+# stat_ctl %>% 
+#   group_by(state) %>% 
+#   summarise(shapiro_test(AUC), groups= "drop")
+# 
+# MWU_res_10 <- wilcox.test(AUC ~ state, stat_ctl)
+# MWU_res_10
+
+```
+
+```{r Normalisation des données autour du CTL}
+
+AUC_OFF2_aju <- AUC_OFF2_all %>% 
+  mutate(aju_AUC_OFF2 = if_else(state == "n", (AUC * 100) / AUC_OFF2_ctl_n$AUC_OFF2_med, 
+                              if_else(state == "u", (AUC * 100) / AUC_OFF2_ctl_u$AUC_OFF2_med, NA)))
+AUC_OFF2_aju
+
+#raw data ready for IBR analysis
+IBR_ASD <- AUC_OFF2_aju %>% 
+  mutate(endpt = "ASD") %>% 
+  select(Arena, FN, Rep, state, endpt, aju_AUC_OFF2) %>% filter(FN != "benzo") %>% 
+  rename(value = aju_AUC_OFF2)
+IBR_ASD
+
+AUC_OFF2_aju_avg <- AUC_OFF2_all %>% 
+  mutate(aju_AUC_OFF2 = if_else(state == "n", (AUC * 100) / AUC_OFF2_ctl_n$AUC_OFF2_avg, 
+                              if_else(state == "u", (AUC * 100) / AUC_OFF2_ctl_u$AUC_OFF2_avg, NA)))
+AUC_OFF2_aju_avg
+
+df_avg_AUC_OFF2_avg <- AUC_OFF2_aju_avg %>% filter(aju_AUC_OFF2 != 0) %>% 
+  group_by(FN, state) %>% 
+  summarise(n = n(),
+            avg_val_adj = mean(aju_AUC_OFF2), 
+            sd_val_adj = sd(aju_AUC_OFF2),
+            se_val_adj = sd_val_adj/sqrt(n)) %>% 
+  mutate(endpt = as.factor("ASD_LOFF2"))
+  
+df_avg_AUC_OFF2_avg
+
+
+df_avg_AUC_OFF2_rep <- AUC_OFF2_aju %>% filter(aju_AUC_OFF2 != 0) %>% 
+  group_by(FN, state, Rep) %>% 
+  summarise(n = n(),
+            med_val_adj = median(aju_AUC_OFF2), 
+            sd_val_adj = sd(aju_AUC_OFF2),
+            se_val_adj = sd_val_adj/sqrt(n)) %>% 
+  mutate(endpt = as.factor("ASD_LOFF2"))
+  
+df_avg_AUC_OFF2_rep
+
+df_avg_AUC_OFF2 <- AUC_OFF2_aju %>% filter(aju_AUC_OFF2 != 0) %>% 
+  group_by(FN, state) %>% 
+  summarise(n = n(),
+            med_AUC_OFF2_adj = median(aju_AUC_OFF2), 
+            sd_AUC_OFF2_adj = sd(aju_AUC_OFF2),
+            se_AUC_OFF2_adj = sd_AUC_OFF2_adj/sqrt(n)) %>% 
+  mutate(endpt = as.factor("ASD_LOFF2"))
+
+df_avg_AUC_OFF2$endpt_UV <- paste(df_avg_AUC_OFF2$endpt, df_avg_AUC_OFF2$state, sep = "_")  
+  
+df_avg_AUC_OFF2
+
+```
+
+```{r Visualisation}
+BoxAUC_OFF2 <- AUC_OFF2_aju %>% 
+  ggplot(aes(x = FN, y = aju_AUC_OFF2, fill = state)) +
+  geom_boxplot(width = 0.2, position = position_dodge(width = 0.6)) +
+  stat_summary(fun = mean, 
+               geom = "point", 
+               size = 2, 
+               color = "red3", 
+               position = position_dodge(width = 0.6)) +
+  geom_hline(yintercept = 100, colour = "black", linetype = "dashed") +
+  theme_minimal() +
+  labs(x = "Fishing nets",
+       y = "Heart bate (% of the control)",
+       title = expression(paste("Effect of aa leachates on the cardiac rhythm of ", italic("Oryzias latipes"))),
+       subtitle = "Concentration plastic eq.= 0.33 mg/ml",
+       fill = "Treatment" ) +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 14, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "top",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold'),
+        legend.key.size = unit(1.5, "cm"),
+        legend.key.width = unit(0.5, "cm"),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+BoxAUC_OFF2
+```
+
+
+```{r Statistics}
+Dunn_all_AUC_OFF2 <- rbind(MWU_n_Lett_AUC_new %>% mutate(state = "n"), MWU_u_Lett_AUC_used %>% mutate(state = "u"))
+Dunn_all_AUC_OFF2
+```
+
+```{r final table}
+Dunn_all_AUC_OFF2_s <- Dunn_all_AUC_OFF2 %>%  dplyr::select(-max_value)
+Dunn_all_AUC_OFF2_s
+
+AUC_OFF2_all_f <- df_avg_AUC_OFF2 %>% left_join(Dunn_all_AUC_OFF2_s) %>% arrange(state) %>% mutate(diff = if_else(diff == "ns", NA, diff)) 
+AUC_OFF2_all_f
+
+```
+
+```{r Heatmap AUC_OFF2}
+
+max_AUC_OFF2_AUC_OFF2 <- max(AUC_OFF2_all_f$med_AUC_OFF2_adj)
+max_AUC_OFF2_AUC_OFF2
+min_AUC_OFF2_AUC_OFF2 <- 100-(max_AUC_OFF2_AUC_OFF2-100)+1
+min_AUC_OFF2_AUC_OFF2
+
+HM_AUC_OFF2 <- AUC_OFF2_all_f %>% filter(FN != "dmso", FN != "benzo") %>% 
+  ggplot(aes(x = FN, y = factor(endpt_UV, levels = rev(unique(endpt_UV))), fill = med_AUC_OFF2_adj)) +
+  geom_tile(height = 1, width = 1) +
+  scale_fill_gradient2(low = "#36A7A7", high = "#b751ca", mid = "white", 
+   midpoint = 100, limit = c(20, 180), 
+   breaks = round(c(20, 100, 180), digits = 0), 
+   guide = "colourbar") +
+  scale_x_discrete(labels = c("PA6 \u03B1 35 \nn = 48",
+                              "PA6 \u03B2 33 \nn = 48",
+                              "PA6 \u03B2 95 \nn = 48",
+                              "PBS-PBAT \n\u03B4 60\nn = 48",
+                              "HPPE-PP \n\u03B5 4.25\nn = 48",
+                              "PA6 \u03B3 33\nn = 48",
+                              "PA6 \u03B3 60\nn = 48",
+                              "PBS-PBAT \n\u03B4 35\nn = 48")) +
+  labs(#title = "Effect of the fishing nets leachates on medaka fish",
+       x = "Fishing nets",
+       fill = "blank H2O = 100",
+       legend.box.just = "center") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "top",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0.5,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/8) +
+  guides(fill = guide_colourbar(title.position="top", 
+                                title.vjust = 2, 
+                                ticks.colour = "black", 
+                                barheight = unit( 0.3 , "in" ),))
+
+HM_AUC_OFF2 + geom_text(aes(FN, endpt_UV, label = round(med_AUC_OFF2_adj, digits = 1)), color = "black", size = 3.5, fontface = "bold") +
+  geom_text(aes(FN, endpt_UV, label = diff), size = 5, vjust = 2, color = "black", fontface = "bold")
+
+
+```
+
+
+# TPZ LOFF1 
+```{r data import new}
+# Mettre le bon trajet dossier adapté :
+
+TPZ_OFF_all <- rbind(DDIZ_u_LOFF1, DDIZ_n_LOFF1) 
+TPZ_OFF_all
+```
+
+
+```{r Outliers 25 100%}
+#Boxplot by replicates to see if there are outliers
+
+Outliers <- TPZ_OFF_all %>% 
+  ggplot(aes(FN, Dura_s, fill = state)) + 
+  geom_violin(fill = NA, aes(color = FN), width = 1) +
+  geom_boxplot(width = 0.3) +
+  geom_jitter(width = 0.18, alpha = 0.5, color = "red3") 
+
+Outliers
+```
+
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is outliers
+TPZ_OFF_avg_Rep <- TPZ_OFF_all %>% group_by(FN, Rep, state) %>%  summarise(n = n(), 
+                                                          Dura_avg = mean(Dura_s, na.rm=T),
+                                                          Dura_sd = sd(Dura_s, na.rm=T), 
+                                                          Dura_se = Dura_sd / sqrt(n)) 
+TPZ_OFF_avg_Rep
+
+TPZ_OFF_avg <- TPZ_OFF_all %>% group_by(FN, state) %>%  summarise(n = n(), 
+                                                          Dura_med = median(Dura_s, na.rm=T),
+                                                          Dura_avg = mean(Dura_s, na.rm=T),
+                                                          Dura_sd = sd(Dura_s, na.rm=T), 
+                                                          Dura_se = Dura_sd / sqrt(n),
+                                                          Dura_low = quantile(Dura_s, probs = 0.025, na.rm= T), 
+                                                          Dura_up = quantile(Dura_s, probs = 0.975, na.rm= T)) 
+
+TPZ_OFF_avg 
+
+```
+
+```{r Graph}
+
+TPZ_OFF_avg %>% 
+  arrange(desc(state)) %>% 
+  ggplot(aes(x= FN, y = Dura_med, fill = state)) + 
+  geom_col(width =0.5, position = position_dodge()) +
+  geom_errorbar(aes(ymin= ifelse(Dura_med-Dura_se < 0, 0, Dura_med-Dura_se), ymax=Dura_med+Dura_se), width=0.08, size = 1, position=position_dodge(width=0.5)) +
+  scale_fill_brewer(palette = "Paired") +
+  theme_bw()
+
+```
+
+```{r Ctl Avg et stat}
+
+TPZ_OFF_avg_ctl <- TPZ_OFF_all %>% filter(FN == "dmso") %>% 
+  #filter(!Dura_s >= 2000) %>% 
+  group_by(FN, state) %>%  
+  summarise(n = n(), 
+            Dura_med = median(Dura_s, na.rm=T),
+            Dura_avg = mean(Dura_s, na.rm=T),
+            Dura_sd = sd(Dura_s, na.rm=T), 
+            Dura_se = Dura_sd / sqrt(n),
+            Dura_low = quantile(Dura_s, probs = 0.025, na.rm= T), 
+            Dura_up = quantile(Dura_s, probs = 0.975, na.rm= T)) 
+
+TPZ_OFF_avg_ctl
+
+TPZ_OFF_ctl_n <- TPZ_OFF_avg_ctl %>% filter(state == "n")
+TPZ_OFF_ctl_u <- TPZ_OFF_avg_ctl %>% filter(state == "u")
+
+# #test_t
+# #HO = les deux groupes ont la meme moyenne
+# #H1 = les deux groupes ont des moyennes differentes 
+# stat_ctl <- TPZ_OFF_all %>% filter(FN == "CTL")
+# test <- t.test(Border~ state, stat_ctl, var.equal=TRUE)
+# test
+# #p-value = 0.55 > 0.05, on ne rejette pas H0 
+# 
+# #Normalité 
+# #H0 = distribution normale 
+# #H1 = pas de distribution normale
+# stat_ctl %>% 
+#   group_by(state) %>% 
+#   summarise(shapiro_test(Border), groups= "drop")
+# 
+# MWU_res_10 <- wilcox.test(Border ~ state, stat_ctl)
+# MWU_res_10
+
+```
+
+```{r Normalisation des données autour du CTL}
+
+Dura_s_aju <- TPZ_OFF_all %>% 
+  mutate(aju_Dura = if_else(state == "n", (Dura_s * 100) / TPZ_OFF_ctl_n$Dura_med, 
+                              if_else(state == "u", (Dura_s * 100) / TPZ_OFF_ctl_u$Dura_med, NA)))
+Dura_s_aju
+
+#raw data ready for IBR analysis
+IBR_TPZ_LOFF1 <- Dura_s_aju %>% 
+  mutate(endpt = "TPZ_LOFF1") %>% 
+  ungroup() %>% 
+  select(Arena, FN, Rep, state, endpt, aju_Dura) %>% filter(FN != "benzo") %>% 
+  rename(value = aju_Dura)
+IBR_TPZ_LOFF1
+
+Dura_s_aju_avg <- TPZ_OFF_all %>% 
+  mutate(aju_Dura = if_else(state == "n", (Dura_s * 100) / TPZ_OFF_ctl_n$Dura_avg, 
+                              if_else(state == "u", (Dura_s * 100) / TPZ_OFF_ctl_u$Dura_avg, NA)))
+Dura_s_aju_avg
+
+df_avg_TPZ_avg <- Dura_s_aju_avg %>% 
+  group_by(FN, state) %>% 
+  summarise(n = n(),
+            avg_val_adj = mean(aju_Dura, na.rm = T), 
+            sd_val_adj = sd(aju_Dura, na.rm = T),
+            se_val_adj = sd_val_adj/sqrt(n)) %>% 
+  mutate(endpt = as.factor("TPZ_LOFF1"))
+  
+df_avg_TPZ_avg
+
+df_avg_TPZ <- Dura_s_aju %>% 
+  group_by(FN, state) %>% 
+  summarise(n = n(),
+            med_Dura_adj = median(aju_Dura, na.rm = T), 
+            sd_Dura_adj = sd(aju_Dura, na.rm = T),
+            se_Dura_adj = sd_Dura_adj/sqrt(n)) %>% 
+  mutate(endpt = as.factor("TPZ_LOFF1"))
+
+df_avg_TPZ$endpt_UV <- paste(df_avg_TPZ$endpt, df_avg_TPZ$state, sep = "_")  
+  
+df_avg_TPZ
+
+```
+
+```{r Visualisation}
+BoxDura <- Dura_s_aju %>% 
+  ggplot(aes(x = FN, y = aju_Dura, fill = state)) +
+  geom_boxplot(width = 0.2, position = position_dodge(width = 0.6)) +
+  stat_summary(fun = mean, 
+               geom = "point", 
+               size = 2, 
+               color = "red3", 
+               position = position_dodge(width = 0.6)) +
+  geom_hline(yintercept = 100, colour = "black", linetype = "dashed") +
+  theme_minimal() +
+  labs(x = "Fishing nets",
+       y = "Heart bate (% of the control)",
+       title = expression(paste("Effect of aa leachates on the cardiac rhythm of ", italic("Oryzias latipes"))),
+       subtitle = "Concentration plastic eq.= 0.33 mg/ml",
+       fill = "Treatment" ) +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 14, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "top",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold'),
+        legend.key.size = unit(1.5, "cm"),
+        legend.key.width = unit(0.5, "cm"),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+BoxDura
+```
+
+```{r Statistics}
+Dunn_all_TPZ <- rbind(MWU_u_Lett_LOFF1_used %>% mutate(state = "u"), MWU_n_Lett_LOFF1_new %>% mutate(state = "n"))
+Dunn_all_TPZ
+```
+
+```{r final table}
+Dunn_all_TPZ_s <- Dunn_all_TPZ %>%  dplyr::select(-max_value)
+Dunn_all_TPZ_s
+
+TPZ_all_f <- df_avg_TPZ %>% left_join(Dunn_all_TPZ_s) %>% arrange(state) %>% mutate(diff = if_else(diff == "ns", NA, diff))
+TPZ_all_f
+
+```
+
+```{r Heatmap TPZ LOFF1}
+
+max_Dura_TPZ <- max(TPZ_all_f$med_Dura_adj)
+max_Dura_TPZ
+min_Dura_TPZ <- 100-(max_Dura_TPZ-100)+1
+min_Dura_TPZ
+
+HM_TPZ <- TPZ_all_f %>% filter(FN != "dmso") %>% 
+  ggplot(aes(x = FN, y = factor(endpt_UV, levels = rev(unique(endpt_UV))), fill = med_Dura_adj)) +
+  geom_tile(height = 1, width = 1) +
+  scale_fill_gradient2(low = "#36A7A7", high = "#b751ca", mid = "white", 
+   midpoint = 100, limit = c(65, 135), 
+   breaks = round(c(65, 100, 135), digits = 0), 
+   guide = "colourbar") +
+  scale_x_discrete(labels = c("PA6 \u03B1 35 \nn = 48",
+                              "PA6 \u03B2 33 \nn = 48",
+                              "PA6 \u03B2 95 \nn = 48",
+                              "PBS-PBAT \n\u03B4 35\nn = 48",
+                              "PBS-PBAT \n\u03B4 60\nn = 48",
+                              "HPPE-PP \n\u03B5 4.25\nn = 48",
+                              "PA6 \u03B3 33\nn = 48",
+                              "PA6 \u03B3 60\nn = 48")) +
+  labs(#title = "Effect of the fishing nets leachates on medaka fish",
+       x = "Fishing nets",
+       fill = "blank H2O = 100",
+       legend.box.just = "center") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "top",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0.5,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/8) +
+  guides(fill = guide_colourbar(title.position="top", 
+                                title.vjust = 2, 
+                                ticks.colour = "black", 
+                                barheight = unit( 0.3 , "in" ),))
+
+HM_TPZ + geom_text(aes(FN, endpt_UV, label = round(med_Dura_adj, digits = 1)), color = "black", size = 3.5, fontface = "bold") +
+  geom_text(aes(FN, endpt_UV, label = diff), size = 5, vjust = 2, color = "black", fontface = "bold")
+
+
+```
+
+
+
+# TPZ LON 
+```{r data import new}
+# Mettre le bon trajet dossier adapté :
+
+TPZ_ON_all <- rbind(DDIZ_u_LON, DDIZ_n_LON) 
+TPZ_ON_all
+```
+
+
+```{r Outliers 25 100%}
+#Boxplot by replicates to see if there are outliers
+
+Outliers <- TPZ_ON_all %>% 
+  ggplot(aes(FN, Dura_s, fill = state)) + 
+  geom_violin(fill = NA, aes(color = FN), width = 1) +
+  geom_boxplot(width = 0.3) +
+  geom_jitter(width = 0.18, alpha = 0.5, color = "red3") 
+
+Outliers
+```
+
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is outliers
+TPZ_ON_avg_Rep <- TPZ_ON_all %>% group_by(FN, Rep, state) %>%  summarise(n = n(), 
+                                                          Dura_avg = mean(Dura_s, na.rm=T),
+                                                          Dura_sd = sd(Dura_s, na.rm=T), 
+                                                          Dura_se = Dura_sd / sqrt(n)) 
+TPZ_ON_avg_Rep
+
+TPZ_ON_avg <- TPZ_ON_all %>% group_by(FN, state) %>%  summarise(n = n(), 
+                                                          Dura_med = median(Dura_s, na.rm=T),
+                                                          Dura_avg = mean(Dura_s, na.rm=T),
+                                                          Dura_sd = sd(Dura_s, na.rm=T), 
+                                                          Dura_se = Dura_sd / sqrt(n),
+                                                          Dura_low = quantile(Dura_s, probs = 0.025, na.rm= T), 
+                                                          Dura_up = quantile(Dura_s, probs = 0.975, na.rm= T)) 
+
+TPZ_ON_avg 
+
+```
+
+```{r Graph}
+
+TPZ_ON_avg %>% 
+  arrange(desc(state)) %>% 
+  ggplot(aes(x= FN, y = Dura_med, fill = state)) + 
+  geom_col(width =0.5, position = position_dodge()) +
+  geom_errorbar(aes(ymin= ifelse(Dura_med-Dura_se < 0, 0, Dura_med-Dura_se), ymax=Dura_med+Dura_se), width=0.08, size = 1, position=position_dodge(width=0.5)) +
+  scale_fill_brewer(palette = "Paired") +
+  theme_bw()
+
+```
+
+```{r Ctl Avg et stat}
+
+TPZ_ON_avg_ctl <- TPZ_ON_all %>% filter(FN == "dmso") %>% 
+  #filter(!Dura_s >= 2000) %>% 
+  group_by(FN, state) %>%  
+  summarise(n = n(), 
+            Dura_med = median(Dura_s, na.rm=T),
+            Dura_avg = mean(Dura_s, na.rm=T),
+            Dura_sd = sd(Dura_s, na.rm=T), 
+            Dura_se = Dura_sd / sqrt(n),
+            Dura_low = quantile(Dura_s, probs = 0.025, na.rm= T), 
+            Dura_up = quantile(Dura_s, probs = 0.975, na.rm= T)) 
+
+TPZ_ON_avg_ctl
+
+TPZ_ON_ctl_n <- TPZ_ON_avg_ctl %>% filter(state == "n")
+TPZ_ON_ctl_u <- TPZ_ON_avg_ctl %>% filter(state == "u")
+
+# #test_t
+# #HO = les deux groupes ont la meme moyenne
+# #H1 = les deux groupes ont des moyennes differentes 
+# stat_ctl <- TPZ_ON_all %>% filter(FN == "CTL")
+# test <- t.test(Border~ state, stat_ctl, var.equal=TRUE)
+# test
+# #p-value = 0.55 > 0.05, on ne rejette pas H0 
+# 
+# #Normalité 
+# #H0 = distribution normale 
+# #H1 = pas de distribution normale
+# stat_ctl %>% 
+#   group_by(state) %>% 
+#   summarise(shapiro_test(Border), groups= "drop")
+# 
+# MWU_res_10 <- wilcox.test(Border ~ state, stat_ctl)
+# MWU_res_10
+
+```
+
+```{r Normalisation des données autour du CTL}
+
+Dura_s_aju <- TPZ_ON_all %>% 
+  mutate(aju_Dura = if_else(state == "n", (Dura_s * 100) / TPZ_ON_ctl_n$Dura_med, 
+                              if_else(state == "u", (Dura_s * 100) / TPZ_ON_ctl_u$Dura_med, NA)))
+Dura_s_aju
+
+#raw data ready for IBR analysis
+IBR_TPZ_LON <- Dura_s_aju %>% 
+  mutate(endpt = "TPZ_LON") %>% 
+  ungroup() %>% 
+  select(Arena, FN, Rep, state, endpt, aju_Dura) %>% filter(FN != "benzo") %>% 
+  rename(value = aju_Dura)
+IBR_TPZ_LON
+
+Dura_s_aju_avg <- TPZ_ON_all %>% 
+  mutate(aju_Dura = if_else(state == "n", (Dura_s * 100) / TPZ_ON_ctl_n$Dura_avg, 
+                              if_else(state == "u", (Dura_s * 100) / TPZ_ON_ctl_u$Dura_avg, NA)))
+Dura_s_aju_avg
+
+df_avg_TPZON_avg <- Dura_s_aju_avg %>% 
+  group_by(FN, state) %>% 
+  summarise(n = n(),
+            avg_val_adj = mean(aju_Dura, na.rm = T), 
+            sd_val_adj = sd(aju_Dura, na.rm = T),
+            se_val_adj = sd_val_adj/sqrt(n)) %>% 
+  mutate(endpt = as.factor("TPZ_LON"))
+  
+df_avg_TPZON_avg
+
+df_avg_TPZON <- Dura_s_aju %>% 
+  group_by(FN, state) %>% 
+  summarise(n = n(),
+            med_Dura_adj = median(aju_Dura, na.rm = T), 
+            sd_Dura_adj = sd(aju_Dura, na.rm = T),
+            se_Dura_adj = sd_Dura_adj/sqrt(n)) %>% 
+  mutate(endpt = as.factor("TPZ_LON"))
+
+df_avg_TPZON$endpt_UV <- paste(df_avg_TPZON$endpt, df_avg_TPZON$state, sep = "_")  
+  
+df_avg_TPZON
+
+```
+
+```{r Visualisation}
+BoxDura <- Dura_s_aju %>% 
+  ggplot(aes(x = FN, y = aju_Dura, fill = state)) +
+  geom_boxplot(width = 0.2, position = position_dodge(width = 0.6)) +
+  stat_summary(fun = mean, 
+               geom = "point", 
+               size = 2, 
+               color = "red3", 
+               position = position_dodge(width = 0.6)) +
+  geom_hline(yintercept = 100, colour = "black", linetype = "dashed") +
+  theme_minimal() +
+  labs(x = "Fishing nets",
+       y = "Heart bate (% of the control)",
+       title = expression(paste("Effect of aa leachates on the cardiac rhythm of ", italic("Oryzias latipes"))),
+       subtitle = "Concentration plastic eq.= 0.33 mg/ml",
+       fill = "Treatment" ) +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 14, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "top",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold'),
+        legend.key.size = unit(1.5, "cm"),
+        legend.key.width = unit(0.5, "cm"),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+BoxDura
+```
+
+```{r Statistics}
+Dunn_all_TPZON <- rbind(MWU_u_Lett_LON_used %>% mutate(state = "u"), MWU_n_Lett_LON_new %>% mutate(state = "n"))
+Dunn_all_TPZON
+```
+
+```{r final table}
+Dunn_all_TPZON_s <- Dunn_all_TPZON %>%  dplyr::select(-max_value)
+Dunn_all_TPZON_s
+
+TPZON_all_f <- df_avg_TPZON %>% left_join(Dunn_all_TPZON_s) %>% arrange(state) %>% mutate(diff = if_else(diff == "ns", NA, diff))
+TPZON_all_f
+
+```
+
+```{r Heatmap TPZON LON}
+
+max_Dura_TPZON <- max(TPZON_all_f$med_Dura_adj)
+max_Dura_TPZON
+min_Dura_TPZON <- 100-(max_Dura_TPZON-100)+1
+min_Dura_TPZON
+
+HM_TPZON <- TPZON_all_f %>% filter(FN != "dmso") %>% 
+  ggplot(aes(x = FN, y = factor(endpt_UV, levels = rev(unique(endpt_UV))), fill = med_Dura_adj)) +
+  geom_tile(height = 1, width = 1) +
+  scale_fill_gradient2(low = "#36A7A7", high = "#b751ca", mid = "white", 
+   midpoint = 100, limit = c(65, 135), 
+   breaks = round(c(65, 100, 135), digits = 0), 
+   guide = "colourbar") +
+  scale_x_discrete(labels = c("PA6 \u03B1 35 \nn = 48",
+                              "PA6 \u03B2 33 \nn = 48",
+                              "PA6 \u03B2 95 \nn = 48",
+                              "PBS-PBAT \n\u03B4 35\nn = 48",
+                              "PBS-PBAT \n\u03B4 60\nn = 48",
+                              "HPPE-PP \n\u03B5 4.25\nn = 48",
+                              "PA6 \u03B3 33\nn = 48",
+                              "PA6 \u03B3 60\nn = 48")) +
+  labs(#title = "Effect of the fishing nets leachates on medaka fish",
+       x = "Fishing nets",
+       fill = "blank H2O = 100",
+       legend.box.just = "center") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "top",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0.5,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/8) +
+  guides(fill = guide_colourbar(title.position="top", 
+                                title.vjust = 2, 
+                                ticks.colour = "black", 
+                                barheight = unit( 0.3 , "in" ),))
+
+HM_TPZON + geom_text(aes(FN, endpt_UV, label = round(med_Dura_adj, digits = 1)), color = "black", size = 3.5, fontface = "bold") +
+  geom_text(aes(FN, endpt_UV, label = diff), size = 5, vjust = 2, color = "black", fontface = "bold")
+
+
+```
+
+
+# TPZ LOFF2
+```{r data import new}
+# Mettre le bon trajet dossier adapté :
+
+TPZ_LOFF2_all <- rbind(DDIZ_u_LOFF2 %>% mutate(state = "u"), DDIZ_n_LOFF2 %>% mutate(state = "n")) 
+TPZ_LOFF2_all
+```
+
+
+```{r Outliers 25 100%}
+#Boxplot by replicates to see if there are outliers
+
+Outliers <- TPZ_LOFF2_all %>% 
+  ggplot(aes(FN, Dura_s, fill = state)) + 
+  geom_violin(fill = NA, aes(color = FN), width = 1) +
+  geom_boxplot(width = 0.3) +
+  geom_jitter(width = 0.18, alpha = 0.5, color = "red3") 
+
+Outliers
+```
+
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is outliers
+TPZ_LOFF2_avg_Rep <- TPZ_LOFF2_all %>% group_by(FN, Rep, state) %>%  summarise(n = n(), 
+                                                          Dura_avg = mean(Dura_s, na.rm=T),
+                                                          Dura_sd = sd(Dura_s, na.rm=T), 
+                                                          Dura_se = Dura_sd / sqrt(n)) 
+TPZ_LOFF2_avg_Rep
+
+TPZ_LOFF2_avg <- TPZ_LOFF2_all %>% group_by(FN, state) %>%  summarise(n = n(), 
+                                                          Dura_med = median(Dura_s, na.rm=T),
+                                                          Dura_avg = mean(Dura_s, na.rm=T),
+                                                          Dura_sd = sd(Dura_s, na.rm=T), 
+                                                          Dura_se = Dura_sd / sqrt(n),
+                                                          Dura_low = quantile(Dura_s, probs = 0.025, na.rm= T), 
+                                                          Dura_up = quantile(Dura_s, probs = 0.975, na.rm= T)) 
+
+TPZ_LOFF2_avg 
+
+```
+
+```{r Graph}
+
+TPZ_LOFF2_avg %>% 
+  arrange(desc(state)) %>% 
+  ggplot(aes(x= FN, y = Dura_med, fill = state)) + 
+  geom_col(width =0.5, position = position_dodge()) +
+  geom_errorbar(aes(ymin= ifelse(Dura_med-Dura_se < 0, 0, Dura_med-Dura_se), ymax=Dura_med+Dura_se), width=0.08, size = 1, position=position_dodge(width=0.5)) +
+  scale_fill_brewer(palette = "Paired") +
+  theme_bw()
+
+```
+
+```{r Ctl Avg et stat}
+
+TPZ_LOFF2_avg_ctl <- TPZ_LOFF2_all %>% filter(FN == "dmso") %>% 
+  #filter(!Dura_s >= 2000) %>% 
+  group_by(FN, state) %>%  
+  summarise(n = n(), 
+            Dura_med = median(Dura_s, na.rm=T),
+            Dura_avg = mean(Dura_s, na.rm=T),
+            Dura_sd = sd(Dura_s, na.rm=T), 
+            Dura_se = Dura_sd / sqrt(n),
+            Dura_low = quantile(Dura_s, probs = 0.025, na.rm= T), 
+            Dura_up = quantile(Dura_s, probs = 0.975, na.rm= T)) 
+
+TPZ_LOFF2_avg_ctl
+
+TPZ_LOFF2_ctl_n <- TPZ_LOFF2_avg_ctl %>% filter(state == "n")
+TPZ_LOFF2_ctl_u <- TPZ_LOFF2_avg_ctl %>% filter(state == "u")
+
+# #test_t
+# #HO = les deux groupes ont la meme moyenne
+# #H1 = les deux groupes ont des moyennes differentes 
+# stat_ctl <- TPZ_LOFF2_all %>% filter(FN == "CTL")
+# test <- t.test(Border~ state, stat_ctl, var.equal=TRUE)
+# test
+# #p-value = 0.55 > 0.05, on ne rejette pas H0 
+# 
+# #Normalité 
+# #H0 = distribution normale 
+# #H1 = pas de distribution normale
+# stat_ctl %>% 
+#   group_by(state) %>% 
+#   summarise(shapiro_test(Border), groups= "drop")
+# 
+# MWU_res_10 <- wilcox.test(Border ~ state, stat_ctl)
+# MWU_res_10
+
+```
+
+```{r Normalisation des données autour du CTL}
+
+Dura_s_aju <- TPZ_LOFF2_all %>% 
+  mutate(aju_Dura = if_else(state == "n", (Dura_s * 100) / TPZ_LOFF2_ctl_n$Dura_med, 
+                              if_else(state == "u", (Dura_s * 100) / TPZ_LOFF2_ctl_u$Dura_med, NA)))
+Dura_s_aju
+
+#raw data ready for IBR analysis
+IBR_TPZ_LOFF2 <- Dura_s_aju %>% 
+  mutate(endpt = "TPZ_LOFF2") %>% 
+  ungroup() %>% 
+  select(Arena, FN, Rep, state, endpt, aju_Dura) %>% filter(FN != "benzo") %>% 
+  rename(value = aju_Dura)
+IBR_TPZ_LOFF2
+
+Dura_s_aju_avg <- TPZ_LOFF2_all %>% 
+  mutate(aju_Dura = if_else(state == "n", (Dura_s * 100) / TPZ_LOFF2_ctl_n$Dura_avg, 
+                              if_else(state == "u", (Dura_s * 100) / TPZ_LOFF2_ctl_u$Dura_avg, NA)))
+Dura_s_aju_avg
+
+df_avg_TPZ_LOFF2_avg <- Dura_s_aju_avg %>% 
+  group_by(FN, state) %>% 
+  summarise(n = n(),
+            avg_val_adj = mean(aju_Dura, na.rm = T), 
+            sd_val_adj = sd(aju_Dura, na.rm = T),
+            se_val_adj = sd_val_adj/sqrt(n)) %>% 
+  mutate(endpt = as.factor("TPZ_LOFF2"))
+  
+df_avg_TPZ_LOFF2_avg
+
+df_avg_TPZ_LOFF2 <- Dura_s_aju %>% 
+  group_by(FN, state) %>% 
+  summarise(n = n(),
+            med_Dura_adj = median(aju_Dura, na.rm = T), 
+            sd_Dura_adj = sd(aju_Dura, na.rm = T),
+            se_Dura_adj = sd_Dura_adj/sqrt(n)) %>% 
+  mutate(endpt = as.factor("TPZ_LOFF2"))
+
+df_avg_TPZ_LOFF2$endpt_UV <- paste(df_avg_TPZ_LOFF2$endpt, df_avg_TPZ_LOFF2$state, sep = "_")  
+  
+df_avg_TPZ_LOFF2
+
+```
+
+```{r Visualisation}
+BoxDura <- Dura_s_aju %>% 
+  ggplot(aes(x = FN, y = aju_Dura, fill = state)) +
+  geom_boxplot(width = 0.2, position = position_dodge(width = 0.6)) +
+  stat_summary(fun = mean, 
+               geom = "point", 
+               size = 2, 
+               color = "red3", 
+               position = position_dodge(width = 0.6)) +
+  geom_hline(yintercept = 100, colour = "black", linetype = "dashed") +
+  theme_minimal() +
+  labs(x = "Fishing nets",
+       y = "Heart bate (% of the control)",
+       title = expression(paste("Effect of aa leachates on the cardiac rhythm of ", italic("Oryzias latipes"))),
+       subtitle = "Concentration plastic eq.= 0.33 mg/ml",
+       fill = "Treatment" ) +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 14, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "top",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold'),
+        legend.key.size = unit(1.5, "cm"),
+        legend.key.width = unit(0.5, "cm"),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+BoxDura
+```
+
+```{r Statistics}
+Dunn_all_TPZ_LOFF2 <- rbind(MWU_u_Lett_LOFF2_used %>% mutate(state = "u"), MWU_n_Lett_LOFF2_new %>% mutate(state = "n"))
+Dunn_all_TPZ_LOFF2
+```
+
+```{r final table}
+Dunn_all_TPZ_LOFF2_s <- Dunn_all_TPZ_LOFF2 %>%  dplyr::select(-max_value)
+Dunn_all_TPZ_LOFF2_s
+
+TPZ_LOFF2_all_f <- df_avg_TPZ_LOFF2 %>% left_join(Dunn_all_TPZ_LOFF2_s) %>% arrange(state) %>% mutate(diff = if_else(diff == "ns", NA, diff))
+TPZ_LOFF2_all_f
+
+```
+
+```{r Heatmap TPZ_LOFF2}
+
+max_Dura_TPZ_LOFF2 <- max(TPZ_LOFF2_all_f$med_Dura_adj)
+max_Dura_TPZ_LOFF2
+min_Dura_TPZ_LOFF2 <- 100-(max_Dura_TPZ_LOFF2-100)+1
+min_Dura_TPZ_LOFF2
+
+HM_TPZ_LOFF2 <- TPZ_LOFF2_all_f %>% filter(FN != "dmso") %>% 
+  ggplot(aes(x = FN, y = factor(endpt_UV, levels = rev(unique(endpt_UV))), fill = med_Dura_adj)) +
+  geom_tile(height = 1, width = 1) +
+  scale_fill_gradient2(low = "#36A7A7", high = "#b751ca", mid = "white", 
+   midpoint = 100, limit = c(75, 125), 
+   breaks = round(c(75, 100, 125), digits = 0), 
+   guide = "colourbar") +
+  scale_x_discrete(labels = c("PA6 \u03B1 35 \nn = 48",
+                              "PA6 \u03B2 33 \nn = 48",
+                              "PA6 \u03B2 95 \nn = 48",
+                              "PBS-PBAT \n\u03B4 35\nn = 48",
+                              "PBS-PBAT \n\u03B4 60\nn = 48",
+                              "HPPE-PP \n\u03B5 4.25\nn = 48",
+                              "PA6 \u03B3 33\nn = 48",
+                              "PA6 \u03B3 60\nn = 48")) +
+  labs(#title = "Effect of the fishing nets leachates on medaka fish",
+       x = "Fishing nets",
+       fill = "blank H2O = 100",
+       legend.box.just = "center") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "top",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0.5,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/8) +
+  guides(fill = guide_colourbar(title.position="top", 
+                                title.vjust = 2, 
+                                ticks.colour = "black", 
+                                barheight = unit( 0.3 , "in" ),))
+
+HM_TPZ_LOFF2 + geom_text(aes(FN, endpt_UV, label = round(med_Dura_adj, digits = 1)), color = "black", size = 3.5, fontface = "bold") +
+  geom_text(aes(FN, endpt_UV, label = diff), size = 5, vjust = 2, color = "black", fontface = "bold")
+
+
+```
+
+
+#----------------------------------------------
+
+#All END POINTS
+```{r General dataframe}
+#modify variable AUC et Dura en Dtot pour avoir qu'une colonne en joignant
+
+AUC_OFF2_all_f_Dtot <- AUC_OFF2_all_f %>% rename(med_Dtot_adj = med_AUC_OFF2_adj,
+                                       sd_Dtot_adj = sd_AUC_OFF2_adj,
+                                       se_Dtot_adj = se_AUC_OFF2_adj)
+
+TPZ_all_f_Dtot <- TPZ_all_f %>% rename(med_Dtot_adj = med_Dura_adj,
+                                       sd_Dtot_adj = sd_Dura_adj,
+                                       se_Dtot_adj = se_Dura_adj)
+
+TPZ_on_all_f_Dtot <- TPZON_all_f %>% rename(med_Dtot_adj = med_Dura_adj,
+                                       sd_Dtot_adj = sd_Dura_adj,
+                                       se_Dtot_adj = se_Dura_adj)
+
+TPZ_loff2_all_f_Dtot <- TPZ_LOFF2_all_f %>% rename(med_Dtot_adj = med_Dura_adj,
+                                       sd_Dtot_adj = sd_Dura_adj,
+                                       se_Dtot_adj = se_Dura_adj)
+
+
+General1 <- rbind(BLA_OFF_all_f, 
+                 BLA_LON_all_f,
+                 TPZ_all_f_Dtot, 
+                 TPZ_on_all_f_Dtot,
+                 VLSR_all_f, 
+                 AUC_OFF2_all_f_Dtot,
+                 VLMR_all_f, 
+                 TPZ_loff2_all_f_Dtot) %>% 
+  mutate(ctl_0 = round(med_Dtot_adj/100, digits = 2),
+         Bioassay = "Behavior",
+         Organism = "medaka") %>% 
+  filter(FN != "benzo") %>% 
+  mutate(endpt_UV = factor(endpt_UV)) %>% 
+  mutate(endpt_IBR = if_else(grepl("BLA", endpt), "BLA",
+                             if_else(grepl("TPZ", endpt), "TPZ", endpt)))
+
+General1
+
+
+# Tri du data frame en fonction de la variable endpt_UV
+ordre_specifique <- c("BLA_OFF", "TPZ_LOFF1", "BLA_LON", "TPZ_LON", "VLSR", "VLMR", "ASD_LOFF2", "TPZ_LOFF2")
+
+General <- General1 %>%
+  mutate(endpt = factor(endpt, levels = ordre_specifique)) %>%
+  filter(FN != "dmso")
+General
+
+library(writexl)
+write_xlsx(General, "Behav_corr_matrix_dmso.xlsx")
+```
+
+```{r toxicity score}
+
+Tox_sco_behav <- General %>% 
+  mutate(m_effect = if_else(!(is.na(diff)), abs(100-med_Dtot_adj), 0),
+         score = m_effect/0.33*0.4) %>% 
+  #filter(!is.na(diff))
+  group_by(FN, state) %>%
+  summarise(tot_score = sum(score, na.rm = T),
+            n = n())
+Tox_sco_behav
+
+#export as csv
+#write.csv(Tox_sco_behav, "dmso_tox_score/Tox_sco_behav.csv")
+
+
+```
+
+```{r IBR data}
+#final df with all the raw data ready for IBR analysis
+df_IBR1 <- bind_rows(IBR_BLA_OFF, IBR_BLA_ON, IBR_VLSR, IBR_VLMR, IBR_ASD, IBR_TPZ_LOFF1, IBR_TPZ_LON, IBR_TPZ_LOFF2)
+df_IBR1
+
+#export as csv
+#write.csv(df_IBR1, "dmso_tox_score/IBR_behav.csv")
+
+```
+
+
+```{r Heatmap General raw data}
+
+General2 <- General %>% mutate(diff = if_else(diff == "*", "   *",
+                                                  if_else(diff == "**", "  **",
+                                                          if_else(diff == "***", " ***",
+                                                                  if_else(diff == "****", "****", NA)))))
+General2
+
+max_Dtot_G <- max(General2$med_Dtot_adj)
+max_Dtot_G
+min_Dtot_G <- 100-(max_Dtot_G-100)+1
+min_Dtot_G
+
+General2$endpt_UV <- gsub("ASD_LOFF2", "ASD", General2$endpt_UV)
+
+HM_TPZ <- General2 %>% filter(FN != "dmso") %>% 
+  ggplot(aes(x = FN, y = factor(endpt_UV, levels = rev(unique(endpt_UV))), fill = med_Dtot_adj)) +
+  geom_tile(height = 1, width = 1) +
+  scale_fill_gradient2(low = "#36A7A7", high = "#c68640", mid = "grey100", 
+   midpoint = 100, limit = c(20, 180), 
+   breaks = round(c(20, 100, 180), digits = 0), 
+   guide = "colourbar") +
+  facet_grid(endpt~., scales = "free_y") +
+  scale_x_discrete(labels = c("PA \u03B135",
+                              "PA \u03B233",
+                              "PA \u03B295",
+                              "PBS \u03B435",
+                              "PBS \u03B460",
+                              "HPPE \u03B54.25",
+                              "PA \u03B333",
+                              "PA \u03B360")) +
+  labs(title = expression(paste("Effect of FN extracts on ", italic("Oryzias latipes"), " larvae")),
+       subtitle = "Exposure time = 48h",
+       x = "Fishing nets",
+       fill = "Solvent control = 100",
+       legend.box.just = "center") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "top",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0.5,
+        legend.title = element_text(size = 18, face = "bold"),
+        plot.margin = unit(c(1, 1, -2, 1), "cm"),
+        strip.background = element_blank(),
+        strip.text.y = element_blank(),
+        aspect.ratio = 3/60) +
+  guides(fill = guide_colourbar(title.position="top", 
+                                title.vjust = 2, 
+                                ticks.colour = "black", 
+                                barheight = unit( 0.3 , "in" ),))
+         
+HM_TPZ + geom_text(aes(FN, endpt_UV, label = round(med_Dtot_adj, digits = 1)), color = "black", size = 5, fontface = "bold", vjust = 0.6) +
+  geom_text(aes(FN, endpt_UV, label = diff), size = 6, vjust = 0.7, hjust = -0.7, color = "black", fontface = "bold") +
+  labs(caption = "Statistics:\nMann-Whitney U-test\n FN vs Solvent control\n* = p-value < 0.05\n** = p-value < 0.01\n*** = p-value < 0.001\n**** = p-value < 0.0001\nn = 48") + 
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 12, 
+               hjust = 0.99, 
+               vjust = 265, 
+               angle = 0, 
+               lineheight = 1))
+
+
+```
+
+
+```{r Heatmap General % difference with the control, eval=FALSE, include=FALSE}
+
+max_Dtot_G <- max(General$ctl_0)
+max_Dtot_G
+min_Dtot_G <- min(General$ctl_0)
+min_Dtot_G
+
+#rename FN with the final name
+General3 <- General %>% 
+  mutate(FN = if_else(FN == "epsi", "HPPE \u03B54.25",
+                      if_else(FN == "alpha", "PA \u03B135",
+                              if_else(FN == "beta33", "PA \u03B233",
+                                      if_else(FN == "beta95", "PA \u03B295",
+                                              if_else(FN == "gamma33", "PA \u03B333",
+                                                      if_else(FN == "gamma60", "PA \u03B360",
+                                                              if_else(FN == "delta35", "PBS \u03B435",
+                                                                      if_else(FN == "delta60", "PBS \u03B460", NA))))))))) %>% 
+  #change BLA_OFF in BLA_LOFF1
+  mutate(endpt_UV = if_else(endpt_UV == "BLA_OFF_n", "BLA_LOFF1_n", 
+                            if_else(endpt_UV == "BLA_OFF_u", "BLA_LOFF1_u", endpt_UV))) 
+  
+General3
+
+#Order x-axis with FN variable
+General3$FN <- factor(General3$FN, levels = c("HPPE ε4.25", "PA α35", "PA β33", "PA β95", "PA γ33", "PA γ60", "PBS δ35", "PBS δ60"))
+
+HM_TPZ <- General3 %>% filter(FN != "CTL") %>% 
+  ggplot(aes(x = FN, y = factor(endpt_UV, levels = rev(unique(endpt_UV))), fill = ctl_0)) +
+  geom_tile(height = 1, width = 1) +
+  scale_fill_gradient2(low = "#ef6565", high = "#256CB4", mid = "grey100", 
+   midpoint = 1, limit = c(0, 2), 
+   breaks = round(c(0, 1, 2), digits = 0), 
+   guide = "colourbar") +
+  facet_grid(endpt~., scales = "free_y") +
+  labs(#title = "Effect of the fishing nets leachates on medaka fish",
+       x = "Fishing nets",
+       y = "Endpoints_FN state",
+       fill = "",
+       legend.box.just = "center") +
+  theme_classic() +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.text.x = element_text(size = 19, face = 'bold'),
+        axis.text.y = element_text(size = 19, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "right",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 20, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0.5,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        strip.background = element_blank(),
+        strip.text.y = element_blank(),
+        #aspect.ratio = 3/45
+        ) +
+  guides(fill = guide_colourbar(title.vjust = 2, 
+                                ticks.colour = "black", 
+                                barheight = unit( 2 , "in" ),))
+
+HM_TPZ + geom_text(aes(FN, endpt_UV, label = round(ctl_0, digits = 2)), color = "black", size = 5, fontface = "bold", vjust = -0.02) +
+  geom_text(aes(FN, endpt_UV, label = diff), size = 7, vjust = 1.3, color = "black", fontface = "bold")
+
+
+```
+
+
+Analyses results :
+- The BLA tends to increase for nets irradiated for 12.54 days. The distance covered by fishes was significantly higher for 4 of the 5 FN tested. At the contrary the general trend of the BLA was at the decrease when increasing the UV irradiation time. However any significant difference as been shown. 
+The time spent in peripheral zone during the BLA significantly increased for all the FN and for 6 on 8 at 12.54 days and 25.08 days respectively. However, for PA g33 and PBS d60 at 25.08 days of UV irradiation the increase were no more significant. 
+For the startle response any significant difference according to the control has been observed and no general trend can be identified. 
+A longer but not significant habituation to vibration stimuli has been induced by the FN irradiated for 12.54 days. After 25.08 days of Uv irradiation 5 fishing net induce a increase and three are significant (HPPE e4.25, PA b0.95 and PA y33). Whereas PA y33 and PBS d35 show a non significant quicker habituation.
+During this vibration stimuli for the fishes exposed th the FN irradiated for 12.54 days the time in peripheral zone increase significantly for the HPPE e4.25 and the PBS d60 as during the BLA. The other show also an increase but not significant. After 25.08 days of irradiation 5 on 8 FN induce a significant increase of the TPZ, while the PA b33 induce a significant decrease. 
+For VMR to lights out the FN irradiated for 12.54 days induced a slight increase, only significant for the PA y33 and the PBS d35. At the contrary for those irradiated for 25.08 days the general trend is towards shorter distances travelled and significantly for the PA b33 and PA y60. Using the same stimuli but taking the time needed to acclimatize the result is similar. 
+Finally, for all the FN and for both irradiation time the difference of TPZ is higly significant, inducing a increase for all, except for the PA b33. 
+Finally, we can conclude that, apart for the VSR that is not significant, the irradiation of 12.54 days induce a general increase of the endpoints, whereas some decrease has been caused by a longer irradiation. This is particularly true for the PA b33, which, apart from the TPZ during the BLA, induced a decrease of all endpoints compared with the control.
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+

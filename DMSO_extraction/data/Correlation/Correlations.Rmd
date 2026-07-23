@@ -1,0 +1,2559 @@
+---
+title: "PCA_kinetics"
+author: "Edgar Dusacre"
+date: "`r Sys.Date()`"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r Insertion package, include=FALSE}
+library(ggnewscale)
+library(ggplot2) 
+library(tidyr)
+library(purrr)
+library(tidyverse)
+library(ggrepel)
+library(ggpubr)
+library(knitr)
+library(yaml)
+library(dplyr) 
+library(matrixStats)
+library(EnvStats)
+library(stringr)
+library(gtable)
+library(grid)
+library(FSA)
+library(scales)
+#library(wbstats)
+library(ggh4x)
+library(multcompView)
+library(report)
+library(ecotox)
+library(wesanderson)
+library(RColorBrewer)
+library(readr)
+library(readxl)
+library(gmodels)
+library(ggpattern)
+library(zoo)
+library(forcats)
+library(car)
+library(dunn.test)
+library(gridExtra)
+
+
+library(forcats)
+library(binom)
+library(lubridate)
+library(ade4)
+library(broom)
+library(rstatix)
+library(rcompanion)
+library(chron)
+library(PMCMRplus)
+
+library(factoextra)
+library(gclus)
+library(ape)
+library(corrplot)
+library(RVAideMemoire)
+library(vegan)
+library(cowplot)
+library(magick)
+```
+
+
+```{r Charger les palettes de couleurs, include=FALSE}
+
+Plasfito_C <- c("#80CAD0", "#36A7A7", "#276573", "#054959","#E3CCC0", "#F7EAE1", "#A48A7B", "#C6AF8D", "#49BED3", "#256CB4", "#008163", "#44B494", "#7BC6B9")
+
+Plasfito_color <- c("GreenP4" = "#80CAD0", "GreenP3" = "#36A7A7", "GreenP2" = "#276573", "GreenP1" = "#054959","Brown1" = "#E3CCC0", "Brown2" = "#F7EAE1", "Brown3" = "#A48A7B", "Brown4" = "#C6AF8D", "Turquoise1" = "#49BED3", "Blue1" = "#256CB4", "Green1" = "#008163", "Green2" = "#44B494", "Green3" = "#7BC6B9")
+
+List_color_Fr <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                   "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573")
+
+List_color <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                 "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573",
+                 "Euskadi" = "#054959")
+
+Plasfito_Tps <- c("5" = "#80CAD0", "15" = "#36A7A7", "30" = "#276573")
+
+
+#A part si vous souhaitez changer les couleurs do not touch.
+Ech_K2CR2O7<- c("K2CR2O7" = "#80CAD0")
+
+Tps_color <- c("5" = "#80CAD0" , "15" = "#36A7A7", "30" = "#276573")
+
+Dilu_color <- c("0.0125" = "#80CAD0" , "0.025" = "#36A7A7", "0.05" = "#276573", "0.1" = "#008163")
+
+Conc_color <- c("0.4125" = "#80CAD0" , "0.825" = "#36A7A7", "1.65" = "#276573", "3.3" = "#008163")
+Conc_color3 <- c("0.825" = "aquamarine", "1.65" = "#36A7A7", "3.3" = "#276573")
+
+Color_biolu_Pasaia <- c("Ech1" = "aquamarine", "Ech2" = "#36A7A7" , "DMSO" = "#A48A7B")
+
+Color_real_FN <- c("dmso" = "#A48A7B", "CTL" = "#256CB4", "PA_a35" = "#4fd355", "PA_b33" = "#ca98d3", "PA_b95" = "#6e217c", "PA_g33" = "#92b78f", "PA_g60" = "#bbb3bc", "PBS_d35" = "#d3ad4f","PBS_d60" = "#c68640", "HPPE_e425" = "#36A7A7")
+
+my_palette <- rev(brewer.pal(name="BrBG", n=11))[c(1, 3, 4, 5, 7, 8, 9, 11)]
+my_palette
+
+```
+
+```{r import datasets}
+
+metal_conc <-  read_csv("Tox/PCA_tables_dmso/Avg_metals.csv", 
+    na = "NA") %>% 
+  dplyr::select(-"...1") %>% 
+  filter(FN != "dmso") %>%   
+  arrange(state)
+metal_conc
+
+#Diviser metal_conc
+df_metals <- split(metal_conc, metal_conc$Metals)
+df_metals
+# Créer des dataframes individuels dans l'environnement global
+names_df <- paste0("", names(df_metals)) 
+for (i in seq_along(df_metals)) {
+  assign(names_df[i], df_metals[[i]])
+}
+
+orga_conc_cat <-  read_xlsx("Tox/PCA_tables_dmso/orga_dmso_avg_cat.xlsx", 
+    na = "NA") %>%   
+  mutate(state = if_else(state == "EOL", "used", state)) %>% 
+  #filter(compounds != "AKP") %>% 
+  mutate(FN = case_when(
+    FN %in% c("alpha", "PA α ø.35", "pa_a33", "α35") ~ "pa_a35",
+    FN %in% c("beta33", "PA β ø.33", "pa_b33", "β33") ~ "pa_b33", 
+    FN %in% c("beta95", "PA β ø.95", "pa_b95", "β95") ~ "pa_b95",
+    FN %in% c("gamma33", "PA γ ø.33", "pa_g33", "γ33") ~ "pa_g33",
+    FN %in% c("gamma60", "PA γ ø.60", "pa_g60", "γ60") ~ "pa_g60",
+    FN %in% c("delta35", "PBS δ ø.35", "pbs_d35", "δ35") ~ "pbs_d35",
+    FN %in% c("delta60", "PBS δ ø.60", "pbs_d60", "δ60") ~ "pbs_d60",
+    FN %in% c("epsi", "HPPE ε ø4.25", "pe_e4.25", "ε4,25") ~ "hppe_e425",
+    TRUE ~ FN  # Garde les autres valeurs inchangées
+  )) %>% 
+  arrange(state)
+orga_conc_cat
+
+#Diviser orga_conc_cat
+df_orga_cat <- split(orga_conc_cat, orga_conc_cat$compounds)
+df_orga_cat
+# Créer des dataframes individuels dans l'environnement global
+names_df <- paste0("", names(df_orga_cat)) 
+for (i in seq_along(df_orga_cat)) {
+  assign(names_df[i], df_orga_cat[[i]])
+}
+
+orga_conc <-  read_xlsx("Tox/PCA_tables_dmso/orga_dmso_avg.xlsx", 
+    na = "NA") %>% 
+  mutate(state = if_else(state == "EOL", "used", state)) %>%
+  #filter(compounds != "Nonylphénols") %>%
+  mutate(FN = case_when(
+    FN %in% c("alpha", "PA α ø.35", "pa_a33", "α35") ~ "pa_a35",
+    FN %in% c("beta33", "PA β ø.33", "pa_b33", "β33") ~ "pa_b33", 
+    FN %in% c("beta95", "PA β ø.95", "pa_b95", "β95") ~ "pa_b95",
+    FN %in% c("gamma33", "PA γ ø.33", "pa_g33", "γ33") ~ "pa_g33",
+    FN %in% c("gamma60", "PA γ ø.60", "pa_g60", "γ60") ~ "pa_g60",
+    FN %in% c("delta35", "PBS δ ø.35", "pbs_d35", "δ35") ~ "pbs_d35",
+    FN %in% c("delta60", "PBS δ ø.60", "pbs_d60", "δ60") ~ "pbs_d60",
+    FN %in% c("epsi", "HPPE ε ø4.25", "pe_e4.25", "ε4,25") ~ "hppe_e425",
+    TRUE ~ FN  # Garde les autres valeurs inchangées
+  )) %>% 
+  mutate(compounds = case_when(
+    compounds == "Nonylphénols" ~ "Nonylphenols",
+    TRUE ~ compounds  # Garde les autres valeurs inchangées
+  )) %>%
+  filter(FN != "blank") %>% 
+  arrange(state)
+orga_conc
+
+#CrossTable(orga_conc$compounds)
+
+#Diviser orga_conc
+df_orga <- split(orga_conc, orga_conc$compounds)
+df_orga
+# Créer des dataframes individuels dans l'environnement global
+names_df <- paste0("", names(df_orga)) 
+for (i in seq_along(df_orga)) {
+  assign(names_df[i], df_orga[[i]])
+}
+  
+
+Biolu_inhi <- read_csv("Tox/PCA_tables_dmso/Avg_microtox.csv", 
+    na = "NA") %>% 
+  dplyr::select(-"...1") %>% 
+  filter(FN != "dmso", state != "used+") %>%   
+  arrange(state)
+Biolu_inhi
+
+Behav_BSI <- read_csv("Tox/PCA_tables_dmso/BSI.csv", 
+    na = "NA") %>%  
+  mutate(FN = case_when(
+    FN %in% c("alpha", "PA α ø.35", "pa_a33") ~ "pa_a35",
+    FN %in% c("beta33", "PA β ø.33", "pa_b33") ~ "pa_b33", 
+    FN %in% c("beta95", "PA β ø.95", "pa_b95") ~ "pa_b95",
+    FN %in% c("gamma33", "PA γ ø.33", "pa_g33") ~ "pa_g33",
+    FN %in% c("gamma60", "PA γ ø.60", "pa_g60") ~ "pa_g60",
+    FN %in% c("delta35", "PBS δ ø.35", "pbs_d35") ~ "pbs_d35",
+    FN %in% c("delta60", "PBS δ ø.60", "pbs_d60") ~ "pbs_d60",
+    FN %in% c("epsi", "HPPE ε ø4.25", "pe_e4.25") ~ "hppe_e425",
+    TRUE ~ FN  # Garde les autres valeurs inchangées
+  ),
+  state = case_when(
+    state %in% c("u") ~ "used",
+    state %in% c("n") ~ "new",
+    TRUE ~ state  # Garde les autres valeurs inchangées
+  )) %>% 
+  dplyr::select(-"...1", -diff, -ctl_0) %>% 
+  # mutate(endpt = if_else(endpt == "TPZ LOFF1", "TPZ_LOFF1",
+  #                        if_else(endpt == "TPZ LOFF3", "TPZ_LOFF3",
+  #                                if_else(endpt == "TPZ Tapping", "TPZ_Tapping", endpt)))
+  #        ) %>%  
+  arrange(state) %>% 
+  mutate(score = if_else(is.na(score), 0, score))
+Behav_BSI
+
+#Diviser Behav_BSI 
+df_enpts <- split(Behav_BSI, Behav_BSI$endpt)
+df_enpts
+#Attribuer des noms spécifiques aux df
+names_df <- paste0("", names(df_enpts)) 
+# Créer des dataframes individuels dans l'environnement global
+for (i in seq_along(df_enpts)) {
+  assign(names_df[i], df_enpts[[i]])
+}
+
+
+
+#Behavior based on control value at 1 
+Behav_raw <- read_excel("Tox/Ethovision/Behav_corr_matrix_dmso.xlsx") %>% 
+  dplyr::select(FN, state, endpt, ctl_0) %>% 
+  mutate(FN = case_when(
+    FN %in% c("alpha", "PA α ø.35", "pa_a33") ~ "pa_a35",
+    FN %in% c("beta33", "PA β ø.33", "pa_b33") ~ "pa_b33", 
+    FN %in% c("beta95", "PA β ø.95", "pa_b95") ~ "pa_b95",
+    FN %in% c("gamma33", "PA γ ø.33", "pa_g33") ~ "pa_g33",
+    FN %in% c("gamma60", "PA γ ø.60", "pa_g60") ~ "pa_g60",
+    FN %in% c("delta35", "PBS δ ø.35", "pbs_d35") ~ "pbs_d35",
+    FN %in% c("delta60", "PBS δ ø.60", "pbs_d60") ~ "pbs_d60",
+    FN %in% c("epsi", "HPPE ε ø4.25", "pe_e4.25") ~ "hppe_e425",
+    TRUE ~ FN  # Garde les autres valeurs inchangées
+  ),
+  state = case_when(
+    state %in% c("u") ~ "used",
+    state %in% c("n") ~ "new",
+    TRUE ~ state  # Garde les autres valeurs inchangées
+  )) %>% 
+  #make a mean of score by FN and state for the different BLA and the different TPZ
+  # group_by(FN, state, endpt_IBR) %>%
+  # reframe(avg_ctl0 = mean(ctl_0, na.rm = TRUE)) %>%
+  rename(endpt = endpt,
+         score = ctl_0) #%>% 
+  #filter enpt based on significant diff --> if any diff then useless
+  #filter(endpt %in% c("BLA_ON", "VLMR", "VLSR", "ASD_LOFF2", "TPZ_LON", "TPZ_LOFF2"))
+Behav_raw
+
+#Diviser Behav raw 
+df_enpts <- split(Behav_raw, Behav_raw$endpt)
+df_enpts
+#Attribuer des noms spécifiques aux df
+names_df <- paste0("", names(df_enpts)) 
+# Créer des dataframes individuels dans l'environnement global
+for (i in seq_along(df_enpts)) {
+  assign(names_df[i], df_enpts[[i]])
+}
+
+HR <- read_csv("Tox/PCA_tables_dmso/Avg_HR.csv", 
+    na = "NA") %>% 
+  dplyr::select(-"...1") %>% 
+  mutate(FN = case_when(
+    FN %in% c("epsi", "HPPE ε ø4.25", "pe_e4.25") ~ "hppe_e425",
+    TRUE ~ FN  # Garde les autres valeurs inchangées
+  )) %>% 
+  filter(FN != "dmso") %>%  
+  mutate(avg_HR_adj_eff = abs(100-avg_HR_adj)) %>%
+  arrange(state)
+HR
+
+Survival <- read_csv("Tox/PCA_tables_dmso/Avg_survival.csv", 
+    na = "NA") %>% 
+  dplyr::select(-"...1") %>% 
+  mutate(FN = case_when(
+    FN %in% c("alpha", "PA α ø.35", "pa_a33") ~ "pa_a35",
+    FN %in% c("beta33", "PA β ø.33", "pa_b33") ~ "pa_b33", 
+    FN %in% c("beta95", "PA β ø.95", "pa_b95") ~ "pa_b95",
+    FN %in% c("gamma33", "PA γ ø.33", "pa_g33") ~ "pa_g33",
+    FN %in% c("gamma60", "PA γ ø.60", "pa_g60") ~ "pa_g60",
+    FN %in% c("delta35", "PBS δ ø.35", "pbs_d35") ~ "pbs_d35",
+    FN %in% c("delta60", "PBS δ ø.60", "pbs_d60") ~ "pbs_d60",
+    FN %in% c("epsi", "HPPE ε ø4.25", "pe_e4.25") ~ "hppe_e425",
+    TRUE ~ FN  # Garde les autres valeurs inchangées
+  ),
+  state = case_when(
+    state %in% c("u") ~ "used",
+    state %in% c("n") ~ "new",
+    TRUE ~ state  # Garde les autres valeurs inchangées
+  )) %>%
+  filter(FN != "Solvent control") %>%   
+  arrange(state)
+Survival
+
+Viability <- read_csv("Tox/PCA_tables_dmso/Avg_viabillity.csv", 
+    na = "NA") %>% 
+  dplyr::select(-"...1") %>% 
+  filter(FN != "ControlP", FN != "ControlN", FN != "dmso") %>% 
+  mutate(avg_eff = abs(100-avg)) %>% 
+  arrange(state)
+Viability
+
+ROS <- read_csv("Tox/PCA_tables_dmso/Avg_ROS.csv", 
+    na = "NA") %>% 
+  dplyr::select(-"...1") %>% 
+  filter(FN != "ControlP", FN != "ControlN", FN != "dmso") %>%   
+  arrange(state)
+ROS
+
+Op_time <- ROS %>% 
+  dplyr::select(FN, state) %>%
+  mutate(op_time_h = c(0, 0, 0, 0, 0, 0, 0, 0,
+                     12700, 650, 2700, 2700, 624, 624, 624, 624))
+Op_time
+
+```
+
+### Data Preparation
+```{r }
+
+df_PCA1 <- tibble(FN = BLA_OFF$FN, 
+                 state = BLA_OFF$state,
+                 Op_time = Op_time$op_time_h,
+                 
+                 Ag=Ag$Avg,
+                 Al=Al$Avg,
+                 As=As$Avg,
+                 Cu=Cu$Avg,
+                 Fe=Fe$Avg,
+                 Mn=Mn$Avg,
+                 Zn=Zn$Avg,
+                 
+                 # HAP = HAP$avg_corr,
+                 # PBDE = PBDE$avg_corr,
+                 # Phtalates = Phtalates$avg_corr,
+                 # AKP_NP = AKP_NP$avg_corr,
+                 tOP = `4-tOP`$avg_corr,
+                 acenaphtene = acenaphtene$avg_corr,
+                 acenaphtylene = acenaphtylene$avg_corr,
+                 anthracene = anthracene$avg_corr,
+                 ATBC = ATBC$avg_corr,
+                 BBP = BBP$avg_corr,
+                 BDE_100 = `BDE 100`$avg_corr,
+                 BDE_153 = `BDE 153`$avg_corr,
+                 BDE_28 = `BDE 28`$avg_corr,
+                 BDE_47 = `BDE 47`$avg_corr,
+                 BDE_154 = `BDE 154`$avg_corr,
+                 BDE_183 = `BDE 183`$avg_corr,
+                 BDE_99 = `BDE 99`$avg_corr,
+                 benzoghiperylee = `benzo(ghi)péryléne`$avg_corr,
+                 benzofluoranthene = `benzo[b+k]fluoranthene`$avg_corr,
+                 benzoaanthracene = benzoaanthracene$avg_corr,
+                 benzoepyrene = benzoepyrene$avg_corr,
+                 benzothiophene = benzothiophene$avg_corr,
+                 biphenyl = biphenyl$avg_corr,
+                 chrysene = chrysene$avg_corr,
+                 DBP = DBP$avg_corr,
+                 DEHA = DEHA$avg_corr,
+                 DEP = DEP$avg_corr,
+                 DEHP = DEHP$avg_corr,
+                 DMP = DMP$avg_corr,
+                 dibenzoahanthracene = dibenzoahanthracene$avg_corr,
+                 Dibenzothiophene = Dibenzothiophene$avg_corr,
+                 fluoranthene = fluoranthene$avg_corr,
+                 fluorene = fluorene$avg_corr,
+                 indeno123cdpyrene = indeno123cdpyrene$avg_corr,
+                 naphtalene = naphtalene$avg_corr,
+                 nonylphenols = Nonylphenols$avg_corr,
+                 Phenanthrene = Phenanthrene$avg_corr,
+                 pyrene = pyrene$avg_corr,
+                 
+                 Biolu_inhi = Biolu_inhi$mean,
+                 # BLA_LOFF1 = BLA_OFF$score, 
+                 # BLA_LON = BLA_LON$score,
+                 BLA_OFF = BLA_OFF$score, 
+                 BLA_LON = BLA_LON$score, 
+                 VLMR = VLMR$score,
+                 VLSR = VLSR$score,
+                 ASD_LOFF2 = ASD_LOFF2$score,
+                 TPZ_LOFF1 = TPZ_LOFF1$score,
+                 TPZ_LON = TPZ_LON$score,
+                 TPZ_LOFF2 = TPZ_LOFF2$score,
+                 Survival = Survival$Dead_avg,
+                 HR = HR$avg_HR_adj,
+                 ROS = ROS$avg,
+                 Viability = Viability$avg
+                 ) %>% 
+  mutate(state = as.factor(state)) %>% 
+  mutate_all(~ replace(., is.na(.), 0))
+df_PCA1
+
+df_PCA <- df_PCA1 
+df_PCA
+
+```
+
+
+#Correlation matrix
+##All FN
+```{r corr test without corr}
+df_PCA2 <- df_PCA %>% 
+  mutate(FN_state = paste(FN, state, sep = "_")) %>% 
+  dplyr::select(-FN, -state, -FN_state) #%>% 
+#   dplyr::select(
+#     "Op_time",
+#     "Ag", "Al", "Cu", "Fe", "Mn", "Zn",
+# "benzoghiperylee", "dibenzoahanthracene", "anthracene","benzoepyrene", "acenaphtene", "fluorene", "pyrene", "Phenanthrene", "benzofluoranthene",
+# "BDE_100", "BDE_47", "BDE_153",
+# "ATBC", "DEHA", "DEP",
+# "tOP", "nonylphenols",
+# "Biolu_inhi",
+#                 "BLA", "VLMR", "VLSR",
+#                 "ASD_LOFF2", "TPZ", "Survival", "HR", "ROS", "Viability")
+df_PCA2
+
+df_PCA2 <- as.data.frame(df_PCA2)
+rownames(df_PCA2) <- c("pa_a35_new", "pa_b33_new", "pa_b95_new", 
+                       "pbs_d35_new", "pbs_d60_new",    "hppe_e425_new","pa_g33_new", "pa_g60_new",
+                       "pa_a35_used", "pa_b33_used", "pa_b95_used", "pbs_d35_used", "pbs_d60_used",
+                       "hppe_e425_used", "pa_g33_used", "pa_g60_used")
+df_PCA2
+
+## PCA quantitative variables
+#Obtaining the final matrix with values
+data <- df_PCA2 %>% 
+  cor(method = "spearman", use = "pairwise.complete.obs") %>% 
+  round(2)
+data
+
+summary(data)
+
+#pairs(data)
+
+#Statistic of correlation
+# mat : is a matrix of data
+# ... : further arguments to pass to the native R cor.test function
+cor.mtest <- function(mat, ...) {
+    mat <- as.matrix(mat)
+    n <- ncol(mat)
+    p.mat<- matrix(NA, n, n)
+    diag(p.mat) <- 0
+    for (i in 1:(n - 1)) {
+        for (j in (i + 1):n) {
+            tmp <- cor.test(method = "spearman", mat[, i], mat[, j], ...)
+            p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+        }
+    }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+  p.mat
+}
+# matrix of the p-value of the correlation
+p.mat <- cor.mtest(df_PCA2)
+p.mat
+
+#In p.mat transform all the value > 0.05 to NA
+p.mat2 <- ifelse(p.mat > 0.05, NA, p.mat)
+
+p_clean <- p.mat2
+
+# 1) Ignore diagonal when deciding what to keep
+diag(p_clean) <- NA_real_  # sets diagonal to NA [web:31]
+
+# 2) Identify variables having at least one significant p-value with another variable
+keep <- rowSums(!is.na(p_clean)) > 0  # rows that are not all NA [web:23]
+
+# 3) Subset rows and columns consistently (keeps a square matrix)
+p_mat_signif <- p.mat[keep, keep, drop = FALSE]
+p_mat_signif 
+
+#A vector with the different variables included in the matrix p_mat_signif 
+variables_to_keep <- rownames(p_mat_signif)
+variables_to_keep
+
+Plasfito_C <- c("#80CAD0", "#36A7A7", "#276573", "#054959","#E3CCC0", "#F7EAE1", "#A48A7B", "#C6AF8D", "#49BED3", "#256CB4", "#008163", "#44B494", "#7BC6B9")
+
+
+
+col <- colorRampPalette(c("#c68640", "#E3CCC0", "grey100",  "#80CAD0", "#36A7A7"))
+col <- colorRampPalette(c('#ef6565', '#F7B0B0', 'white', '#90B0D9', '#256CB4'))
+
+#To get the * below the corr coef. 
+  #trace(corrplot, edit=TRUE)
+  #line 443 replace place_point fct by 
+  # adjust text(X,Y ...) according to your needs, here +0.25 is added to the Y-position    
+# place_points = function(sig.locs, point) {
+#       text(pos.pNew[, 1][sig.locs], (pos.pNew[, 2][sig.locs])+0.25, 
+#            labels = point, col = pch.col, cex = pch.cex, 
+#            lwd = 2)
+
+
+corrplot(data, 
+         method="circle", 
+         #col=col(10), 
+         type="lower",
+         # tl.col=c("#256CB4","#256CB4","#256CB4", "#256CB4", "#256CB4", "#256CB4", "#256CB4", 
+         #          "purple3", 
+         #          "green4", "green4", "green4", "#ef6565", "#ef6565", "#ef6565",
+         #          "firebrick", "firebrick",
+         #          "orange2", "orange2"),
+         tl.col="black",
+         tl.srt=60,
+         p.mat = p.mat, 
+         sig.level = c(.001, .01, .05), 
+         insig = "label_sig",  # Ceci remplace les astérisques par des espaces vides
+         pch.cex = 1.5,
+         pch.col = "white",
+         diag=T,
+         #addCoef.col = "black",
+         number.cex = 1,  # Ajuste la taille des nombres
+         number.digits = 2,
+         mar=c(0,0,0,0),
+         addgrid.col = "grey90",
+         #col=colorRampPalette(c("#f8e83c", "#368e8c","#430f56"))(200)
+         col=colorRampPalette(c("#ed6468", "white","#2b6db2"))(200)
+)
+
+```
+
+Correlation between explanatory variable and toxicity variables
+Ag, Cu, Fe, Mn, Zn,
+benzog
+
+Including all the data:
+Both BLA_OFF and BLA_LON are correlated to different explenatory variables
+TPZ_LON is not correlated to any explenatory variable
+TPZ_LOFF1 and TPZ_LOFF2 are correlated to very similar explenatory variables --> A choice will be needed
+
+```{r corr test with BH correction}
+df_PCA2 <- df_PCA %>% 
+  mutate(FN_state = paste(FN, state, sep = "_")) %>% 
+  dplyr::select(-FN, -state, -FN_state) 
+df_PCA2
+
+df_PCA2 <- as.data.frame(df_PCA2)
+rownames(df_PCA2) <- c("pa_a35_new", "pa_b33_new", "pa_b95_new", 
+                       "pbs_d35_new", "pbs_d60_new",    "hppe_e425_new","pa_g33_new", "pa_g60_new",
+                       "pa_a35_used", "pa_b33_used", "pa_b95_used", "pbs_d35_used", "pbs_d60_used",
+                       "hppe_e425_used", "pa_g33_used", "pa_g60_used")
+df_PCA2
+
+
+##Correlation coeeficient estimation
+#Obtaining the final matrix with values
+data <- df_PCA2 %>% 
+  cor(method = "spearman", use = "pairwise.complete.obs") %>% 
+  round(2)
+data
+
+summary(data)
+
+#pairs(data)
+
+##Correlation statistics estimation --> p-value
+# mat : is a matrix of data
+# ... : further arguments to pass to the native R cor.test function
+cor.mtest <- function(mat, ...) {
+  mat <- as.matrix(mat)
+  n   <- ncol(mat)
+
+  # raw p-value matrix
+  p.mat <- matrix(NA_real_, n, n)
+  diag(p.mat) <- 0
+
+  for (i in 1:(n - 1)) {
+    for (j in (i + 1):n) {
+      tmp <- cor.test(mat[, i], mat[, j],
+                      method = "spearman", ...)
+      p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+    }
+  }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+
+  # Benjamini–Hochberg adjustment on upper triangle
+  up.idx   <- upper.tri(p.mat)
+  p.vec    <- p.mat[up.idx]
+  p.adjvec <- p.adjust(p.vec, method = "BH")  # same as method = "fdr"
+  p.adj    <- matrix(NA_real_, n, n)
+  diag(p.adj) <- 0
+  p.adj[up.idx] <- p.adjvec
+  p.adj[lower.tri(p.adj)] <- t(p.adj)[lower.tri(p.adj)]
+  colnames(p.adj) <- rownames(p.adj) <- colnames(mat)
+
+  # return both matrices as a list
+  list(p.raw = p.mat,
+       p.BH  = p.adj)
+}
+
+# use:
+p.mat   <- cor.mtest(df_PCA2)
+p.raw   <- p.mat$p.raw
+p.BH    <- p.mat$p.BH
+
+#In p.mat transform all the value > 0.05 to NA
+p.mat2 <- ifelse(p.BH > 0.05, NA, p.BH)
+
+p_clean <- p.mat2
+
+# 1) Ignore diagonal when deciding what to keep
+diag(p_clean) <- NA_real_  # sets diagonal to NA [web:31]
+
+# 2) Identify variables having at least one significant p-value with another variable
+keep <- rowSums(!is.na(p_clean)) > 0  # rows that are not all NA 
+
+# 3) Subset rows and columns consistently (keeps a square matrix)
+p_mat_signif <- p.BH[keep, keep, drop = FALSE]
+p_mat_signif 
+
+#A vector with the different variables included in the matrix p_mat_signif 
+variables_to_keep <- rownames(p_mat_signif)
+variables_to_keep
+
+Plasfito_C <- c("#80CAD0", "#36A7A7", "#276573", "#054959","#E3CCC0", "#F7EAE1", "#A48A7B", "#C6AF8D", "#49BED3", "#256CB4", "#008163", "#44B494", "#7BC6B9")
+
+
+
+col <- colorRampPalette(c("#c68640", "#E3CCC0", "grey100",  "#80CAD0", "#36A7A7"))
+col <- colorRampPalette(c('#ef6565', '#F7B0B0', 'white', '#90B0D9', '#256CB4'))
+
+#To get the * below the corr coef. 
+  #trace(corrplot, edit=TRUE)
+  #line 443 replace place_point fct by 
+  # adjust text(X,Y ...) according to your needs, here +0.25 is added to the Y-position    
+# place_points = function(sig.locs, point) {
+#       text(pos.pNew[, 1][sig.locs], (pos.pNew[, 2][sig.locs])+0.25, 
+#            labels = point, col = pch.col, cex = pch.cex, 
+#            lwd = 2)
+
+
+corrplot(data, 
+         method="circle", 
+         #col=col(10), 
+         type="lower",
+         # tl.col=c("#256CB4","#256CB4","#256CB4", "#256CB4", "#256CB4", "#256CB4", "#256CB4", 
+         #          "purple3", 
+         #          "green4", "green4", "green4", "#ef6565", "#ef6565", "#ef6565",
+         #          "firebrick", "firebrick",
+         #          "orange2", "orange2"),
+         tl.col="black",
+         tl.srt=60,
+         p.mat = p.BH, 
+         sig.level = c(.001, .01, .05), 
+         insig = "label_sig",  # Ceci remplace les astérisques par des espaces vides
+         pch.cex = 1.5,
+         pch.col = "white",
+         diag=T,
+         #addCoef.col = "black",
+         number.cex = 1,  # Ajuste la taille des nombres
+         number.digits = 2,
+         mar=c(0,0,0,0),
+         addgrid.col = "grey90",
+         #col=colorRampPalette(c("#f8e83c", "#368e8c","#430f56"))(200)
+         col=colorRampPalette(c("#ed6468", "white","#2b6db2"))(200)
+)
+
+```
+
+
+```{r final matrix all}
+library(tidyverse)
+library(ggplot2)
+
+# Step 1: Convert the correlation matrix to a tidy tibble
+cor_tibble <- data %>%
+  as.data.frame() %>%
+  rownames_to_column("Var1") %>%
+  pivot_longer(-Var1, names_to = "Var2", values_to = "cor") %>%
+  mutate(Var1 = factor(Var1, levels = colnames(data)),
+         Var2 = factor(Var2, levels = colnames(data)))
+
+# Step 2: Convert the p-value matrix to a tidy tibble
+pval_tibble <- p.BH %>%
+  as.data.frame() %>%
+  rownames_to_column("Var1") %>%
+  pivot_longer(-Var1, names_to = "Var2", values_to = "p") %>%
+  mutate(Var1 = factor(Var1, levels = colnames(p.BH)),
+         Var2 = factor(Var2, levels = colnames(p.BH)))
+
+# Step 3: Merge correlation and p-value tibbles
+plot_df <- left_join(cor_tibble, pval_tibble, by = c("Var1", "Var2")) %>%
+  # Step 4: Set correlation to NA if not significant
+  mutate(cor_sig = if_else(p < 0.05, cor, NA_real_)) %>% 
+  mutate(
+    stars = case_when(
+      p < 0.001 ~ "***",
+      p < 0.01  ~ "**",
+      p < 0.05  ~ "*",
+      TRUE      ~ ""
+    )
+  ) %>% 
+  #use the vector variables_to_keep to filter the plot_df
+  filter(Var1 %in% variables_to_keep & Var2 %in% variables_to_keep) #%>% 
+  # filter(!Var1 %in% c("BDE_154", "BDE_28", "BBP", "DEHP", "indeno123cdpyrene", "naphtalene", "Phenanthrene", "pyrene", "benzoepyrene", 
+  #                     "benzoaanthracene", "ATBC", "anthracene", "tOP", "acenapthtene", "fluoranthene", "Dibenzothiophene") & 
+  #          !Var2 %in% c("BDE_154", "BDE_28", "BBP", "DEHP", "indeno123cdpyrene", "naphtalene", "Phenanthrene", "pyrene", "benzoepyrene", 
+  #                     "benzoaanthracene", "ATBC", "anthracene", "tOP", "acenapthtene", "fluoranthene", "Dibenzothiophene")) 
+plot_df
+
+CrossTable(plot_df$Var1)
+
+plot_df_lower <- plot_df %>%
+  mutate(
+  Var1 = case_when(
+    Var1 == "Op_time" ~ "Duration of use (FN)",
+      Var1 == "acenaphtene" ~ "Acenaphtene",
+      #Var1 == "anthracene" ~ "Anthracene",
+      Var1 == "acenaphtylene" ~ "Acenaphtylene",
+      Var1 == "benzofluoranthene" ~ "Benzo[b+k]fluoranthene",
+      Var1 == "benzoghiperylee" ~ "Benzo(ghi)perylene",
+      Var1 == "benzoepyrene" ~ "Benzo[e]pyrene",
+    Var1 == "benzoaanthracene" ~ "Benzo[a]anthracene",
+      #Var1 == "benzothiophene" ~ "Benzothiophene",
+      Var1 == "biphenyl" ~ "Biphenyl", 
+      Var1 == "chrysene" ~ "Chrysene",
+      Var1 == "dibenzoahanthracene" ~ "Dibenzo[a,h]anthracene",
+      Var1 == "fluorene" ~ "Fluorene",
+    Var1 == "fluoranthene" ~ "Fluoranthene",
+      Var1 == "pyrene" ~ "Pyrene",
+      Var1 == "BDE_153" ~ "BDE 153",
+    Var1 == "BDE_154" ~ "BDE 154",
+    Var1 == "BDE_28" ~ "BDE 28",
+      Var1 == "BDE_100" ~ "BDE 100",
+      Var1 == "BDE_47" ~ "BDE 47",
+      Var1 == "BDE_183" ~ "BDE 183",
+      Var1 == "BDE_99" ~ "BDE 99",
+      #Var1 == "tOP" ~ "4-tOP",
+      Var1 == "nonylphenols" ~ "Nonylphenols",
+      Var1 == "Biolu_inhi" ~ "Bacteria Biolu. Inhi.",
+      Var1 == "BLA_OFF" ~ "Fish BLA_LOFF",
+      Var1 == "BLA_LON" ~ "Fish BLA_LON",
+      Var1 == "VLMR" ~ "Fish VLMR",
+      Var1 == "VLSR" ~ "Fish VLSR",  
+      Var1 == "ASD_LOFF2" ~ "Fish ASD",
+      Var1 == "TPZ_LON" ~ "Fish TPZ",
+      Var1 == "HR" ~ "Fish heart rate",
+      Var1 == "ROS" ~ "Cell ROS",
+      Var1 == "Viability" ~ "Cell viability",
+      TRUE ~ Var1  # keeps original if no match
+    ),
+    Var2 = case_when(
+    Var2 == "Op_time" ~ "Duration of use (FN)",
+      Var2 == "acenaphtene" ~ "Acenaphtene",
+      #Var2 == "anthracene" ~ "Anthracene",
+      Var2 == "acenaphtylene" ~ "Acenaphtylene",
+      Var2 == "benzofluoranthene" ~ "Benzo[b+k]fluoranthene",
+      Var2 == "benzoghiperylee" ~ "Benzo(ghi)perylene",
+      Var2 == "benzoepyrene" ~ "Benzo[e]pyrene",
+    Var2 == "benzoaanthracene" ~ "Benzo[a]anthracene",
+      #Var2 == "benzothiophene" ~ "Benzothiophene",
+      Var2 == "biphenyl" ~ "Biphenyl", 
+      Var2 == "chrysene" ~ "Chrysene",
+      Var2 == "dibenzoahanthracene" ~ "Dibenzo[a,h]anthracene",
+      Var2 == "fluorene" ~ "Fluorene",
+    Var2 == "fluoranthene" ~ "Fluoranthene",
+      Var2 == "pyrene" ~ "Pyrene",
+    Var2 == "BDE_154" ~ "BDE 154",
+    Var2 == "BDE_28" ~ "BDE 28",
+      Var2 == "BDE_153" ~ "BDE 153",
+      Var2 == "BDE_100" ~ "BDE 100",
+      Var2 == "BDE_47" ~ "BDE 47",
+      Var2 == "BDE_183" ~ "BDE 183",
+      Var2 == "BDE_99" ~ "BDE 99",
+      #Var2 == "tOP" ~ "4-tOP",
+      Var2 == "nonylphenols" ~ "Nonylphenols",
+      Var2 == "Biolu_inhi" ~ "Bacteria Biolu. Inhi.",
+      Var2 == "BLA_OFF" ~ "Fish BLA_LOFF",
+      Var2 == "BLA_LON" ~ "Fish BLA_LON",
+      Var2 == "VLMR" ~ "Fish VLMR",
+      Var2 == "VLSR" ~ "Fish VLSR",  
+      Var2 == "ASD_LOFF2" ~ "Fish ASD",
+      Var2 == "TPZ_LON" ~ "Fish TPZ",
+      Var2 == "HR" ~ "Fish heart rate",
+      Var2 == "ROS" ~ "Cell ROS",
+      Var2 == "Viability" ~ "Cell viability",
+      TRUE ~ Var2  # keeps original if no match
+    )) %>%
+  mutate(
+  # Define the order of variables by group
+    Var1 = factor(Var1, levels = c(
+      "Duration of use (FN)",
+      "Al", "Ag", "As", "Cu", "Fe", "Mn", "Zn",
+      "Acenaphtene", "Acenaphtylene", "Benzo[a]anthracene", "Benzo[b+k]fluoranthene", "Benzo[e]pyrene", "Benzo(ghi)perylene", "Benzothiophene", "Biphenyl", 
+      "Chrysene", "Dibenzo[a,h]anthracene", "Dibenzothiophene", "Fluoranthene", "Fluorene", "Phenanthrene", "Pyrene",
+          
+      "BDE 47", "BDE 99","BDE 100", "BDE 153", "BDE 183", "BDE 154", "BDE 28",
+      "ATBC", "DEHA", "BBPy", "DBP", "DEP", "DMP", 
+      "Nonylphenols",
+      "Bacteria Biolu. Inhi.", "Fish BLA_LOFF", "Fish BLA_LON", "Fish VLMR", "Fish VLSR", "Fish ASD", "Fish TPZ", 
+      "Fish heart rate", "Cell ROS", "Cell viability" 
+    )),
+    Var2 = factor(Var2, levels = c(
+      "Duration of use (FN)",
+      "Al", "Ag", "As", "Cu", "Fe", "Mn", "Zn",
+      "Acenaphtene", "Acenaphtylene", "Benzo[a]anthracene", "Benzo[b+k]fluoranthene", "Benzo[e]pyrene", "Benzo(ghi)perylene", "Benzothiophene", "Biphenyl", 
+      "Chrysene", "Dibenzo[a,h]anthracene", "Dibenzothiophene", "Fluoranthene", "Fluorene", "Phenanthrene", "Pyrene",
+          
+      "BDE 47", "BDE 99","BDE 100", "BDE 153", "BDE 183", "BDE 154", "BDE 28",
+      "ATBC", "DEHA", "BBP", "DBP", "DEP", "DMP", 
+      "Nonylphenols",
+      "Bacteria Biolu. Inhi.", "Fish BLA_LOFF", "Fish BLA_LON", "Fish VLMR", "Fish VLSR", "Fish ASD", "Fish TPZ", 
+      "Fish heart rate", "Cell ROS", "Cell viability" 
+    ))
+  ) %>%
+  filter(as.integer(Var1) > as.integer(Var2)) 
+
+# if not already installed
+library(ggtext)
+
+color_mapping <- c(
+  # Operating time (black)
+  "Duration of use (FN)" = "black",
+  # Metals (brown)
+  "Al" = "black", "Zn" = "black", "Mn" = "black", "Fe" = "black", "Cu" = "black", "Ag" = "black", "As" = "black",
+  # PAHs (grey)
+  "Acenaphtene"= "black", "Acenaphtylene"= "black", "Benzo[a]anthracene" = "black", "Benzo[b+k]fluoranthene"= "black", "Benzo[e]pyrene"= "black", "Benzo(ghi)perylene"= "black", "Benzothiophene"= "black", "Biphenyl"= "black", "Chrysene"= "black", "Dibenzo[a,h]anthracene"= "black", "Dibenzothiophene" = "black", "Fluorene"= "black", "Fluoranthene"= "black", "Phenanthrene"= "black", "Pyrene"= "black",
+  # PBDE (blue)
+  "BDE 47" = "black", "BDE 99" = "black", "BDE 100" = "black", "BDE 153" = "black", "BDE 183" = "black", "BDE 154" = "black", "BDE 28" = "black",
+  # Phthalate (sky blue)
+  "DEHA" = "black", "BBP" = "black", "DBP" = "black", "DMP" = "black", "DEP" = "black", "ATBC" = "black",
+  # Alkylphenol (orange)
+  "Nonylphenols" = "black",
+  # Toxicity variables (red)
+  "Fish BLA_LOFF" = "#256CB4", "Fish BLA_LON" = "#256CB4", "Fish VLMR" = "#256CB4", "Fish VLSR" = "#256CB4", "Fish ASD" = "#256CB4", "Fish TPZ" = "#256CB4", 
+  "Fish Mortality" = "#256CB4", "Fish heart rate" = "#256CB4",
+  "Cell ROS" = "#256CB4", "Cell viability" = "#256CB4", "Bacteria Biolu. Inhi." = "#256CB4"
+)
+
+labeller_fun <- function(lbls) {
+  sapply(lbls, function(x) paste0("<span style='color:", color_mapping[x], ";'>", x, "</span>"))
+}
+
+ggplot(plot_df_lower, aes(x = Var1, y = Var2, fill = cor_sig)) +
+  geom_tile(color = "grey90", na.rm = TRUE) +
+  geom_text(aes(label = if_else(is.na(cor_sig), "", sprintf("%.2f", cor_sig))),
+            size = 3.3, fontface = "bold", color = "white", vjust = 0.1) +
+  geom_text(aes(label = stars), vjust = 1.1, color = "white", size = 5.5) +
+  scale_fill_gradient2(low = "#f52a3f", mid = "white", high = "#1848b3", 
+                       midpoint = 0, limits = c(-1, 1), na.value = "white") +
+  scale_x_discrete(labels = labeller_fun) +
+  scale_y_discrete(labels = labeller_fun) +
+  labs(
+    #title = "Correlations between chemical compounds in the extracts\nand ecotoxicological effects caused by the extracts",
+    #subtitle = "Including extracts of new and EOL fishing nets",
+    x = NULL,
+    y = NULL,
+    fill = "Spearman's Correlation with Benjamini–Hochberg's corrrection"
+  ) +
+  theme_classic() +
+  theme(
+    axis.text.x = ggtext::element_markdown(size = 16, face = 'bold', angle = 35, hjust = 1),
+    axis.text.y = ggtext::element_markdown(size = 16, face = 'bold'),
+    axis.title.x = element_text(size = 16, face = "bold"),
+    axis.title.y = element_text(size = 16, face = "bold"),
+    title = element_text(size = 19, face = "bold"),
+    strip.text = element_text(face = "bold", size = rel(2)),
+    legend.position = "top",
+    legend.spacing.y = unit(1, 'cm'),
+    legend.text = element_text(size = 12, face = 'bold', color = "black"),
+    legend.key.size = unit(0.85, "cm"),
+    legend.key.width = unit(1, "cm"),
+    legend.title.align = 0,
+    legend.title = element_text(size = 15, face = "bold"),
+    plot.margin = unit(c(1, 1, 1, 1), "cm"),
+    legend.key.spacing.y = unit(1, "cm")
+  ) +
+  guides(fill = guide_colorbar(barwidth = 15, barheight = 1,
+                title.position = "top", title.hjust = 0.5))
+
+```
+
+
+##New FN
+```{r}
+df_PCA2 <- df_PCA %>% 
+  filter(state == "new") %>%
+  mutate(FN_state = paste(FN, state, sep = "_")) %>% 
+  dplyr::select(-FN, -state, -FN_state) #%>% 
+  # dplyr::select("Zn", "Mn",
+  # 
+  #               "acenaphtylene","anthracene", "benzoaanthracene", "benzofluoranthene", "fluorene", "chrysene", "pyrene",
+  #               "BDE_99",
+  #               "ATBC","BBP","tOP","DBP","DEHA",
+  # 
+  #               "Biolu_inhi",
+  #               "BLA",
+  #               "ASD_LOFF2", "TPZ", "Survival", "HR", "ROS", "Viability")
+  #dplyr::select(-Op_time, -benzoghiperylee, -dibenzoahanthracene, -BDE_183)
+df_PCA2
+
+df_PCA2 <- as.data.frame(df_PCA2)
+rownames(df_PCA2) <- c("pa_a35_new", "pa_b33_new", "pa_b95_new", 
+                       "pbs_d35_new", "pbs_d60_new",    "hppe_e425_new","pa_g33_new", "pa_g60_new")
+df_PCA2
+
+## PCA quantitative variables
+#Obtaining the final matrix with values
+data <- df_PCA2 %>% 
+  cor(method = "spearman") %>% 
+  round(2)
+data
+
+summary(data)
+
+# p.mat <- cor_pmat(df_PCA2, method = "spearman") %>% 
+#   round(3)
+# p.mat
+
+#pairs(data)
+
+##Correlation statistics estimation --> p-value
+# mat : is a matrix of data
+# ... : further arguments to pass to the native R cor.test function
+cor.mtest <- function(mat, ...) {
+  mat <- as.matrix(mat)
+  n   <- ncol(mat)
+
+  # raw p-value matrix
+  p.mat <- matrix(NA_real_, n, n)
+  diag(p.mat) <- 0
+
+  for (i in 1:(n - 1)) {
+    for (j in (i + 1):n) {
+      tmp <- cor.test(mat[, i], mat[, j],
+                      method = "spearman", ...)
+      p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+    }
+  }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+
+  # Benjamini–Hochberg adjustment on upper triangle
+  up.idx   <- upper.tri(p.mat)
+  p.vec    <- p.mat[up.idx]
+  p.adjvec <- p.adjust(p.vec, method = "BH")  # same as method = "fdr"
+  p.adj    <- matrix(NA_real_, n, n)
+  diag(p.adj) <- 0
+  p.adj[up.idx] <- p.adjvec
+  p.adj[lower.tri(p.adj)] <- t(p.adj)[lower.tri(p.adj)]
+  colnames(p.adj) <- rownames(p.adj) <- colnames(mat)
+
+  # return both matrices as a list
+  list(p.raw = p.mat,
+       p.BH  = p.adj)
+}
+
+# use:
+p.mat   <- cor.mtest(df_PCA2)
+p.raw   <- p.mat$p.raw
+p.BH    <- p.mat$p.BH
+
+#In p.mat transform all the value > 0.05 to NA
+p.mat2 <- ifelse(p.BH > 0.05, NA, p.BH)
+
+p_clean <- p.mat2
+
+# 1) Ignore diagonal when deciding what to keep
+diag(p_clean) <- NA_real_  # sets diagonal to NA [web:31]
+
+# 2) Identify variables having at least one significant p-value with another variable
+keep <- rowSums(!is.na(p_clean)) > 0  # rows that are not all NA 
+
+# 3) Subset rows and columns consistently (keeps a square matrix)
+p_mat_signif <- p.BH[keep, keep, drop = FALSE]
+p_mat_signif 
+
+#A vector with the different variables included in the matrix p_mat_signif 
+variables_to_keep <- rownames(p_mat_signif)
+variables_to_keep
+
+Plasfito_C <- c("#80CAD0", "#36A7A7", "#276573", "#054959","#E3CCC0", "#F7EAE1", "#A48A7B", "#C6AF8D", "#49BED3", "#256CB4", "#008163", "#44B494", "#7BC6B9")
+
+
+col <- colorRampPalette(c("#c68640", "#E3CCC0", "grey100",  "#80CAD0", "#36A7A7"))
+col <- colorRampPalette(c('#ef6565', '#F7B0B0', 'white', '#90B0D9', '#256CB4'))
+
+#To get the * below the corr coef. 
+  #trace(corrplot, edit=TRUE)
+  #line 443 replace place_point fct by 
+  # adjust text(X,Y ...) according to your needs, here +0.25 is added to the Y-position    
+# place_points = function(sig.locs, point) {
+#       text(pos.pNew[, 1][sig.locs], (pos.pNew[, 2][sig.locs])+0.25, 
+#            labels = point, col = pch.col, cex = pch.cex, 
+#            lwd = 2)
+
+
+corrplot(data, 
+         method="color", 
+         #col=col(10), 
+         type="upper",
+         # tl.col=c("#256CB4","#256CB4","#256CB4", "#256CB4", "#256CB4", "#256CB4", "#256CB4", 
+         #          "purple3", 
+         #          "green4", "green4", "green4", "#ef6565", "#ef6565", "#ef6565",
+         #          "firebrick", "firebrick",
+         #          "orange2", "orange2"),
+         tl.col="black",
+         tl.srt=90,
+         p.mat = p.BH, 
+         sig.level = c(.001, .01, .05), 
+         insig = "label_sig",  # Ceci remplace les astérisques par des espaces vides
+         pch.cex = 1.5,
+         pch.col = "white",
+         diag=T,
+         #addCoef.col = "black",
+         number.cex = 1,  # Ajuste la taille des nombres
+         number.digits = 2,
+         mar=c(0,0,1,0),
+         addgrid.col = "grey90",
+         #col=colorRampPalette(c("#f8e83c", "#368e8c","#430f56"))(200)
+         col=colorRampPalette(c("firebrick", "white","blue4"))(200)
+)
+
+```
+
+In the matrix with only the new FNs:
+BLA_OFF and BLA_LON are correlated to different explenatory variables
+TPZ_LON is not correlated to any explenatory variable
+TPZ_LOFF1 & TPZ_LOFF2 are correlated to different explenatory variables --> TPZ_LOFF1 no correlation while TPZ_LOFF2 interesting correlations
+
+
+
+```{r final matrix new}
+library(tidyverse)
+library(ggplot2)
+
+# Step 1: Convert the correlation matrix to a tidy tibble
+cor_tibble <- data %>%
+  as.data.frame() %>%
+  rownames_to_column("Var1") %>%
+  pivot_longer(-Var1, names_to = "Var2", values_to = "cor") %>%
+  mutate(Var1 = factor(Var1, levels = colnames(data)),
+         Var2 = factor(Var2, levels = colnames(data)))
+
+# Step 2: Convert the p-value matrix to a tidy tibble
+pval_tibble <- p.BH %>%
+  as.data.frame() %>%
+  rownames_to_column("Var1") %>%
+  pivot_longer(-Var1, names_to = "Var2", values_to = "p") %>%
+  mutate(Var1 = factor(Var1, levels = colnames(p.BH)),
+         Var2 = factor(Var2, levels = colnames(p.BH)))
+
+# Step 3: Merge correlation and p-value tibbles
+plot_df <- left_join(cor_tibble, pval_tibble, by = c("Var1", "Var2")) %>%
+  # Step 4: Set correlation to NA if not significant
+  mutate(cor_sig = if_else(p < 0.05, cor, NA_real_)) %>% 
+  mutate(
+    stars = case_when(
+      p < 0.001 ~ "***",
+      p < 0.01  ~ "**",
+      p < 0.05  ~ "*",
+      TRUE      ~ ""
+    )
+  ) %>% 
+  #use the vector variables_to_keep to filter the plot_df
+  filter(Var1 %in% variables_to_keep & Var2 %in% variables_to_keep) %>% 
+  filter(!Var1 %in% c("BDE_100", "BDE_153", "BDE_154", "BMP", "DMP", "Phenanthrene", "pyrene", "benzoepyrene",
+                      "benzoaanthracene", "acenapthtene", "fluoranthene", "Dibenzothiophene", "benzofluoranthene",
+                      "benzothiophene", "chrysene", "DEP", "nonylphenols", "acenaphtene") &
+           !Var2 %in% c("BDE_100", "BDE_153", "BDE_154", "BMP", "DMP", "Phenanthrene", "pyrene", "benzoepyrene",
+                      "benzoaanthracene", "acenapthtene", "fluoranthene", "Dibenzothiophene", "benzofluoranthene",
+                      "benzothiophene", "chrysene", "DEP", "nonylphenols", "acenaphtene"))
+plot_df
+
+CrossTable(plot_df$Var1)
+
+
+plot_df_lower <- plot_df %>%
+  mutate(
+  Var1 = case_when(
+      Var1 == "acenaphtylene" ~ "Acenaphtylene",
+      Var1 == "anthracene" ~ "Anthracene",
+      #Var1 == "benzoaanthracene" ~ "Benzo[a]anthracene",
+      #Var1 == "benzofluoranthene" ~ "Benzo[b+k]fluoranthene",
+      Var1 == "fluorene" ~ "Fluorene",
+      Var1 == "biphenyl" ~ "Biphenyl",
+      Var1 == "naphtalene" ~ "Naphtalene",
+      #Var1 == "pyrene" ~ "Pyrene",
+      Var1 == "BDE_28" ~ "BDE 28",
+      Var1 == "BDE_47" ~ "BDE 47",
+      Var1 == "BDE_99" ~ "BDE 99",
+      Var1 == "tOP" ~ "4-tOP",
+      Var1 == "Biolu_inhi" ~ "Bacteria biolu. inhi.",
+      Var1 == "BLA_OFF" ~ "Fish BLA_LOFF",
+      Var1 == "BLA_LON" ~ "Fish BLA_LON",
+      Var1 == "VLSR" ~ "Fish VLSR",
+      Var1 == "VLMR" ~ "Fish VLMR",
+      Var1 == "ASD_LOFF2" ~ "Fish ASD",
+      Var1 == "TPZ_OFF2" ~ "Fish TPZ",
+      Var1 == "Survival" ~ "Fish Mortality",
+      Var1 == "HR" ~ "Fish heart rate",
+      Var1 == "ROS" ~ "Cell ROS",
+      Var1 == "Viability" ~ "Cell viability",
+      TRUE ~ Var1  # keeps original if no match
+    ),
+    Var2 = case_when(
+      Var2 == "acenaphtylene" ~ "Acenaphtylene",
+      Var2 == "anthracene" ~ "Anthracene",
+      #Var2 == "benzoaanthracene" ~ "Benzo[a]anthracene",
+      #Var2 == "benzofluoranthene" ~ "Benzo[b+k]fluoranthene",
+      Var2 == "fluorene" ~ "Fluorene",
+      Var2 == "biphenyl" ~ "Biphenyl",
+      Var2 == "naphtalene" ~ "Naphtalene",
+      #Var2 == "pyrene" ~ "Pyrene",
+      Var2 == "BDE_28" ~ "BDE 28",
+      Var2 == "BDE_47" ~ "BDE 47",
+      Var2 == "BDE_99" ~ "BDE 99",
+      Var2 == "tOP" ~ "4-tOP",
+      Var2 == "Biolu_inhi" ~ "Bacteria biolu. inhi.",
+      Var2 == "BLA_OFF" ~ "Fish BLA_LOFF",
+      Var2 == "BLA_LON" ~ "Fish BLA_LON",
+      Var2 == "VLSR" ~ "Fish VLSR",
+      Var2 == "VLMR" ~ "Fish VLMR",
+      Var2 == "ASD_LOFF2" ~ "Fish ASD",
+      Var2 == "TPZ_OFF2" ~ "Fish TPZ",
+      Var2 == "Survival" ~ "Fish Mortality",
+      Var2 == "HR" ~ "Fish heart rate",
+      Var2 == "ROS" ~ "Cell ROS",
+      Var2 == "Viability" ~ "Cell viability",
+      TRUE ~ Var2  # keeps original if no match
+    )) %>%
+  mutate(
+  # Define the order of variables by group
+    Var1 = factor(Var1, levels = c(
+      "Ag", "Al", "As", "Mn", "Zn",
+      "Acenaphtylene", "Anthracene", "Biphenyl", "Fluorene", "Naphtalene", 
+      "BDE 28", "BDE 47", "BDE 99",
+      "ATBC", "DEHA", "DEHP", "DBP",
+      "4-tOP",
+      "Bacteria biolu. inhi.", "Fish BLA_LOFF", "Fish BLA_LON", "Fish VLSR", "Fish VLMR", "Fish ASD", "Fish TPZ", "Fish Mortality",
+      "Fish heart rate", "Cell ROS", "Cell viability"
+    )),
+    Var2 = factor(Var2, levels = c(
+      "Ag", "Al", "As", "Mn", "Zn",
+      "Acenaphtylene", "Anthracene", "Biphenyl", "Fluorene", "Naphtalene", 
+      "BDE 28", "BDE 47", "BDE 99",
+      "ATBC", "DEHA", "DEHP", "DBP",
+      "4-tOP",
+      "Bacteria biolu. inhi.", "Fish BLA_LOFF", "Fish BLA_LON", "Fish VLSR", "Fish VLMR", "Fish ASD", "Fish TPZ", "Fish Mortality",
+      "Fish heart rate", "Cell ROS", "Cell viability"
+    ))
+  ) %>%
+  filter(as.integer(Var1) > as.integer(Var2)) 
+
+# if not already installed
+library(ggtext)
+
+color_mapping <- c(
+  # Metals (brown)
+  "Ag"= "black", "Al"= "black", "As"= "black", "Mn" = "black", "Zn" = "black",
+  # PAHs (grey)
+  "Acenaphtylene"="black", "Anthracene"="black", "Biphenyl"="black", "Fluorene"="black", "Naphtalene"="black", 
+  # PBDE (blue)
+  "BDE 28"="black", "BDE 47"="black","BDE 99" = "black",
+  # Phthalate (sky blue)
+  "ATBC" = "black", "DEHA" = "black", "DEHP" = "black", "DBP" = "black",
+  # Alkylphenol (orange)
+  "4-tOP" = "black",
+  # Toxicity variables (red)
+  "Fish BLA_LOFF" = "#256CB4", "Fish BLA_LON" = "#256CB4", "Fish VLSR" = "#256CB4","Fish VLMR" = "#256CB4","Fish ASD" = "#256CB4", "Fish TPZ" = "#256CB4", 
+  "Fish Mortality" = "#256CB4", "Fish heart rate" = "#256CB4",
+  "Cell ROS" = "#256CB4", "Cell viability" = "#256CB4", "Bacteria biolu. inhi." = "#256CB4"
+)
+
+labeller_fun <- function(lbls) {
+  sapply(lbls, function(x) paste0("<span style='color:", color_mapping[x], ";'>", x, "</span>"))
+}
+
+ggplot(plot_df_lower, aes(x = Var1, y = Var2, fill = cor_sig)) +
+  geom_tile(color = "grey90", na.rm = TRUE) +
+  geom_text(aes(label = if_else(is.na(cor_sig), "", sprintf("%.2f", cor_sig))),
+            size = 3.5, fontface = "bold", color = "white", vjust = 0.1) +
+  geom_text(aes(label = stars), vjust = 1.2, color = "white", size = 5.5) +
+  scale_fill_gradient2(low = "#f52a3f", mid = "white", high = "#1848b3", 
+                       midpoint = 0, limits = c(-1, 1), na.value = "white") +
+  scale_x_discrete(labels = labeller_fun) +
+  scale_y_discrete(labels = labeller_fun) +
+  labs(
+    title = "Correlations between chemical compounds in the extracts of new FNs\nand ecotoxicological effects caused by the extracts on new FNs",
+    x = NULL,
+    y = NULL,
+    fill = "Spearman Correlation"
+  ) +
+  theme_classic() +
+  theme(
+    axis.text.x = ggtext::element_markdown(size = 16, face = 'bold', angle = 45, hjust = 1),
+    axis.text.y = ggtext::element_markdown(size = 16, face = 'bold'),
+    axis.title.x = element_text(size = 18, face = "bold"),
+    axis.title.y = element_text(size = 18, face = "bold"),
+    title = element_text(size = 19, face = "bold"),
+    strip.text = element_text(face = "bold", size = rel(2)),
+    legend.position = "top",
+    legend.spacing.y = unit(1, 'cm'),
+    legend.text = element_text(size = 12, face = 'bold', color = "black"),
+    legend.key.size = unit(0.85, "cm"),
+    legend.key.width = unit(1, "cm"),
+    legend.title.align = 0,
+    legend.title = element_text(size = 16, face = "bold"),
+    plot.margin = unit(c(1, 1, 1, 1), "cm"),
+    legend.key.spacing.y = unit(1, "cm")
+  ) +
+  guides(fill = guide_colorbar(barwidth = 15, barheight = 1.1,
+                title.position = "top", title.hjust = 0.5))
+
+```
+
+```{r new metals and orga separated, eval=FALSE, include=FALSE}
+df_PCA2_metals <- df_PCA %>% 
+  filter(state == "new") %>%
+  dplyr::select("FN", "state", "Ag", "Al", "As", "Cu", "Fe", "Mn", "Zn",
+                "Biolu_inhi", 
+                #"BLA_LOFF1", "VLMR",
+                "BLA", 
+                "ASD_LOFF2", "TPZ", "Survival", "HR", "ROS", "Viability") %>% 
+  mutate(FN_state = paste(FN, state, sep = "_")) %>% 
+  dplyr::select(-FN, -state, -FN_state) 
+df_PCA2_metals
+
+df_PCA2_metals <- as.data.frame(df_PCA2_metals)
+rownames(df_PCA2_metals) <- c("pa_a35_new", "pa_b33_new", "pa_b95_new", 
+                       "pbs_d35_new", "pbs_d60_new",    "hppe_e425_new","pa_g33_new", "pa_g60_new")
+df_PCA2_metals
+
+## PCA quantitative variables
+#Obtaining the final matrix with values
+data_metals <- df_PCA2_metals %>% 
+  cor(method = "spearman") %>% 
+  round(2)
+data_metals
+
+summary(data_metals)
+
+#Statistic of correlation
+# mat : is a matrix of data
+# ... : further arguments to pass to the native R cor.test function
+cor.mtest <- function(mat, ...) {
+    mat <- as.matrix(mat)
+    n <- ncol(mat)
+    p.mat<- matrix(NA, n, n)
+    diag(p.mat) <- 0
+    for (i in 1:(n - 1)) {
+        for (j in (i + 1):n) {
+            tmp <- cor.test(method = "spearman", mat[, i], mat[, j], ...)
+            p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+        }
+    }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+  p.mat
+}
+# matrix of the p-value of the correlation
+p.mat <- cor.mtest(df_PCA2_metals)
+p.mat
+
+# Step 1: Convert the correlation matrix to a tidy tibble
+cor_tibble <- data_metals %>%
+  as.data.frame() %>%
+  rownames_to_column("Var1") %>%
+  pivot_longer(-Var1, names_to = "Var2", values_to = "cor") %>%
+  mutate(Var1 = factor(Var1, levels = colnames(data_metals)),
+         Var2 = factor(Var2, levels = colnames(data_metals)))
+
+# Step 2: Convert the p-value matrix to a tidy tibble
+pval_tibble <- p.mat %>%
+  as.data.frame() %>%
+  rownames_to_column("Var1") %>%
+  pivot_longer(-Var1, names_to = "Var2", values_to = "p") %>%
+  mutate(Var1 = factor(Var1, levels = colnames(p.mat)),
+         Var2 = factor(Var2, levels = colnames(p.mat)))
+
+# Step 3: Merge correlation and p-value tibbles
+plot_df <- left_join(cor_tibble, pval_tibble, by = c("Var1", "Var2")) %>%
+  # Step 4: Set correlation to NA if not significant
+  mutate(cor_sig = if_else(p < 0.05, cor, NA_real_)) %>% 
+  mutate(
+    stars = case_when(
+      p < 0.001 ~ "***",
+      p < 0.01  ~ "**",
+      p < 0.05  ~ "*",
+      TRUE      ~ ""
+    )
+  )
+
+# Generate ggplot2 heatmap
+ggplot(plot_df, aes(x = Var1, y = Var2, fill = cor_sig)) +
+  geom_tile(color = "grey90", na.rm = TRUE) +
+  geom_text(aes(label = if_else(is.na(cor_sig), "", sprintf("%.2f", cor_sig))),
+            size = 4, fontface = "bold", color = "white", vjust = 0.1) +
+  # Add the stars slightly higher in the cell (adjust vjust as you need)
+  geom_text(aes(label = stars), vjust = 1.3, color = "white", size = 6) +
+  scale_fill_gradient2(low = "firebrick", mid = "white", high = "blue4", 
+                       midpoint = 0, limits = c(-1, 1), na.value = "white") +
+  labs(
+    x = NULL,
+    y = NULL,
+    fill = "Spearman\nCorrelation",
+    #title = "Significant Correlations Only (p < 0.05)"
+  ) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 0, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold', angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        legend.position = "right",
+        legend.spacing.y = unit(0.3, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0,
+        legend.title = element_text(size = 16, face = "bold", margin = margin(t = 0, r = 0, b = 10, l = 0)),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        legend.key.spacing.y = unit(0.3, "cm"))
+
+#organic compounds----------
+df_PCA2_orga <- df_PCA %>% 
+  filter(state == "new") %>%
+  dplyr::select("FN", "state", 
+                
+                # "tOP",  "acenaphtene",  "acenaphtylene",  "anthracene",  "ATBC",  "BBP",      "BDE_28",  "BDE_47",  "BDE_154",  
+                # #"BDE_183",  "BDE_153", "BDE_100", "benzofluoranthene",  "dibenzoahanthracene", 
+                # "BDE_99",  "benzoghiperylee",  "benzoaanthracene",  "Dibenzothiophene", "fluoranthene", "benzoepyrene",  "benzothiophene",  "biphenyl",  "chrysene",  "DBP",  "DEHA",  "DEP",  "DEHP",  "DMP", ,    "fluorene",  "indeno123cdpyrene",  "naphtalene", "Phenanthrene",  "pyrene",
+                
+                "acenaphtylene","anthracene", "benzoaanthracene", "fluorene", "chrysene", "pyrene", 
+                "BDE_99",
+                "ATBC","BBP","tOP","DBP","DEHA",
+                
+                "Biolu_inhi", 
+                #"BLA_LOFF1", "VLMR",
+                "BLA", 
+                "ASD_LOFF2", "TPZ", "Survival", "HR", "ROS", "Viability") %>% 
+  mutate(FN_state = paste(FN, state, sep = "_")) %>% 
+  dplyr::select(-FN, -state, -FN_state) 
+df_PCA2_orga
+
+df_PCA2_orga <- as.data.frame(df_PCA2_orga)
+rownames(df_PCA2_orga) <- c("pa_a35_new", "pa_b33_new", "pa_b95_new", 
+                       "pbs_d35_new", "pbs_d60_new",    "hppe_e425_new","pa_g33_new", "pa_g60_new")
+df_PCA2_orga
+
+## PCA quantitative variables
+#Obtaining the final matrix with values
+data_orga <- df_PCA2_orga %>% 
+  cor(method = "spearman") %>% 
+  round(2)
+data_orga
+
+summary(data_orga)
+
+#Statistic of correlation
+# mat : is a matrix of data
+# ... : further arguments to pass to the native R cor.test function
+cor.mtest <- function(mat, ...) {
+    mat <- as.matrix(mat)
+    n <- ncol(mat)
+    p.mat<- matrix(NA, n, n)
+    diag(p.mat) <- 0
+    for (i in 1:(n - 1)) {
+        for (j in (i + 1):n) {
+            tmp <- cor.test(method = "spearman", mat[, i], mat[, j], ...)
+            p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+        }
+    }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+  p.mat
+}
+# matrix of the p-value of the correlation
+p.mat <- cor.mtest(df_PCA2_orga)
+p.mat
+
+# Step 1: Convert the correlation matrix to a tidy tibble
+cor_tibble <- data_orga %>%
+  as.data.frame() %>%
+  rownames_to_column("Var1") %>%
+  pivot_longer(-Var1, names_to = "Var2", values_to = "cor") %>%
+  mutate(Var1 = factor(Var1, levels = colnames(data_orga)),
+         Var2 = factor(Var2, levels = colnames(data_orga)))
+
+# Step 2: Convert the p-value matrix to a tidy tibble
+pval_tibble <- p.mat %>%
+  as.data.frame() %>%
+  rownames_to_column("Var1") %>%
+  pivot_longer(-Var1, names_to = "Var2", values_to = "p") %>%
+  mutate(Var1 = factor(Var1, levels = colnames(p.mat)),
+         Var2 = factor(Var2, levels = colnames(p.mat)))
+
+# Step 3: Merge correlation and p-value tibbles
+plot_df <- left_join(cor_tibble, pval_tibble, by = c("Var1", "Var2")) %>%
+  # Step 4: Set correlation to NA if not significant
+  mutate(cor_sig = if_else(p < 0.05, cor, NA_real_)) %>% 
+  mutate(
+    stars = case_when(
+      p < 0.001 ~ "***",
+      p < 0.01  ~ "**",
+      p < 0.05  ~ "*",
+      TRUE      ~ ""
+    )
+  )
+
+# Generate ggplot2 heatmap
+ggplot(plot_df, aes(x = Var1, y = Var2, fill = cor_sig)) +
+  geom_tile(color = "grey90", na.rm = TRUE) +
+  geom_text(aes(label = if_else(is.na(cor_sig), "", sprintf("%.2f", cor_sig))),
+            size = 4, fontface = "bold", color = "white", vjust = 0.1) +
+  # Add the stars slightly higher in the cell (adjust vjust as you need)
+  geom_text(aes(label = stars), vjust = 1.3, color = "white", size = 6) +
+  scale_fill_gradient2(low = "#f52a3f", mid = "white", high = "#1848b3", 
+                       midpoint = 0, limits = c(-1, 1), na.value = "white") +
+  labs(
+    x = NULL,
+    y = NULL,
+    fill = "Spearman\nCorrelation",
+    #title = "Significant Correlations Only (p < 0.05)"
+  ) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 0, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold', angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        legend.position = "right",
+        legend.spacing.y = unit(0.3, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0,
+        legend.title = element_text(size = 16, face = "bold", margin = margin(t = 0, r = 0, b = 10, l = 0)),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        legend.key.spacing.y = unit(0.3, "cm"))
+  
+
+```
+
+orga compounds with significant correlations:
+acenaphtylene
+anthracene
+ATBC
+BBP
+tOP
+DBP
+DEHA
+fluorene
+BDE_99
+benzoaanthracene
+chysene
+pyrene
+
+##Used FN
+```{r}
+df_PCA2 <- df_PCA %>% 
+  filter(state == "used") %>%
+  mutate(FN_state = paste(FN, state, sep = "_")) %>% 
+  dplyr::select(-FN, -state, -FN_state) #%>%
+  # dplyr::select("Op_time",
+  #               "Ag",
+  # 
+  #               "benzothiophene", "benzofluoranthene", "benzoaanthracene", "benzothiophene", "pyrene", "Phenanthrene",
+  #               "BDE_100", "BDE_153",
+  #               "ATBC", "DEHA",
+  # 
+  #               "Biolu_inhi",
+  #               "BLA", "VLSR", "VLMR",
+  #               "ASD_LOFF2", "TPZ", "Survival", "HR", "ROS", "Viability")
+  #dplyr::select(-Op_time)
+df_PCA2
+
+df_PCA2 <- as.data.frame(df_PCA2)
+rownames(df_PCA2) <- c("pa_a35_used", "pa_b33_used", "pa_b95_used", "pbs_d35_used", "pbs_d60_used",
+                       "hppe_e425_used", "pa_g33_used", "pa_g60_used")
+df_PCA2
+
+## PCA quantitative variables
+#Obtaining the final matrix with values
+data <- df_PCA2 %>% 
+  cor(method = "spearman") %>% 
+  round(2)
+data
+
+summary(data)
+
+# p.mat <- cor_pmat(df_PCA2, method = "spearman") %>% 
+#   round(3)
+# p.mat
+
+#pairs(data)
+
+##Correlation statistics estimation --> p-value
+# mat : is a matrix of data
+# ... : further arguments to pass to the native R cor.test function
+cor.mtest <- function(mat, ...) {
+  mat <- as.matrix(mat)
+  n   <- ncol(mat)
+
+  # raw p-value matrix
+  p.mat <- matrix(NA_real_, n, n)
+  diag(p.mat) <- 0
+
+  for (i in 1:(n - 1)) {
+    for (j in (i + 1):n) {
+      tmp <- cor.test(mat[, i], mat[, j],
+                      method = "spearman", ...)
+      p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+    }
+  }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+
+  # Benjamini–Hochberg adjustment on upper triangle
+  up.idx   <- upper.tri(p.mat)
+  p.vec    <- p.mat[up.idx]
+  p.adjvec <- p.adjust(p.vec, method = "BH")  # same as method = "fdr"
+  p.adj    <- matrix(NA_real_, n, n)
+  diag(p.adj) <- 0
+  p.adj[up.idx] <- p.adjvec
+  p.adj[lower.tri(p.adj)] <- t(p.adj)[lower.tri(p.adj)]
+  colnames(p.adj) <- rownames(p.adj) <- colnames(mat)
+
+  # return both matrices as a list
+  list(p.raw = p.mat,
+       p.BH  = p.adj)
+}
+
+# use:
+p.mat   <- cor.mtest(df_PCA2)
+p.raw   <- p.mat$p.raw
+p.BH    <- p.mat$p.BH
+
+#In p.mat transform all the value > 0.05 to NA
+p.mat2 <- ifelse(p.BH > 0.05, NA, p.BH)
+
+p_clean <- p.mat2
+
+# 1) Ignore diagonal when deciding what to keep
+diag(p_clean) <- NA_real_  # sets diagonal to NA [web:31]
+
+# 2) Identify variables having at least one significant p-value with another variable
+keep <- rowSums(!is.na(p_clean)) > 0  # rows that are not all NA 
+
+# 3) Subset rows and columns consistently (keeps a square matrix)
+p_mat_signif <- p.BH[keep, keep, drop = FALSE]
+p_mat_signif 
+
+#A vector with the different variables included in the matrix p_mat_signif 
+variables_to_keep <- rownames(p_mat_signif)
+variables_to_keep
+
+
+Plasfito_C <- c("#80CAD0", "#36A7A7", "#276573", "#054959","#E3CCC0", "#F7EAE1", "#A48A7B", "#C6AF8D", "#49BED3", "#256CB4", "#008163", "#44B494", "#7BC6B9")
+
+
+col <- colorRampPalette(c("#c68640", "#E3CCC0", "grey100",  "#80CAD0", "#36A7A7"))
+col <- colorRampPalette(c('#ef6565', '#F7B0B0', 'white', '#90B0D9', '#256CB4'))
+
+#To get the * below the corr coef. 
+  #trace(corrplot, edit=TRUE)
+  #line 443 replace place_point fct by 
+  # adjust text(X,Y ...) according to your needs, here +0.25 is added to the Y-position    
+# place_points = function(sig.locs, point) {
+#       text(pos.pNew[, 1][sig.locs], (pos.pNew[, 2][sig.locs])+0.25, 
+#            labels = point, col = pch.col, cex = pch.cex, 
+#            lwd = 2)
+
+
+corrplot(data, 
+         method="circle", 
+         #col=col(10), 
+         type="lower",
+         # tl.col=c("#256CB4","#256CB4","#256CB4", "#256CB4", "#256CB4", "#256CB4", "#256CB4", 
+         #          "purple3", 
+         #          "green4", "green4", "green4", "#ef6565", "#ef6565", "#ef6565",
+         #          "firebrick", "firebrick",
+         #          "orange2", "orange2"),
+         tl.col="black",
+         tl.srt=30,
+         p.mat = p.BH, 
+         sig.level = c(.001, .01, .05), 
+         insig = "label_sig",  # Ceci remplace les astérisques par des espaces vides
+         pch.cex = 1.5,
+         pch.col = "white",
+         diag=T,
+         #addCoef.col = "black",
+         number.cex = 1,  # Ajuste la taille des nombres
+         number.digits = 2,
+         mar=c(0,0,1,0),
+         addgrid.col = "grey90",
+         #col=colorRampPalette(c("#f8e83c", "#368e8c","#430f56"))(200)
+         col=colorRampPalette(c("firebrick", "white","blue4"))(200)
+)
+
+```
+
+
+```{r final matrix used}
+library(tidyverse)
+library(ggplot2)
+
+# Step 1: Convert the correlation matrix to a tidy tibble
+cor_tibble <- data %>%
+  as.data.frame() %>%
+  rownames_to_column("Var1") %>%
+  pivot_longer(-Var1, names_to = "Var2", values_to = "cor") %>%
+  mutate(Var1 = factor(Var1, levels = colnames(data)),
+         Var2 = factor(Var2, levels = colnames(data)))
+
+# Step 2: Convert the p-value matrix to a tidy tibble
+pval_tibble <- p.BH %>%
+  as.data.frame() %>%
+  rownames_to_column("Var1") %>%
+  pivot_longer(-Var1, names_to = "Var2", values_to = "p") %>%
+  mutate(Var1 = factor(Var1, levels = colnames(p.BH)),
+         Var2 = factor(Var2, levels = colnames(p.BH)))
+
+# Step 3: Merge correlation and p-value tibbles
+plot_df <- left_join(cor_tibble, pval_tibble, by = c("Var1", "Var2")) %>%
+  # Step 4: Set correlation to NA if not significant
+  mutate(cor_sig = if_else(p < 0.05, cor, NA_real_)) %>% 
+  mutate(
+    stars = case_when(
+      p < 0.001 ~ "***",
+      p < 0.01  ~ "**",
+      p < 0.05  ~ "*",
+      TRUE      ~ ""
+    )
+  ) #%>% 
+  #use the vector variables_to_keep to filter the plot_df
+  #filter(Var1 %in% variables_to_keep & Var2 %in% variables_to_keep) 
+
+
+plot_df_lower <- plot_df %>%
+  mutate(
+  Var1 = case_when(
+    Var1 == "Op_time" ~ "Operation time",
+    Var1 == "acenaphthylene" ~ "Acenaphtylene",
+      Var1 == "benzofluoranthene" ~ "Benzofluoranthene",
+    Var1 == "benzothiophene" ~ "Benzothiophene",
+    Var1 == "biphenyl" ~ "Biphenyl",
+      Var1 == "indeno123cdpyrene" ~ "Indeno[1,2,3-cd]pyrene",
+      Var1 == "BDE_28" ~ "BDE 28",
+    Var1 == "BDE_47" ~ "BDE 47",
+      Var1 == "BDE_99" ~ "BDE 99",
+      Var1 == "BDE_183" ~ "BDE 183",
+      Var1 == "BDE_154" ~ "BDE 154",
+      Var1 == "Biolu_inhi" ~ "Bacteria biolu. inhi.",
+      Var1 == "BLA_OFF" ~ "Fish BLA_LOFF",
+      Var1 == "BLA_LON" ~ "Fish BLA_LON",
+      Var1 == "VLSR" ~ "Fish VLSR",
+      Var1 == "VLMR" ~ "Fish VLMR",
+      Var1 == "ASD_LOFF2" ~ "Fish ASD",
+      Var1 == "TPZ_OFF2" ~ "Fish TPZ",
+      Var1 == "Survival" ~ "Fish Mortality",
+      Var1 == "HR" ~ "Fish heart rate",
+      Var1 == "ROS" ~ "Cell ROS",
+      Var1 == "Viability" ~ "Cell viability",
+      TRUE ~ Var1  # keeps original if no match
+    ),
+    Var2 = case_when(
+      Var2 == "Op_time" ~ "Operation time",
+    Var2 == "acenaphthylene" ~ "Acenaphtylene",
+      Var2 == "benzofluoranthene" ~ "Benzofluoranthene",
+    Var2 == "benzothiophene" ~ "Benzothiophene",
+    Var2 == "biphenyl" ~ "Biphenyl",
+      Var2 == "BDE_28" ~ "BDE 28",
+    Var2 == "BDE_47" ~ "BDE 47",
+      Var2 == "BDE_99" ~ "BDE 99",
+      Var2 == "BDE_183" ~ "BDE 183",
+      Var2 == "BDE_154" ~ "BDE 154",
+      Var2 == "Biolu_inhi" ~ "Bacteria biolu. inhi.",
+      Var2 == "BLA_OFF" ~ "Fish BLA_LOFF",
+      Var2 == "BLA_LON" ~ "Fish BLA_LON",
+      Var2 == "VLSR" ~ "Fish VLSR",
+      Var2 == "VLMR" ~ "Fish VLMR",
+      Var2 == "ASD_LOFF2" ~ "Fish ASD",
+      Var2 == "TPZ_OFF2" ~ "Fish TPZ",
+      Var2 == "Survival" ~ "Fish Mortality",
+      Var2 == "HR" ~ "Fish heart rate",
+      Var2 == "ROS" ~ "Cell ROS",
+      Var2 == "Viability" ~ "Cell viability",
+      TRUE ~ Var2  # keeps original if no match
+    )) %>%
+  mutate(
+  # Define the order of variables by group
+    Var1 = factor(Var1, levels = c(
+      "Operation time",
+      "Ag", "Al", "Zn", "Fe", "Mn",
+      "Acenaphtylene", "Benzofluoranthene",  "Benzothiophene", "Biphenyl", "Indeno[1,2,3-cd]pyrene", 
+      "BDE 28", "BDE 47","BDE 99","BDE 183","BDE 154", 
+      "DEHA", "BBP", "DMP",
+      "Bacteria biolu. inhi.", "Fish BLA_LOFF", "Fish BLA_LON", "Fish VLSR", "Fish VLMR", "Fish ASD", "Fish TPZ", "Fish Mortality",
+      "Fish heart rate", "Cell ROS", "Cell viability"
+    )),
+    Var2 = factor(Var2, levels = c(
+      "Operation time",
+      "Ag", "Al", "Zn", "Fe", "Mn",
+      "Acenaphtylene", "Benzofluoranthene",  "Benzothiophene", "Biphenyl", "Indeno[1,2,3-cd]pyrene", 
+      "BDE 28", "BDE 47","BDE 99","BDE 183","BDE 154", 
+      "DEHA", "BBP", "DMP",
+      "Bacteria biolu. inhi.", "Fish BLA_LOFF", "Fish BLA_LON", "Fish VLSR", "Fish VLMR", "Fish ASD", "Fish TPZ", "Fish Mortality",
+      "Fish heart rate", "Cell ROS", "Cell viability"
+    ))
+  ) %>%
+  filter(as.integer(Var1) > as.integer(Var2)) %>% 
+  mutate(cor_sig = if_else(cor_sig == 1 & stars == "***" & p == 0, NA_real_, cor_sig)) %>%
+  mutate(stars = if_else(cor_sig == 1 & stars == "***" & p == 0, "", stars)) 
+
+# if not already installed
+library(ggtext)
+
+color_mapping <- c(
+  "Operation time" = "black",
+  "Ag" = "black", "Al" = "black", "Zn" = "black", "Fe" = "black", "Mn" = "black",
+  "Benzofluoranthene" = "black", "Indeno[1,2,3-cd]pyrene" = "black", "Acenaphtylene" = "black", "Benzothiophene" = "black", "Biphenyl" = "black",
+  "BDE 28" = "black", "BDE 47" = "black", "BDE 99" = "black", "BDE 183" = "black", "BDE 154" = "black", 
+  "DEHA" = "black", "BBP" = "black", "DMP" = "black", 
+  # Toxicity variables (red)
+  "Bacteria biolu. inhi." = "#256CB4", "Fish BLA_LOFF" = "#256CB4", "Fish BLA_LON" = "#256CB4","Fish VLSR" = "#256CB4", "Fish VLMR" = "#256CB4", "Fish ASD" = "#256CB4", "Fish TPZ" = "#256CB4", 
+  "Fish Mortality" = "#256CB4", "Fish heart rate" = "#256CB4",
+  "Cell ROS" = "#256CB4", "Cell viability" = "#256CB4"
+)
+
+labeller_fun <- function(lbls) {
+  sapply(lbls, function(x) paste0("<span style='color:", color_mapping[x], ";'>", x, "</span>"))
+}
+
+ggplot(plot_df_lower, aes(x = Var1, y = Var2, fill = cor_sig)) +
+  geom_tile(color = "grey90", na.rm = TRUE) +
+  geom_text(aes(label = if_else(is.na(cor_sig), "", sprintf("%.2f", cor_sig))),
+            size = 3.5, fontface = "bold", color = "white", vjust = 0.1) +
+  geom_text(aes(label = stars), vjust = 1.2, color = "white", size = 5.5) +
+  scale_fill_gradient2(low = "#f52a3f", mid = "white", high = "#1848b3", 
+                       midpoint = 0, limits = c(-1, 1), na.value = "white") +
+  scale_x_discrete(labels = labeller_fun) +
+  scale_y_discrete(labels = labeller_fun) +
+  labs(
+    title = "Correlations between chemical compounds in the extracts of EOL FNs\nand ecotoxicological effects caused by the extracts on EOL FNs",
+    x = NULL,
+    y = NULL,
+    fill = "Spearman Correlation"
+  ) +
+  theme_classic() +
+  theme(
+    axis.text.x = ggtext::element_markdown(size = 16, face = 'bold', angle = 45, hjust = 1),
+    axis.text.y = ggtext::element_markdown(size = 16, face = 'bold'),
+    axis.title.x = element_text(size = 18, face = "bold"),
+    axis.title.y = element_text(size = 18, face = "bold"),
+    title = element_text(size = 19, face = "bold"),
+    strip.text = element_text(face = "bold", size = rel(2)),
+    legend.position = "top",
+    legend.spacing.y = unit(1, 'cm'),
+    legend.text = element_text(size = 12, face = 'bold', color = "black"),
+    legend.key.size = unit(0.85, "cm"),
+    legend.key.width = unit(1, "cm"),
+    legend.title.align = 0,
+    legend.title = element_text(size = 16, face = "bold"),
+    plot.margin = unit(c(1, 1, 1, 1), "cm"),
+    legend.key.spacing.y = unit(1, "cm")
+  ) +
+  guides(fill = guide_colorbar(barwidth = 15, barheight = 1.1,
+                title.position = "top", title.hjust = 0.5))
+```
+
+```{r new metals and orga separated, eval=FALSE, include=FALSE}
+df_PCA2_metals <- df_PCA %>% 
+  filter(state == "used") %>%
+  dplyr::select("FN", "state", "Ag", "Al", "As", "Cu", "Fe", "Mn", "Zn",
+                "Biolu_inhi", 
+                "VLMR",
+                "BLA", 
+                "ASD_LOFF2", "TPZ", "Survival", "HR", "ROS", "Viability") %>% 
+  mutate(FN_state = paste(FN, state, sep = "_")) %>% 
+  dplyr::select(-FN, -state, -FN_state) 
+df_PCA2_metals
+
+df_PCA2_metals <- as.data.frame(df_PCA2_metals)
+rownames(df_PCA2_metals) <- c("pa_a35_new", "pa_b33_new", "pa_b95_new", 
+                       "pbs_d35_new", "pbs_d60_new",    "hppe_e425_new","pa_g33_new", "pa_g60_new")
+df_PCA2_metals
+
+## PCA quantitative variables
+#Obtaining the final matrix with values
+data_metals <- df_PCA2_metals %>% 
+  cor(method = "spearman") %>% 
+  round(2)
+data_metals
+
+summary(data_metals)
+
+#Statistic of correlation
+# mat : is a matrix of data
+# ... : further arguments to pass to the native R cor.test function
+cor.mtest <- function(mat, ...) {
+    mat <- as.matrix(mat)
+    n <- ncol(mat)
+    p.mat<- matrix(NA, n, n)
+    diag(p.mat) <- 0
+    for (i in 1:(n - 1)) {
+        for (j in (i + 1):n) {
+            tmp <- cor.test(method = "spearman", mat[, i], mat[, j], ...)
+            p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+        }
+    }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+  p.mat
+}
+# matrix of the p-value of the correlation
+p.mat <- cor.mtest(df_PCA2_metals)
+p.mat
+
+# Step 1: Convert the correlation matrix to a tidy tibble
+cor_tibble <- data_metals %>%
+  as.data.frame() %>%
+  rownames_to_column("Var1") %>%
+  pivot_longer(-Var1, names_to = "Var2", values_to = "cor") %>%
+  mutate(Var1 = factor(Var1, levels = colnames(data_metals)),
+         Var2 = factor(Var2, levels = colnames(data_metals)))
+
+# Step 2: Convert the p-value matrix to a tidy tibble
+pval_tibble <- p.mat %>%
+  as.data.frame() %>%
+  rownames_to_column("Var1") %>%
+  pivot_longer(-Var1, names_to = "Var2", values_to = "p") %>%
+  mutate(Var1 = factor(Var1, levels = colnames(p.mat)),
+         Var2 = factor(Var2, levels = colnames(p.mat)))
+
+# Step 3: Merge correlation and p-value tibbles
+plot_df <- left_join(cor_tibble, pval_tibble, by = c("Var1", "Var2")) %>%
+  # Step 4: Set correlation to NA if not significant
+  mutate(cor_sig = if_else(p < 0.05, cor, NA_real_)) %>% 
+  mutate(
+    stars = case_when(
+      p < 0.001 ~ "***",
+      p < 0.01  ~ "**",
+      p < 0.05  ~ "*",
+      TRUE      ~ ""
+    )
+  )
+
+# Generate ggplot2 heatmap
+ggplot(plot_df, aes(x = Var1, y = Var2, fill = cor_sig)) +
+  geom_tile(color = "grey90", na.rm = TRUE) +
+  geom_text(aes(label = if_else(is.na(cor_sig), "", sprintf("%.2f", cor_sig))),
+            size = 4, fontface = "bold", color = "white", vjust = 0.1) +
+  # Add the stars slightly higher in the cell (adjust vjust as you need)
+  geom_text(aes(label = stars), vjust = 1.3, color = "white", size = 6) +
+  scale_fill_gradient2(low = "firebrick", mid = "white", high = "blue4", 
+                       midpoint = 0, limits = c(-1, 1), na.value = "white") +
+  labs(
+    x = NULL,
+    y = NULL,
+    fill = "Spearman\nCorrelation",
+    #title = "Significant Correlations Only (p < 0.05)"
+  ) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 0, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold', angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        legend.position = "right",
+        legend.spacing.y = unit(0.3, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0,
+        legend.title = element_text(size = 16, face = "bold", margin = margin(t = 0, r = 0, b = 10, l = 0)),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        legend.key.spacing.y = unit(0.3, "cm"))
+
+#organic compounds----------
+df_PCA2_orga <- df_PCA %>% 
+  filter(state == "used") %>%
+  dplyr::select("FN", "state", 
+                
+                # "tOP",  "acenaphtene",  "acenaphtylene",  "anthracene",  "ATBC",  "BBP",      "BDE_28",  "BDE_47",  "BDE_154",
+                # "BDE_183",  "BDE_153", "BDE_100", "benzofluoranthene",  "dibenzoahanthracene",
+                # "BDE_99",  "benzoghiperylee",  "benzoaanthracene",  "Dibenzothiophene", "fluoranthene", "benzoepyrene",  "benzothiophene",  "biphenyl",  "chrysene",  "DBP",  "DEHA",  "DEP",  "DEHP",  "DMP", ,    "fluorene",  "indeno123cdpyrene",  "naphtalene", "Phenanthrene",  "pyrene",
+                
+                "benzothiophene",
+                "BDE_100",
+                "DEHA",
+                
+                "Biolu_inhi", 
+                "BLA_LOFF1", "VLMR",
+                "BLA_LON", 
+                "ASD_LOFF2", "TPZ", "Survival", "HR", "ROS", "Viability") %>% 
+  mutate(FN_state = paste(FN, state, sep = "_")) %>% 
+  dplyr::select(-FN, -state, -FN_state) 
+df_PCA2_orga
+
+df_PCA2_orga <- as.data.frame(df_PCA2_orga)
+rownames(df_PCA2_orga) <- c("pa_a35_new", "pa_b33_new", "pa_b95_new", 
+                       "pbs_d35_new", "pbs_d60_new",    "hppe_e425_new","pa_g33_new", "pa_g60_new")
+df_PCA2_orga
+
+## PCA quantitative variables
+#Obtaining the final matrix with values
+data_orga <- df_PCA2_orga %>% 
+  cor(method = "spearman") %>% 
+  round(2)
+data_orga
+
+summary(data_orga)
+
+#Statistic of correlation
+# mat : is a matrix of data
+# ... : further arguments to pass to the native R cor.test function
+cor.mtest <- function(mat, ...) {
+    mat <- as.matrix(mat)
+    n <- ncol(mat)
+    p.mat<- matrix(NA, n, n)
+    diag(p.mat) <- 0
+    for (i in 1:(n - 1)) {
+        for (j in (i + 1):n) {
+            tmp <- cor.test(method = "spearman", mat[, i], mat[, j], ...)
+            p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+        }
+    }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+  p.mat
+}
+# matrix of the p-value of the correlation
+p.mat <- cor.mtest(df_PCA2_orga)
+p.mat
+
+# Step 1: Convert the correlation matrix to a tidy tibble
+cor_tibble <- data_orga %>%
+  as.data.frame() %>%
+  rownames_to_column("Var1") %>%
+  pivot_longer(-Var1, names_to = "Var2", values_to = "cor") %>%
+  mutate(Var1 = factor(Var1, levels = colnames(data_orga)),
+         Var2 = factor(Var2, levels = colnames(data_orga)))
+
+# Step 2: Convert the p-value matrix to a tidy tibble
+pval_tibble <- p.mat %>%
+  as.data.frame() %>%
+  rownames_to_column("Var1") %>%
+  pivot_longer(-Var1, names_to = "Var2", values_to = "p") %>%
+  mutate(Var1 = factor(Var1, levels = colnames(p.mat)),
+         Var2 = factor(Var2, levels = colnames(p.mat)))
+
+# Step 3: Merge correlation and p-value tibbles
+plot_df <- left_join(cor_tibble, pval_tibble, by = c("Var1", "Var2")) %>%
+  # Step 4: Set correlation to NA if not significant
+  mutate(cor_sig = if_else(p < 0.05, cor, NA_real_)) %>% 
+  mutate(
+    stars = case_when(
+      p < 0.001 ~ "***",
+      p < 0.01  ~ "**",
+      p < 0.05  ~ "*",
+      TRUE      ~ ""
+    )
+  )
+
+# Generate ggplot2 heatmap
+ggplot(plot_df, aes(x = Var1, y = Var2, fill = cor_sig)) +
+  geom_tile(color = "grey90", na.rm = TRUE) +
+  geom_text(aes(label = if_else(is.na(cor_sig), "", sprintf("%.2f", cor_sig))),
+            size = 4, fontface = "bold", color = "white", vjust = 0.1) +
+  # Add the stars slightly higher in the cell (adjust vjust as you need)
+  geom_text(aes(label = stars), vjust = 1.3, color = "white", size = 6) +
+  scale_fill_gradient2(low = "firebrick", mid = "white", high = "blue4", 
+                       midpoint = 0, limits = c(-1, 1), na.value = "white") +
+  labs(
+    x = NULL,
+    y = NULL,
+    fill = "Spearman\nCorrelation",
+    #title = "Significant Correlations Only (p < 0.05)"
+  ) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 0, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold', angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        legend.position = "right",
+        legend.spacing.y = unit(0.3, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0,
+        legend.title = element_text(size = 16, face = "bold", margin = margin(t = 0, r = 0, b = 10, l = 0)),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        legend.key.spacing.y = unit(0.3, "cm"))
+  
+
+```
+
+correlation between organic compounds and toxicity variables 
+benzothiophene
+BDE 100
+BBP
+DEHA
+
+# ============================================================================
+#Perplexity approach
+
+```{r}
+library(tidyverse)
+library(relaimpo)  # For relative importance
+library(corrplot)
+library(pheatmap)
+library(viridis)
+```
+
+# ANALYSIS 1: TOP 5 EXPLANATORY CHEMICALS PER ENDPOINT
+```{r tox vs. chemicals}
+
+# Resolve conflicts
+select <- dplyr::select
+
+# Define chemical predictors
+chemicals <- colnames(df_PCA)[!(colnames(df_PCA) %in% c("FN", "state",
+                                              "Biolu_inhi", "BLA_OFF", "BLA_LON", "VLMR", "VLSR",
+                                              "ASD_LOFF2", "TPZ_LOFF2", "TPZ_LOFF1", "TPZ_LON",
+                                              "Survival", "HR", "ROS", "Viability", "Op_time"))]
+chemicals
+
+# Endpoints
+endpoints <- c("Biolu_inhi", "BLA_OFF", "BLA_LON", "VLMR", "VLSR",
+               "ASD_LOFF2", "TPZ_LOFF2",
+               "Survival", "HR", "ROS", "Viability")
+
+# SIMPLIFIED APPROACH: Use correlations + partial correlations
+get_top5_predictors <- function(endpoint_name, data, predictors) {
+  
+  cat("  Analyzing", endpoint_name, "...\n")
+  
+  # Prepare data -----------------------------------------------------------
+  df_analysis <- data %>%
+    dplyr::select(all_of(c(predictors, endpoint_name))) %>%
+    tidyr::drop_na()
+  
+  if (nrow(df_analysis) < 10) {
+    cat("  Warning: Insufficient data\n")
+    return(NULL)
+  }
+  
+  # Spearman correlations + BH correction ---------------------------------
+  correlations <- purrr::map_dfr(predictors, function(pred) {
+    
+    cor_test <- cor.test(
+      df_analysis[[pred]],
+      df_analysis[[endpoint_name]],
+      method = "spearman",
+      exact  = FALSE
+    )
+    
+    tibble::tibble(
+      chemical        = pred,
+      correlation     = unname(cor_test$estimate),
+      p_value         = cor_test$p.value,
+      abs_correlation = abs(cor_test$estimate)
+    )
+  }) %>%
+    dplyr::mutate(
+      p_value_BH = p.adjust(p_value, method = "BH")  # BH / FDR
+    )
+  
+  # Get top 5 by |rho|, report BH significance -----------------------------
+  top5 <- correlations %>%
+    dplyr::arrange(dplyr::desc(abs_correlation)) %>%
+    dplyr::slice(1:5) %>%
+    dplyr::mutate(
+      endpoint   = endpoint_name,
+      rank       = dplyr::row_number(),
+      direction  = dplyr::if_else(correlation > 0, "Positive", "Negative"),
+      signif_raw = dplyr::case_when(          # optional: keep raw stars
+        p_value < 0.001 ~ "***",
+        p_value < 0.01  ~ "**",
+        p_value < 0.05  ~ "*",
+        TRUE            ~ "ns"
+      ),
+      signif_BH  = dplyr::case_when(          # BH-adjusted stars (recommended)
+        p_value_BH < 0.001 ~ "***",
+        p_value_BH < 0.01  ~ "**",
+        p_value_BH < 0.05  ~ "*",
+        TRUE               ~ "ns"
+      )
+    )
+  
+  # Simple standardized LM for effect sizes --------------------------------
+  top5_with_lm <- purrr::map_dfr(seq_len(nrow(top5)), function(i) {
+    
+    chem <- top5$chemical[i]
+    
+    x_scaled <- scale(df_analysis[[chem]])[, 1]
+    y_scaled <- scale(df_analysis[[endpoint_name]])[, 1]
+    
+    lm_fit    <- lm(y_scaled ~ x_scaled)
+    lm_sum    <- summary(lm_fit)
+    
+    top5[i, ] %>%
+      dplyr::mutate(
+        estimate   = coef(lm_fit)[2],
+        std_error  = lm_sum$coefficients[2, "Std. Error"],
+        t_value    = lm_sum$coefficients[2, "t value"],
+        r_squared  = lm_sum$r.squared
+      )
+  })
+  
+  top5_with_lm
+}
+
+
+# Apply to all endpoints
+
+top5_results <- list()
+
+for(endpoint in endpoints) {
+  cat("Processing:", endpoint, "\n")
+  result <- get_top5_predictors(endpoint, df_PCA, chemicals)
+  if(!is.null(result)) {
+    top5_results[[endpoint]] <- result
+  }
+}
+
+# Combine results
+top5_df <- bind_rows(top5_results) %>%
+  mutate(
+    chemical_class = case_when(
+      chemical %in% c("Ag", "Al", "As", "Cu", "Fe", "Mn", "Zn") ~ "Metals",
+      chemical %in% c("BBP", "DBP","DEP", "DEHP", "DMP") ~ "Phthalates",
+      chemical %in% c("ATBC", "DEHA") ~ "Non-phthalate plasticizers",
+      str_detect(chemical, "BDE") ~ "Flame Retardants",
+      chemical %in% c("tOP", "nonylphenols") ~ "Alkylphenols",
+      TRUE ~ "PAHs"
+    )
+  )
+
+# Display results
+
+for(endpoint in endpoints) {
+  endpoint_data <- top5_df %>% filter(endpoint == !!endpoint)
+  
+  if(nrow(endpoint_data) > 0) {
+    cat(endpoint, "\n")
+    cat(paste(rep("-", 70), collapse = ""), "\n")
+    
+    for(i in 1:nrow(endpoint_data)) {
+      cat(sprintf(
+        "  %d. %-20s [%s] ρ = %6.3f, β = %6.3f (p = %.4f) %s\n",
+        endpoint_data$rank[i],
+        endpoint_data$chemical[i],
+        endpoint_data$chemical_class[i],
+        endpoint_data$correlation[i],
+        endpoint_data$estimate[i],
+        endpoint_data$p_value[i],
+        endpoint_data$significance[i]
+      ))
+    }
+    cat("\n")
+  }
+}
+
+# Display the dataframe
+top5_df
+
+CrossTable(top5_df$chemical)
+
+#number of time the chemical appears in the top 5
+rank_top5_chem <- top5_df %>%
+  group_by(chemical_class) %>%
+  summarise(
+    appearances = n(),
+    avg_pvalue = mean(p_value_BH),
+    sd_pvalue = sd(p_value_BH)
+  ) %>%
+  #add proportion and percentages of apperance based on the number of chemicals by class
+  mutate(
+    proportion = case_when(
+      chemical_class == "Metals" ~ appearances / 7,
+      chemical_class == "Phthalates" ~ appearances / 5,
+      chemical_class == "Non-phthalate plasticizers" ~ appearances / 2,
+      chemical_class == "Flame Retardants" ~ appearances / 5,
+      chemical_class == "Alkylphenols" ~ appearances / 2,
+      chemical_class == "PAHs" ~ appearances / 11,
+      TRUE ~ NA_real_),
+    percentage = proportion*100 / sum(proportion)) %>% 
+  arrange(desc(percentage)) 
+rank_top5_chem
+```
+
+```{r Vizualisation}
+
+# Create lollipop chart showing top drivers with significance
+
+#manual order facets
+top_5_df <- top5_df %>% 
+  mutate(
+  endpoint = case_when(
+      endpoint == "Biolu_inhi" ~ "Bacteria biolu. inhi.",
+      endpoint == "BLA_OFF" ~ "Fish BLA_LOFF",
+      endpoint == "BLA_LON" ~ "Fish BLA_LON",
+      endpoint == "VLSR" ~ "Fish VLSR",
+      endpoint == "VLMR" ~ "Fish VLMR",
+      endpoint == "ASD_LOFF2" ~ "Fish ASD",
+      endpoint == "TPZ_LOFF2" ~ "Fish TPZ",
+      endpoint == "Survival" ~ "Fish Mortality",
+      endpoint == "HR" ~ "Fish heart rate",
+      endpoint == "ROS" ~ "Cell ROS",
+      endpoint == "Viability" ~ "Cell viability",
+      endpoint == "Op_time" ~ "Operation time",
+      TRUE ~ endpoint)) %>% 
+  mutate(
+  chemical = case_when(
+    chemical == "acenaphtylene" ~ "Acenaphtylene",
+      chemical == "benzofluoranthene" ~ "Benzofluoranthene",
+    chemical == "benzothiophene" ~ "Benzothiophene",
+    chemical == "biphenyl" ~ "Biphenyl",
+      chemical == "indeno123cdpyrene" ~ "Indeno[1,2,3-cd]pyrene",
+    chemical == "BDE_47" ~ "BDE 47",
+      chemical == "BDE_99" ~ "BDE 99",
+      chemical == "BDE_100" ~ "BDE 100",
+      chemical == "BDE_153" ~ "BDE 153",
+    chemical == "BDE_183" ~ "BDE 183",
+    chemical == "nonylphenols" ~ "Nonylphenols",
+    chemical == "anthracene" ~ "Anthracene",
+    chemical == "chrysene" ~ "Chrysene",
+    chemical == "fluorene" ~ "Fluorene",
+    chemical == "benzoaaanthracene" ~ "Benzo[a]anthracene",
+    chemical == "benzoepyrene" ~ "Benzo[e]pyrene",
+    chemical == "benzoghiperylee" ~ "Benzo[ghi]perylee",
+    chemical == "dibenzoahanthracene" ~ "Dibenzo[a,h]anthracene",
+    chemical == "naphtalene" ~ "Naphtalene",
+    chemical == "benzoaanthracene" ~ "Benzo[a]anthracene",
+    TRUE ~ chemical)) %>% 
+  mutate(chemical_class = case_when(
+    chemical_class == "Metals" ~ "Trace metals",
+    TRUE ~ chemical_class)) %>% 
+  mutate(endpoint = factor(endpoint, levels = c(
+    "Bacteria biolu. inhi.", "Cell viability", "Cell ROS",
+    "Fish Mortality", "Fish heart rate",
+    "Fish BLA_LOFF", "Fish BLA_LON", "Fish VLSR", "Fish VLMR", "Fish ASD", "Fish TPZ", "Operation time"))) %>% 
+  mutate(chemical_class = factor(chemical_class, levels = c(
+    "Alkylphenols", "Flame Retardants", "Non-phthalate plasticizers", "Phthalates", "PAHs", "Trace metals"))) #%>% 
+  #keep only the correlation coeeficient > 0.5
+  #filter(abs_correlation >= 0.4)
+
+top_5_df
+
+p_lollipop <- ggplot(
+  top_5_df,
+  aes(x = chemical,
+      y = correlation,
+      color = chemical_class)
+) +
+  geom_segment(
+    aes(xend = chemical, y = 0, yend = correlation),
+    linewidth = 2) +
+  geom_point(aes(shape = signif_BH), size = 5) +
+  scale_y_continuous(limits = c(-0.9, 0.9), breaks = seq(-0.9, 0.9, by = 0.2)) +
+  
+  coord_flip() +
+  
+  facet_wrap(~endpoint, ncol = 2, scales = "free_y") +
+  scale_color_viridis_d(option = "turbo", 
+                        begin     = 0.05,
+                        end       = 0.95,
+                        direction = 1, 
+                        name = "Plastic chemical categories"
+                        ) +
+  
+  scale_shape_manual(
+    values = c("***" = 16, "**" = 17, "*" = 15, "ns" = 1),
+    name = "Significance (BH's adjusted p-value)",
+    labels = c("***" = "p < 0.001", "**" = "p < 0.01", 
+               "*" = "p < 0.05", "ns" = "ns")
+  ) +
+  
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey30") +
+  geom_hline(yintercept = c(0.5, -0.5), linetype = "dotdash", color = "red3", linewidth = 0.7) +
+  
+  labs(
+    x = "Chemical compounds",
+    y = "Spearman's correlation coefficient (ρ)",
+    #title = "Top 5 Chemical Drivers per Ecotoxicological Endpoint",
+    #subtitle = "Positive values = increased toxicity with chemical concentration"
+  ) +
+  
+  theme_bw() +
+  theme(
+    axis.title.y = element_text(face = "bold", size = 20, vjust = -4),
+    axis.title.x = element_text(face = "bold", size = 20, vjust = 0),
+    axis.text.y = element_text(face = "bold", size = 18),
+    axis.text.x = element_text(face = "bold", size = 18),
+    strip.text = element_text(face = "bold", size = 18),
+    strip.background = element_rect(fill = "grey95", color = "grey70"),
+    legend.position = "right",
+    #legend.box = "vertical",
+    legend.spacing.y = unit(0.05, 'cm'),
+    legend.box.spacing = unit(1, 'cm'),
+    legend.title = element_text(size = 18, face = 'bold', color = "black"),
+    legend.text = element_text(size = 18, face = 'bold', color = "black"),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(fill = NA, color = "grey70")
+  ) +
+  
+  guides(
+    size = "none",
+    color = guide_legend(order = 1, nrow = 6),
+    shape = guide_legend(order = 2, nrow = 3)
+  )
+
+p_lollipop
+
+```
+
+
+#---------------------
+
+```{r operation time vs. chemicals}
+
+# Resolve conflicts
+select <- dplyr::select
+filter <- dplyr::filter
+mutate <- dplyr::mutate
+
+# Define chemical predictors
+chemicals <- colnames(df_PCA)[!(colnames(df_PCA) %in% c("FN", "state",
+                                              "Biolu_inhi", "BLA_OFF", "BLA_LON", "VLMR", "VLSR",
+                                              "ASD_LOFF2", "TPZ_LOFF2", "TPZ_LOFF1", "TPZ_LON",
+                                              "Survival", "HR", "ROS", "Viability", "Op_time"))]
+chemicals
+
+# Endpoints
+endpoints <- c("Op_time")
+
+# SIMPLIFIED APPROACH: Use correlations + partial correlations
+get_top5_predictors <- function(endpoint_name, data, predictors) {
+  
+  cat("  Analyzing", endpoint_name, "...\n")
+  
+  # Prepare data -----------------------------------------------------------
+  df_analysis <- data %>%
+    dplyr::select(all_of(c(predictors, endpoint_name))) %>%
+    tidyr::drop_na()
+  
+  if (nrow(df_analysis) < 10) {
+    cat("  Warning: Insufficient data\n")
+    return(NULL)
+  }
+  
+  # Spearman correlations + BH correction ---------------------------------
+  correlations <- purrr::map_dfr(predictors, function(pred) {
+    
+    cor_test <- cor.test(
+      df_analysis[[pred]],
+      df_analysis[[endpoint_name]],
+      method = "spearman",
+      exact  = FALSE
+    )
+    
+    tibble::tibble(
+      chemical        = pred,
+      correlation     = unname(cor_test$estimate),
+      p_value         = cor_test$p.value,
+      abs_correlation = abs(cor_test$estimate)
+    )
+  }) %>%
+    dplyr::mutate(
+      p_value_BH = p.adjust(p_value, method = "BH")  # BH / FDR
+    )
+  
+  # Get top 5 by |rho|, report BH significance -----------------------------
+  top5 <- correlations %>%
+    dplyr::arrange(dplyr::desc(abs_correlation)) %>%
+    dplyr::slice(1:8) %>%
+    dplyr::mutate(
+      endpoint   = endpoint_name,
+      rank       = dplyr::row_number(),
+      direction  = dplyr::if_else(correlation > 0, "Positive", "Negative"),
+      signif_raw = dplyr::case_when(          # optional: keep raw stars
+        p_value < 0.001 ~ "***",
+        p_value < 0.01  ~ "**",
+        p_value < 0.05  ~ "*",
+        TRUE            ~ "ns"
+      ),
+      signif_BH  = dplyr::case_when(          # BH-adjusted stars (recommended)
+        p_value_BH < 0.001 ~ "***",
+        p_value_BH < 0.01  ~ "**",
+        p_value_BH < 0.05  ~ "*",
+        TRUE               ~ "ns"
+      )
+    )
+  
+  # Simple standardized LM for effect sizes --------------------------------
+  top5_with_lm <- purrr::map_dfr(seq_len(nrow(top5)), function(i) {
+    
+    chem <- top5$chemical[i]
+    
+    x_scaled <- scale(df_analysis[[chem]])[, 1]
+    y_scaled <- scale(df_analysis[[endpoint_name]])[, 1]
+    
+    lm_fit    <- lm(y_scaled ~ x_scaled)
+    lm_sum    <- summary(lm_fit)
+    
+    top5[i, ] %>%
+      dplyr::mutate(
+        estimate   = coef(lm_fit)[2],
+        std_error  = lm_sum$coefficients[2, "Std. Error"],
+        t_value    = lm_sum$coefficients[2, "t value"],
+        r_squared  = lm_sum$r.squared
+      )
+  })
+  
+  top5_with_lm
+}
+
+
+# Apply to all endpoints
+
+top5_results <- list()
+
+for(endpoint in endpoints) {
+  cat("Processing:", endpoint, "\n")
+  result <- get_top5_predictors(endpoint, df_PCA, chemicals)
+  if(!is.null(result)) {
+    top5_results[[endpoint]] <- result
+  }
+}
+
+# Combine results
+top5_df <- bind_rows(top5_results) %>%
+  mutate(
+    chemical_class = case_when(
+      chemical %in% c("Ag", "Al", "As", "Cu", "Fe", "Mn", "Zn") ~ "Metals",
+      chemical %in% c("BBP", "DBP","DEP", "DEHP", "DMP") ~ "Phthalates",
+      chemical %in% c("ATBC", "DEHA") ~ "Non-phthalate plasticizers",
+      str_detect(chemical, "BDE") ~ "Flame Retardants",
+      chemical %in% c("tOP", "nonylphenols") ~ "Alkylphenols",
+      TRUE ~ "PAHs"
+    )
+  )
+
+# Display results
+
+for(endpoint in endpoints) {
+  endpoint_data <- top5_df %>% filter(endpoint == !!endpoint)
+  
+  if(nrow(endpoint_data) > 0) {
+    cat(endpoint, "\n")
+    cat(paste(rep("-", 70), collapse = ""), "\n")
+    
+    for(i in 1:nrow(endpoint_data)) {
+      cat(sprintf(
+        "  %d. %-20s [%s] ρ = %6.3f, β = %6.3f (p = %.4f) %s\n",
+        endpoint_data$rank[i],
+        endpoint_data$chemical[i],
+        endpoint_data$chemical_class[i],
+        endpoint_data$correlation[i],
+        endpoint_data$estimate[i],
+        endpoint_data$p_value[i],
+        endpoint_data$significance[i]
+      ))
+    }
+    cat("\n")
+  }
+}
+
+# Display the dataframe
+top5_df
+
+```
+
+```{r Vizualisation}
+
+# Create lollipop chart showing top drivers with significance
+
+#manual order facets
+top_5_df <- top5_df %>% 
+  mutate(
+  endpoint = case_when(
+      endpoint == "Op_time" ~ "Duration of use (fishing nets)",
+      TRUE ~ endpoint)) %>% 
+  mutate(
+  chemical = case_when(
+    chemical == "acenaphtylene" ~ "Acenaphtylene",
+      chemical == "benzofluoranthene" ~ "Benzofluoranthene",
+    chemical == "BDE_47" ~ "BDE 47",
+      chemical == "BDE_99" ~ "BDE 99",
+      chemical == "BDE_100" ~ "BDE 100",
+      chemical == "BDE_153" ~ "BDE 153",
+    chemical == "BDE_183" ~ "BDE 183",
+    chemical == "benzoghiperylee" ~ "Benzo[ghi]perylene",
+    TRUE ~ chemical)) 
+
+p_lollipop <- ggplot(
+  top_5_df,
+  aes(x = chemical,
+      y = correlation,
+      color = chemical_class)
+) +
+  geom_segment(
+    aes(xend = chemical, y = 0, yend = correlation),
+    linewidth = 2) +
+  geom_point(aes(shape = signif_BH), size = 5) +
+  scale_y_continuous(limits = c(-0.9, 0.9), breaks = seq(-0.9, 0.9, by = 0.2)) +
+  
+  coord_flip() +
+  
+  facet_wrap(~endpoint, ncol = 4, scales = "free_y") +
+  scale_color_viridis_d(option = "turbo", 
+                        begin     = 0.05,
+                        end       = 0.95,
+                        direction = 1, 
+                        name = "Plastic chemical categories"
+                        ) +
+  
+  scale_shape_manual(
+    values = c("***" = 16, "**" = 17, "*" = 15, "ns" = 1),
+    name = "Significance (BH's adjusted p-value)",
+    labels = c("***" = "p < 0.001", "**" = "p < 0.01", 
+               "*" = "p < 0.05", "ns" = "ns")
+  ) +
+  
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey30") +
+  geom_hline(yintercept = c(0.5, -0.5), linetype = "dotdash", color = "red3", linewidth = 0.7) +
+  
+  labs(
+    x = "Chemical compounds",
+    y = "Spearman correlation coefficient (ρ)",
+    #title = "Top 5 Chemical Drivers per Ecotoxicological Endpoint",
+    #subtitle = "Positive values = increased toxicity with chemical concentration"
+  ) +
+  
+  theme_bw() +
+  theme(
+    axis.title.y = element_text(face = "bold", size = 18, vjust = 2.5),
+    axis.title.x = element_text(face = "bold", size = 18, vjust = -4),
+    axis.text.y = element_text(face = "bold", size = 16),
+    axis.text.x = element_text(face = "bold", size = 16),
+    strip.text = element_text(face = "bold", size = 18),
+    strip.background = element_rect(fill = "grey95", color = "grey70"),
+    legend.position = "bottom",
+    legend.box = "vertical",
+    legend.spacing.y = unit(0.05, 'cm'),
+    legend.box.spacing = unit(1, 'cm'),
+    legend.title = element_text(size = 18, face = 'bold', color = "black"),
+    legend.text = element_text(size = 18, face = 'bold', color = "black"),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(fill = NA, color = "grey70")
+  ) +
+  
+  guides(
+    size = "none",
+    color = guide_legend(order = 1, nrow = 1),
+    shape = guide_legend(order = 2, nrow = 1)
+  )
+
+p_lollipop
+
+```

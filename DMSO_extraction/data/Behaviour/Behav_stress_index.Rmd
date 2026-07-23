@@ -1,0 +1,504 @@
+---
+title: "BSI"
+author: "Edgar Dusacre"
+date: "2023-07-17"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r Insertion package, include=FALSE}
+library(ggplot2) 
+library(tidyr)
+library(purrr)
+library(tidyverse)
+library(ggrepel)
+library(ggpubr)
+library(knitr)
+library(yaml)
+library(dplyr) 
+library(matrixStats)
+library(EnvStats)
+library(stringr)
+library(gtable)
+library(grid)
+library(FSA)
+library(scales)
+library(wbstats)
+library(ggh4x)
+library(multcompView)
+library(report)
+library(ecotox)
+library(wesanderson)
+library(RColorBrewer)
+library(readr)
+library(readxl)
+library(gmodels)
+library(ggpattern)
+library(zoo)
+library(forcats)
+library(car)
+library(dunn.test)
+
+
+library(forcats)
+library(binom)
+library(lubridate)
+library(ade4)
+library(broom)
+library(rstatix)
+library(rcompanion)
+library(chron)
+library(devtools)
+library(PMCMRplus)
+```
+
+```{r Charger les palettes de couleurs, include=FALSE}
+Plasfito_C <- c("#80CAD0", "#36A7A7", "#276573", "#054959","#E3CCC0", "#F7EAE1", "#A48A7B", "#C6AF8D", "#49BED3", "#256CB4", "#008163", "#44B494", "#7BC6B9")
+
+Plasfito_color <- c("GreenP4" = "#80CAD0", "GreenP3" = "#36A7A7", "GreenP2" = "#276573", "GreenP1" = "#054959","Brown1" = "#E3CCC0", "Brown2" = "#F7EAE1", "Brown3" = "#A48A7B", "Brown4" = "#C6AF8D", "Turquoise1" = "#49BED3", "Blue1" = "#256CB4", "Green1" = "#008163", "Green2" = "#44B494", "Green3" = "#7BC6B9")
+
+List_color_Fr <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                   "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573")
+
+List_color <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                 "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573",
+                 "Euskadi" = "#054959")
+
+Plasfito_Tps <- c("5" = "#80CAD0", "15" = "#36A7A7", "30" = "#276573")
+
+
+#A part si vous souhaitez changer les couleurs do not touch.
+Ech_K2CR2O7<- c("K2CR2O7" = "#80CAD0")
+
+Tps_color <- c("5" = "#80CAD0" , "15" = "#36A7A7", "30" = "#276573")
+
+Dilu_color <- c("0.0125" = "#80CAD0" , "0.025" = "#36A7A7", "0.05" = "#276573", "0.1" = "#008163")
+
+Conc_color <- c("0.4125" = "#80CAD0" , "0.825" = "#36A7A7", "1.65" = "#276573", "3.3" = "#008163")
+Conc_color3 <- c("0.825" = "aquamarine", "1.65" = "#36A7A7", "3.3" = "#276573")
+
+Color_biolu_Pasaia <- c("Ech1" = "aquamarine", "Ech2" = "#36A7A7" , "DMSO" = "#A48A7B")
+
+Color_real_FN <- c("dmso" = "#A48A7B", "CTL" = "#256CB4", "PA_a35" = "#4fd355", "PA_b33" = "#ca98d3", "PA_b95" = "#6e217c", "PA_g33" = "#92b78f", "PA_g60" = "#bbb3bc", "PBS_d35" = "#d3ad4f","PBS_d60" = "#c68640", "HPPE_e425" = "#36A7A7")
+
+my_palette <- rev(brewer.pal(name="BrBG", n=11))[c(1, 2, 3, 5, 9, 11)]
+my_palette
+
+my_palette2 <- rev(brewer.pal(name="BrBG", n=11))[c(1, 2, 3, 5, 7, 8, 9, 10)]
+my_palette2
+
+```
+
+```{r Global table}
+
+Global_avg <- rbind(df_avg_BLA_avg,
+                    df_avg_BLAON_avg,
+                    df_avg_TPZ_avg,
+                    df_avg_VLSR_avg,
+                    df_avg_AUC_OFF2_avg,
+                    df_avg_VLMR_avg,
+                    df_avg_TPZ_LOFF2_avg,
+                    df_avg_TPZON_avg) %>%
+  mutate(ctl_0 = round(avg_val_adj/100, digits = 2),
+         Bioassay = "Behavior",
+         Organism = "medaka") 
+
+Global_avg
+
+Global <- General 
+Global
+
+CrossTable(Global$endpt)
+
+```
+
+
+# BSI based on the deviation from the respective control. 
+
+```{r Make individual score}
+
+Global_avg_sc <- Global_avg %>% dplyr::select(FN, state, Organism, Bioassay, endpt, n, ctl_0) %>%
+  mutate(score = if_else(!is.na(diff) & ctl_0 > 2, 5,
+                         if_else(!is.na(diff) & ctl_0 > 1.8 & ctl_0 <= 2, 4,
+                                 if_else(!is.na(diff) & ctl_0 > 1.6 & ctl_0 <= 1.8, 3,
+                                         if_else(!is.na(diff) & ctl_0 > 1.4 & ctl_0 <= 1.6, 2,
+                                                 if_else(!is.na(diff) & ctl_0 > 1.2 & ctl_0 <= 1.4, 1,
+                                                         if_else(!is.na(diff) & ctl_0 > 1 & ctl_0 <= 1.2, 0.5,
+                  if_else(!is.na(diff) & ctl_0 < 0, 5,
+                         if_else(!is.na(diff) & ctl_0 < 0.2 & ctl_0 >= 0, 4,
+                                 if_else(!is.na(diff) & ctl_0 < 0.4 & ctl_0 >= 0.2, 3,
+                                         if_else(!is.na(diff) & ctl_0 < 0.6 & ctl_0 >= 0.4, 2,
+                                                 if_else(!is.na(diff) & ctl_0 < 0.8 & ctl_0 >= 0.6, 1,
+                                                         if_else(!is.na(diff) & ctl_0 < 1 & ctl_0 >= 0.8, 0.5, NA)))))))))))))
+Global_avg_sc
+
+Global_sc <- Global %>%
+  dplyr::select(FN, state, Organism, Bioassay, endpt, endpt_UV, n, diff, ctl_0) %>%
+  mutate(score = if_else(!is.na(diff) & ctl_0 > 2, 5,
+                         if_else(!is.na(diff) & ctl_0 > 1.8 & ctl_0 <= 2, 4,
+                                 if_else(!is.na(diff) & ctl_0 > 1.6 & ctl_0 <= 1.8, 3,
+                                         if_else(!is.na(diff) & ctl_0 > 1.4 & ctl_0 <= 1.6, 2,
+                                                 if_else(!is.na(diff) & ctl_0 > 1.2 & ctl_0 <= 1.4, 1,
+                                                         if_else(!is.na(diff) & ctl_0 > 1 & ctl_0 <= 1.2, 0.5, 
+                  if_else(!is.na(diff) & ctl_0 < 0, 5,
+                         if_else(!is.na(diff) & ctl_0 < 0.2 & ctl_0 >= 0, 4,
+                                 if_else(!is.na(diff) & ctl_0 < 0.4 & ctl_0 >= 0.2, 3,
+                                         if_else(!is.na(diff) & ctl_0 < 0.6 & ctl_0 >= 0.4, 2,
+                                                 if_else(!is.na(diff) & ctl_0 < 0.8 & ctl_0 >= 0.6, 1,
+                                                         if_else(!is.na(diff) & ctl_0 < 1 & ctl_0 >= 0.8, 0.5, NA)))))))))))))
+
+Global_sc
+
+#export as csv
+#write.csv(Global_sc, "C:/Users/edusacre/ownCloud/PhD/SCIENCES/Manips/Tox/PCA_tables_dmso/BSI.csv")
+
+```
+
+```{r Make sum score}
+# avg_BSI_rep <- Global_rep_sc %>% filter(endpt != "Acclimatation_LOFF", FN != "CTL") %>% 
+#   group_by(FN, state, endpt, Organism, Bioassay) %>% 
+#   summarise(mean_score = mean(score, na.rm = T),
+#             sd_score = sd(score, na.rm = T))
+# avg_BSI_rep
+# 
+# sum_BSI_rep <- avg_BSI_rep %>% 
+#   group_by(FN, state, Organism, Bioassay) %>% 
+#   summarise(sum_score = sum(mean_score))
+# sum_BSI_rep
+
+Sum_BSI <- Global_sc %>% filter(FN != "dmso") %>% 
+  group_by(FN, state, Organism, Bioassay) %>% 
+  summarise(sum_score = sum(score, na.rm = T))
+Sum_BSI
+
+```
+
+
+```{r Graph deviation median}
+G_score_med <- Global_sc %>% filter(FN != "dmso") %>% 
+  ggplot(aes(x = state, y = score, fill = endpt)) +
+  geom_col(color = "white", width = 0.5) +
+  #scale_fill_manual(values = my_palette) +
+  scale_y_continuous(breaks = seq(-5, 15, by = 2)) +
+  facet_wrap(~FN, nrow = 2) +
+  labs(#title = "Effect of the fishing nets leachates on medaka fish",
+    y = "Behavioural stress indicator",
+       x = "UV irradiation time", 
+    fill = "Endpoints") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "right",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/2.5)
+
+G_score_med
+
+
+```
+
+```{r Graph deviation mean}
+G_score_avg <- Global_avg_sc %>% filter(FN != "dmso") %>% 
+  ggplot(aes(x = state, y = score, fill = endpt)) +
+  geom_col(color = "white", width = 0.5) +
+  #scale_fill_manual(values = my_palette) +
+  scale_y_continuous(breaks = seq(-3, 15, by = 2)) +
+  facet_wrap(~FN, nrow = 2) +
+  labs(#title = "Effect of the fishing nets leachates on medaka fish",
+    y = "Behavioural stress indicator",
+       x = "UV irradiation time", 
+    fill = "Endpoints") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 14, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.text.x = element_text(size = 14, face = 'bold'),
+        axis.text.y = element_text(size = 12, face = 'bold'),
+        title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position = "right",
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/2.5)
+
+G_score_avg
+
+
+```
+
+
+```{r Graph deviation median Publi}
+
+Global_sc$endpt = factor(Global_sc$endpt, levels=c("BLA_OFF", "TPZ_LOFF1", "BLA_LON", "TPZ_LON", "VLSR", "VLMR", "ASD_LOFF2", "TPZ_LOFF2"))
+
+# Export df
+# library(openxlsx)
+# file <- "Behav_BSI_dmso.xlsx"
+# write.xlsx(Global_sc, file)
+
+#Graph publi final
+G_score_avg <- Global_sc %>% filter(FN != "dmso") %>% 
+  mutate(FN = if_else(grepl("gamma60", FN), "PA \u03B360",
+                      if_else(grepl("gamma33", FN), "PA \u03B333",
+                                       if_else(grepl("delta60", FN), "PBS \u03B460",
+                                               if_else(grepl("delta35", FN), "PBS \u03B435",
+                                                       if_else(grepl("epsi", FN), "PE-PP \u03B54.25",
+                                                               if_else(grepl("beta95", FN), "PA \u03B295",
+                      if_else(grepl("beta33", FN), "PA \u03B233",
+                              if_else(grepl("alpha", FN), "PA \u03B135 ", NA)))))))),
+         state = if_else(state == "n", "new", "used")) %>% 
+  mutate(state = if_else(state == "used", "EOL", state), 
+         state = factor(state, levels = c("new", "EOL"))) %>% 
+  ggplot(aes(x = state, y = score, fill = endpt)) +
+  geom_col(color = "white", width = 0.5) +
+  scale_fill_viridis_d(option = "turbo") +
+  scale_y_continuous(breaks = seq(-3, 15, by = 2)) +
+  facet_wrap(~FN, nrow = 2) +
+  labs(title = expression(paste("Behavioural Stress Index (BSI) of the ", italic("Oryzias latipes"), " larvae")),
+       subtitle = "Exposure time = 48h",
+       y = "Behavioural stress index value",
+       x = "Fishing net states", 
+    fill = "Endpoints") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        legend.position = "right",
+        legend.title = element_text(size = 20, face = 'bold', color = "black"),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.text = element_text(size = 18, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/2.5)
+
+G_score_avg
+
+#Graph graphical abstract
+# G_score_avg <- Global_sc %>% filter(endpt != "TPZ_LON", FN != "CTL", FN != "PA_a35", 
+#                                     FN != "PA_b33", FN != "PA_g33",  FN != "PA_b95", FN != "PBS_d35") %>% 
+#   mutate(endpt_abs = if_else(endpt == "BLA", "Locomotor activity",
+#                              if_else(endpt == "VMR", "Visual motor response",
+#                                      if_else(endpt == "ASD", "Acclim. to darkness",
+#                                              if_else(grepl("TPZ", endpt), "Anxiety", endpt))))) %>% 
+#   ggplot(aes(x = state, y = score, fill = endpt_abs)) +
+#   geom_col(width = 0.5) +
+#   scale_fill_manual(values = my_palette2) +
+#   scale_y_continuous(breaks = seq(-3, 15, by = 2)) +
+#   facet_wrap(~FN, nrow = 1, labeller = labeller(FN = c("HPPE_e425" ="HPPE-PP",
+#                               "PA_g60" = "PA6",
+#                               "PBS_d60" = "PBS-PBAT"))) +
+#   labs(#title = expression(paste(italic("Oryzias latipes'"), " Behavioural Stress Index (BSI)")),
+#        title = expression(paste("Effect of the fishing nets leachates on", italic(" Oryzias latipes"))),
+#        y = "Behavioural stress index",
+#        x = "UV irradiation time (day)", 
+#     fill = "Behavioural endpoints") +
+#   theme_bw() +
+#   theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+#         axis.title.y = element_text(size = 20, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+#         axis.text.x = element_text(size = 18, face = 'bold'),
+#         axis.text.y = element_text(size = 18, face = 'bold'),
+#         title = element_text(size = 22, face = "bold"),
+#         strip.text = element_text(face = "bold", size = rel(2)),
+#         legend.position = "right",
+#         legend.title = element_text(size = 20, face = 'bold', color = "black"),
+#         legend.spacing.x = unit(0.5, 'cm'),
+#         legend.text = element_text(size = 18, face = 'bold', color = "black"),
+#         legend.key = element_rect(color = "black"),
+#         legend.key.size = unit(0.85, "cm"),
+#         legend.key.width = unit(1, "cm"),
+#         legend.title.align = 0,
+#         plot.margin = unit(c(1, 1, 1, 1), "cm"),
+#         aspect.ratio = 3/2.5)
+# 
+# G_score_avg
+
+
+#x-axis FN & Facet Days
+G_score_med_ms <- Global_sc %>% filter(FN != "dmso") %>% 
+  unite(FN_state, FN, state, sep = "_", remove = F) %>%
+  mutate(FN = if_else(grepl("gamma60", FN), "PA \u03B360",
+                      if_else(grepl("gamma33", FN), "PA \u03B333",
+                                       if_else(grepl("delta60", FN), "PBS \u03B460",
+                                               if_else(grepl("delta35", FN), "PBS \u03B435",
+                                                       if_else(grepl("epsi", FN), "PE-PP \u03B54.25",
+                                                               if_else(grepl("beta95", FN), "PA \u03B295",
+                      if_else(grepl("beta33", FN), "PA \u03B233",
+                              if_else(grepl("alpha", FN), "PA \u03B135", NA)))))))),
+         state = if_else(state == "n", "new", "used")) %>%
+  mutate(endpt = if_else(endpt == "TPZ_LOFF1", "TPZ", 
+                         if_else(endpt == "TPZ_LOFF2", "TPZ", 
+                                 if_else(endpt == "TPZ_LOFF1", "TPZ", 
+                                         if_else(endpt == "TPZ_LON", "TPZ", 
+                                                 if_else(endpt == "TPZ_LOFF2", "TPZ", 
+                                                         if_else(endpt == "ASD_LOFF2", "ASD", 
+                                                                 if_else(endpt == "BLA_OFF", "BLA_LOFF", endpt))))))))
+G_score_med_ms
+
+#Change order endpt
+G_score_med_ms$endpt <- factor(G_score_med_ms$endpt, levels=c("BLA_LOFF", "BLA_LON", "VLSR", "VLMR", "ASD", "TPZ"))
+
+plot_BSI_publi <- G_score_med_ms %>% 
+  mutate(state = if_else(state == "used", "EOL", state), 
+         state = factor(state, levels = c("new", "EOL"))) %>% 
+  ggplot(aes(x = FN_state, y = score, fill = endpt, pattern = state)) +
+  geom_col_pattern(aes(pattern = state), width = 0.5, pattern_density = 0.1, 
+                   pattern_fill = "white", pattern_color = "white", pattern_spacing = 0.03, 
+                   show.legend = T) +
+  scale_pattern_discrete(na.value = "none", choices = c("new" = "none", "EOL" = "stripe"), 
+                         limits = c("new", "EOL")) +
+  scale_fill_viridis_d(option = "turbo") +
+  scale_y_continuous(breaks = seq(-3, 15, by = 2)) +
+  facet_wrap(~FN, nrow = 2, scales = "free_x") +
+  labs(
+    # title = expression(paste("Behavioural Stress Index (BSI) of the ", italic("Oryzias latipes"), " larvae")),
+    #    subtitle = "Exposure time = 48h",
+       y = "Behavioural stress index",
+       x = "Fishing nets", 
+    fill = "Endpoints",
+    pattern = "FN states") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(size = 19, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        legend.position = "right",
+        legend.title = element_text(size = 18, face = 'bold', color = "black"),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.spacing.y = unit(0.2, 'cm'),
+        legend.key.spacing.y = unit(0.2, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key = element_rect(color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0,
+        plot.margin = unit(c(1, 1, 1, 1), "cm"),
+        aspect.ratio = 3/2.5) +
+  guides(pattern = guide_legend(byrow = TRUE),
+         fill = guide_legend(byrow = TRUE))
+
+plot_BSI_publi
+
+
+```
+
+
+```{r Correlation using time}
+
+Global_sc_clean <- Global_sc %>%  mutate(score = if_else(is.na(score), 0, score)) 
+Global_sc_clean
+
+df_used_time <- Global_sc_clean %>% 
+  filter(state == "u") %>% 
+  mutate(U_time = if_else(FN == "gamma60", 624,
+                          if_else(FN == "gamma33", 624,
+                                  if_else(FN == "delta60", 624,
+                                          if_else(FN == "delta35", 624,
+                                                  if_else(FN == "epsi", 8280,
+                                                          if_else(FN == "beta95", 2700,
+                                                                  if_else(FN == "beta33", 2700,
+                                                                          if_else(FN == "alpha", 640, NA))))))))) 
+
+df_used_time
+
+correlation <- cor.test(df_used_time$score, df_used_time$U_time, method = "spearman")
+correlation
+
+# Créer le graphique avec ggplot2
+ggplot(df_used_time, aes(x = U_time, y = score)) +
+  geom_point(color = "blue") + # Points en bleu
+  geom_smooth(method = "lm", color = "red", fill = "red", alpha = 0.2) + # Régression linéaire avec intervalle de confiance
+  labs(title = "Correlation between per_Inhni and U_time",
+       x = "U_time (hours)",
+       y = "per_Inhi") +
+  theme_bw() 
+
+```
+
+No correlation between the behavior disruption and the time for which the FN were used for.
+
+```{r Correlation surface exchanges}
+
+Global_sc_clean <- Global_sc %>%  mutate(score = if_else(is.na(score), 0, score)) 
+Global_sc_clean
+
+df_S_Ex <- Global_sc_clean %>% 
+  filter(FN != "dmso") %>% 
+  mutate(S_Ex = if_else(FN == "gamma60", 34.1,
+                          if_else(FN == "gamma33", 52.1,
+                                  if_else(FN == "delta60", 26.8,
+                                          if_else(FN == "delta35", 40.4,
+                                                  if_else(FN == "epsi", 11.7,
+                                                          if_else(FN == "beta95", 95.3,
+                                                                  if_else(FN == "beta33", 53.0,
+                                                                          if_else(FN == "alpha", 66.6, NA))))))))) 
+
+df_S_Ex
+
+correlation <- cor.test(df_S_Ex$score, df_S_Ex$S_Ex, method = "spearman")
+correlation
+
+# Créer le graphique avec ggplot2
+ggplot(df_S_Ex, aes(x = S_Ex, y = score)) +
+  geom_point(color = "blue") + # Points en bleu
+  geom_smooth(method = "lm", color = "red", fill = "red", alpha = 0.2) + # Régression linéaire avec intervalle de confiance
+  labs(title = "Correlation between per_Inhni and U_time",
+       x = "U_time (hours)",
+       y = "per_Inhi") +
+  theme_bw() 
+
+```
+
+No correlation between the behavior disruption and the FN's surface exchanges.
+
+```{r toxicity score}
+  
+IBR_behav <- Sum_BSI %>%  
+  mutate(FN = case_when(
+    FN %in% c("alpha", "PA α ø.35", "pa_a33") ~ "pa_a35",
+    FN %in% c("beta33", "PA β ø.33", "pa_b33") ~ "pa_b33", 
+    FN %in% c("beta95", "PA β ø.95", "pa_b95") ~ "pa_b95",
+    FN %in% c("gamma33", "PA γ ø.33", "pa_g33") ~ "pa_g33",
+    FN %in% c("gamma60", "PA γ ø.60", "pa_g60") ~ "pa_g60",
+    FN %in% c("delta35", "PBS δ ø.35", "pbs_d35") ~ "pbs_d35",
+    FN %in% c("delta60", "PBS δ ø.60", "pbs_d60") ~ "pbs_d60",
+    FN %in% c("epsi", "HPPE ε ø4.25", "pe_e4.25") ~ "hppe_e425",
+    TRUE ~ FN  # Garde les autres valeurs inchangées
+  ),
+  state = case_when(
+    state %in% c("u") ~ "used",
+    state %in% c("n") ~ "new",
+    TRUE ~ state  # Garde les autres valeurs inchangées
+  )) %>% 
+  mutate(ID_IBR = paste(FN, state, sep = "_")) %>% 
+  ungroup %>% 
+  dplyr::select(FN, state, ID_IBR, sum_score)
+IBR_behav
+
+#export as csv
+#write.csv(IBR_behav, "C:/Users/edusacre/ownCloud/PhD/SCIENCES/Manips/Tox/IBR_tables/IBR_behav.csv")
+
+```
+

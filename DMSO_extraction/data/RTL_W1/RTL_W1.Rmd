@@ -1,0 +1,1481 @@
+---
+title: "RTWL1"
+author: "Edgar Dusacre"
+date: "`r Sys.Date()`"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r package upload}
+library(ggplot2)
+library(tidyr)
+library(forcats)
+library(dplyr)
+library(readxl) 
+library(readr)
+library(RColorBrewer)
+library(tidyverse)
+library(binom)
+library(lubridate)
+library(ade4)
+library(ggrepel)
+library(broom)
+library(ggpubr)
+library(rstatix)
+library(wesanderson)
+library(car)
+library(multcompView)
+library(rcompanion)
+library(PMCMRplus)
+
+library(multcomp)
+library(ggpattern)
+```
+
+
+```{r Charger les palettes de couleurs, include=FALSE}
+Plasfito_C <- c("#80CAD0", "#36A7A7", "#276573", "#054959","#E3CCC0", "#F7EAE1", "#A48A7B", "#C6AF8D", "#49BED3", "#256CB4", "#008163", "#44B494", "#7BC6B9")
+
+Plasfito_color <- c("GreenP4" = "#80CAD0", "GreenP3" = "#36A7A7", "GreenP2" = "#276573", "GreenP1" = "#054959","Brown1" = "#E3CCC0", "Brown2" = "#F7EAE1", "Brown3" = "#A48A7B", "Brown4" = "#C6AF8D", "Turquoise1" = "#49BED3", "Blue1" = "#256CB4", "Green1" = "#008163", "Green2" = "#44B494", "Green3" = "#7BC6B9")
+
+List_color_Fr <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                   "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573")
+
+List_color <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                 "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573",
+                 "Euskadi" = "#054959")
+
+Plasfito_Tps <- c("5" = "#80CAD0", "15" = "#36A7A7", "30" = "#276573")
+
+
+#A part si vous souhaitez changer les couleurs do not touch.
+Ech_K2CR2O7<- c("K2CR2O7" = "#80CAD0")
+
+Tps_color <- c("5" = "#80CAD0" , "15" = "#36A7A7", "30" = "#276573")
+
+Dilu_color <- c("0.0125" = "#80CAD0" , "0.025" = "#36A7A7", "0.05" = "#276573", "0.1" = "#008163")
+
+Conc_color <- c("0.4125" = "#80CAD0" , "0.825" = "#36A7A7", "1.65" = "#276573", "3.3" = "#008163")
+Conc_color3 <- c("0.825" = "aquamarine", "1.65" = "#36A7A7", "3.3" = "#276573")
+
+Color_biolu_Pasaia <- c("Ech1" = "aquamarine", "Ech2" = "#36A7A7" , "aa" = "#A48A7B")
+
+Color_real_FN <- c("ctl" = "#A48A7B", "ctl H2O" = "#256CB4", "pa_a35" = "#4fd355", "pa_b33" = "#ca98d3", "pa_b95" = "#6e217c", "pa_g33" = "#92b78f", "pa_g60" = "#bbb3bc", "pbs_d35" = "#d3ad4f","pbs_d60" = "#c68640", "pe_e4.25" = "#36A7A7", "hppe_e425" = "#36A7A7")
+
+Color_real_FN5 <- c("DMSO\ncontrol" = "#A48A7B", "Blank" = "#A48A7B", "ctl H2O" = "#256CB4", "PA α35" = "#4fd355", "PA β33" = "#ca98d3", "PA β95" = "#6e217c", "PA γ33" = "#92b78f", "PA γ60" = "#bbb3bc", "PBS δ35" = "#d3ad4f","PBS δ60" = "#c68640", "PE-PP ε4.25" = "#36A7A7")
+
+Color_Coco<- c("PBS 0.35 r1" = "#33aa3c", 
+"PBS 0.35 r2" = "#0a7011",
+"PBS 0.60 r1" = "#C6AF8D", 
+"PBS 0.60 r2" = "#A48A7B",
+"PA 6 0.33 r1" = "#80CAD0", 
+"PA 6 0.33 r2" = "#054959",
+"PA 6 0.60 r1" = "#0096FC",
+"PA 6 0.60 r2" = "#0039D8",
+"PBS 0.35 pHa" = "#9beaa1")
+
+Color_UV_Time <- c("Solvent ctl" = "#A48A7B", "ctl H2O" = "#256CB4", "10" = "aquamarine", "100" = "#36A7A7")
+```
+
+
+```{r data import}
+AB_all_1per <- read_excel("AB_all_1per.xlsx", 
+    sheet = "Sheet1")
+AB_all_1per
+
+#export data
+# library(writexl)
+# write_xlsx(AB_all_1per, "AB_all_1per.xlsx")
+
+AB_DR <-  read.csv('AB_DR_tidy.csv', sep=';', header=T) %>% as_tibble() %>% 
+  slice(-1) %>% 
+  pivot_longer(cols = everything(), names_to = "FN", values_to = "per_viability") %>% 
+  mutate(Conc_per = as.double(if_else(grepl("\\.1$", FN), "0.5",
+                        if_else(grepl("\\.2$", FN), "0.1",
+                                if_else(grepl("\\.3$", FN), "0.05",
+                                        if_else(grepl("\\.4$", FN), "0.01", "1"))))),
+         Conc_mgml = as.double(if_else(grepl("\\.1$", FN), "1.65",
+                        if_else(grepl("\\.2$", FN), "0.33",
+                                if_else(grepl("\\.3$", FN), "0.165",
+                                        if_else(grepl("\\.4$", FN), "0.033", "3.3"))))),
+         FN = gsub("\\.\\d", "", FN),
+         state = if_else(grepl("_n", FN), "new",
+                         if_else(grepl("_u", FN), "used", NA)),
+         FN = gsub("_n", "", FN),
+         FN = gsub("_u", "", FN),
+         per_viability = as.double(str_replace(per_viability, ",", "."))) %>% 
+  na.omit(per_viability) %>% 
+  arrange(FN, state) %>% 
+  mutate(per_viability_norm = (per_viability / max(per_viability)) * 100) %>% 
+  mutate(per_death = 100 - per_viability_norm)
+AB_DR
+
+AB_DR2 <-  read.csv('AB_DR_tidy.csv', sep=';', header=T) %>% as_tibble() %>% 
+  slice(-1) %>% 
+  pivot_longer(cols = everything(), names_to = "FN", values_to = "per_viability") %>% 
+  mutate(Conc_per = as.double(if_else(grepl("\\.1$", FN), "0.5",
+                        if_else(grepl("\\.2$", FN), "0.1",
+                                if_else(grepl("\\.3$", FN), "0.05",
+                                        if_else(grepl("\\.4$", FN), "0.01", "1"))))),
+         Conc_mgml = as.double(if_else(grepl("\\.1$", FN), "1.65",
+                        if_else(grepl("\\.2$", FN), "0.33",
+                                if_else(grepl("\\.3$", FN), "0.165",
+                                        if_else(grepl("\\.4$", FN), "0.033", "3.3"))))),
+         FN = gsub("\\.\\d", "", FN),
+         state = if_else(grepl("_n", FN), "new",
+                         if_else(grepl("_u", FN), "used", NA)),
+         FN = gsub("_n", "", FN),
+         FN = gsub("_u", "", FN),
+         per_viability = as.double(str_replace(per_viability, ",", ".")),
+         state = if_else(is.na(state), "ctl", state)) %>% 
+  na.omit(per_viability) %>% 
+  arrange(FN, state) %>% 
+  mutate(per_viability_norm = (per_viability / max(per_viability)) * 100) %>% 
+  mutate(per_death = 100 - per_viability_norm)
+AB_DR2
+
+
+ROS_all <- read_excel("ROS_all.xlsx", sheet = "Feuil2")
+ROS_all
+
+ROS_1_per <- ROS_all %>% filter(Conc_per == 1)
+ROS_01_per <- ROS_all %>% filter(Conc_per == 0.1)
+
+```
+
+```{r Average}
+avg_AB <- AB_all_1per %>% group_by(FN, state) %>% summarise(n = n(),
+                                                            avg = mean(values),
+                                                            sd = sd(values),
+                                                            se= sd/sqrt(n))
+avg_AB
+
+#export as csv
+#write.csv(avg_AB, "C:/Users/edusacre/ownCloud/PhD/SCIENCES/Manips/Tox/PCA_tables_dmso/Avg_viabillity.csv")
+
+avg_AB_DR <- AB_DR %>% group_by(FN, state, Conc_per, Conc_mgml) %>% summarise(n = n(),
+                                                            avg = mean(per_viability),
+                                                            sd = sd(per_viability),
+                                                            se= sd/sqrt(n),
+                                                            avg_death = mean(per_death),
+                                                            sd_death = sd(per_death),
+                                                            se_death= sd_death/sqrt(n))
+avg_AB_DR
+
+avg_ROS <- ROS_all %>% group_by(FN, state, Conc_per) %>% summarise(n = n(),
+                                                            avg = mean(values),
+                                                            sd = sd(values),
+                                                            se= sd/sqrt(n))
+avg_ROS
+
+#export as csv
+#write.csv(avg_ROS, "C:/Users/edusacre/ownCloud/PhD/SCIENCES/Manips/Tox/PCA_tables_dmso/Avg_ROS.csv")
+
+```
+
+```{r statistics New vs Used AB}
+normality <- AB_all_1per %>% 
+  group_by(FN, state) %>%
+  summarise(p_value = shapiro.test(values)$p.value)
+normality
+
+# variance <- AB_all_1per %>% 
+#   group_by(FN, state) %>%
+#   summarise(p_value = bartlett.test(values)$p.value)
+# variance
+
+AB_all_1per %>%
+  ggplot(aes(x = values, fill = FN)) +
+  geom_histogram() +
+  geom_density() +
+  facet_wrap(FN~state, scales = "free_y", nrow = 2)
+
+#No normality of all the data. --> Use of a non-parametric test for independent two-sample comparison of mean Mann-U test
+# Diviser le dataframe par FN
+df_list <- AB_all_1per %>%
+  filter(FN != "ControlN", FN != "ControlP", FN != "dmso") %>% 
+  group_split(FN)
+
+results <- list()
+
+for (i in seq_along(df_list)) {
+  df_sub <- df_list[[i]]
+  states <- unique(df_sub$state)
+  for (j in 1:(length(states) - 1)) {
+    for (k in (j + 1):length(states)) {
+      sample1 <- df_sub[df_sub$state == states[j], "values"]$values
+      sample2 <- df_sub[df_sub$state == states[k], "values"]$values
+      test_result <- wilcox.test(sample1, sample2, data = dataframe, exact = FALSE)
+      result <- tibble(
+        FN = df_sub$FN[1],
+        vs = paste(states[j], states[k], sep = "_vs_"),
+        p_value = test_result$p.value,
+        W = test_result$statistic)
+      results <- c(results, list(result))}}}
+
+results_MU <- bind_rows(results) %>% 
+  mutate(p_value = if_else(is.na(p_value), 0, p_value)) %>%  
+  na.omit() %>% 
+  separate(vs, into = c("state1", "state2"), sep = "_vs_", remove = T) %>% 
+  mutate(L1 = "a",
+         L2 = if_else(p_value < 0.05, "b", "a")) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "****", 
+                        if_else(p_value < 0.001, "***",
+                                if_else(p_value < 0.01, "**",
+                                        if_else(p_value < 0.05, "*", "ns"))))) %>% 
+  mutate(FN = if_else(grepl("pa_g60", FN), "PA \u03B360",
+                      if_else(grepl("pa_g33", FN), "PA \u03B333",
+                                       if_else(grepl("pbs_d60", FN), "PBS \u03B460",
+                                               if_else(grepl("pbs_d35", FN), "PBS \u03B435",
+                                                       if_else(grepl("hppe_e425", FN), "HPPE \u03B54.25",
+                                                               if_else(grepl("pa_b95", FN), "PA \u03B295",
+                      if_else(grepl("pa_b33", FN), "PA \u03B233",
+                              if_else(grepl("pa_a35", FN), "PA \u03B135", 
+                                      if_else(grepl("dmso", FN), "DMSO\ncontrol", FN))))))))))
+results_MU
+
+
+
+```
+
+```{r statistic Blank vs FN AB}
+
+df_list1 <- AB_all_1per %>%
+  filter(FN != "ControlN", FN != "ControlP", FN == "dmso") %>% 
+  slice(rep(1:n(), each = 2)) %>%
+  mutate(state = rep(c("new", "used"), n()/2)) %>% 
+  arrange(state)
+df_list1
+
+df_list <- bind_rows(AB_all_1per %>% filter(FN != "ControlN", FN != "ControlP", FN != "dmso"), df_list1)
+df_list
+
+# Créer une liste pour stocker les résultats
+results <- list()
+
+# Boucle sur chaque temps d'exposition
+unique_times <- unique(df_list$state)
+
+for (t in unique_times) {
+  # Filtrer les données pour le temps t
+  control_data <- df_list %>%
+    filter(FN == "dmso", state == t) %>%
+    pull(values)
+  
+  treatment_data <- df_list %>%
+    filter(FN != "dmso", state == t)
+  
+  # Boucle sur chaque traitement (sauf BLC)
+  unique_treatments <- unique(treatment_data$FN)
+  
+  for (treatment in unique_treatments) {
+    treatment_values <- treatment_data %>%
+      filter(FN == treatment) %>%
+      pull(values)
+    
+    # Vérifier qu'il y a suffisamment de données dans les deux groupes
+    if (length(control_data) > 1 && length(treatment_values) > 1) {
+      # Effectuer le test de Wilcoxon
+      test_result <- t.test(control_data, treatment_values)
+      
+      # Stocker les résultats dans la liste
+      results[[paste(treatment, t, sep = "_")]] <- test_result$p.value
+    } else {
+      # Si pas assez de données, stocker NA dans la liste
+      results[[paste(treatment, t, sep = "_")]] <- NA
+    }
+  }
+}
+
+# Afficher les résultats
+results_df <- do.call(rbind, lapply(names(results), function(x) {
+  data.frame(Treatment_Time = x, P_Value = results[[x]])
+}))
+
+results
+
+stat_FN_blc <- bind_rows(results) %>% 
+  pivot_longer(cols = everything(), names_to = "FN", values_to = "p_value") %>%
+  separate(FN, into = c("FN", "time"), sep = "(?<=[0-9])_", remove = T) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "####", 
+                        if_else(p_value < 0.001, "###",
+                                if_else(p_value < 0.01, "##",
+                                        if_else(p_value < 0.05, "#", "ns")))),
+         diff = if_else(is.na(diff), "ns", diff)) %>% 
+  mutate(FN = if_else(grepl("pa_g60", FN), "PA \u03B360",
+                      if_else(grepl("pa_g33", FN), "PA \u03B333",
+                                       if_else(grepl("pbs_d60", FN), "PBS \u03B460",
+                                               if_else(grepl("pbs_d35", FN), "PBS \u03B435",
+                                                       if_else(grepl("hppe_e425", FN), "PE-PP \u03B54.25",
+                                                               if_else(grepl("pa_b95", FN), "PA \u03B295",
+                      if_else(grepl("pa_b33", FN), "PA \u03B233",
+                              if_else(grepl("pa_a35", FN), "PA \u03B135", 
+                                      if_else(grepl("dmso", FN), "Control", FN)))))))))) %>% 
+  rename(state = time)
+stat_FN_blc
+
+```
+
+```{r statistic PA g vs PBS d}
+df_list <- AB_all_1per %>% filter(FN == "pa_g33" | FN == "pa_g60" | FN == "pbs_d35" | FN == "pbs_d60")
+df_list
+
+perform_t_tests <- function(df) {
+  # List to store results
+  results <- list()
+  
+  # Define the comparisons
+  comparisons <- list(
+    c("pa_g33", "pbs_d35", "new"),
+    c("pa_g33", "pbs_d35", "used"),
+    c("pa_g60", "pbs_d60", "new"),
+    c("pa_g60", "pbs_d60", "used")
+  )
+  
+  # Create a data frame to store the final results
+  final_results <- data.frame(
+    Comparison = character(),
+    State = character(),
+    T_value = numeric(),
+    P_value = numeric(),
+    stringsAsFactors = FALSE
+  )
+  
+  # Perform t-tests for each comparison
+  for (i in seq_along(comparisons)) {
+    group1 <- comparisons[[i]][1]
+    group2 <- comparisons[[i]][2]
+    state <- comparisons[[i]][3]
+    
+    test_result <- t.test(
+      df$values[df$FN == group1 & df$state == state],
+      df$values[df$FN == group2 & df$state == state]
+    )
+    
+    results[[paste(state, group1, "vs", group2)]] <- test_result
+    
+    # Add results to the final data frame
+    final_results <- rbind(final_results, data.frame(
+      Comparison = paste(group1, "vs", group2),
+      State = state,
+      T_value = test_result$statistic,
+      P_value = test_result$p.value,
+      stringsAsFactors = FALSE
+    ))
+  }
+  
+  return(list(detailed_results = results, summary = final_results))
+}
+
+# Run the function
+results <- perform_t_tests(df_list)
+
+# Print detailed results
+for (name in names(results$detailed_results)) {
+  cat("\n", name, ":\n")
+  print(results$detailed_results[[name]])
+}
+
+# Print the final summary data frame
+pag_vs_pbs <- print(results$summary)
+pag_vs_pbs
+
+```
+
+
+```{r Visualization AB}
+
+AB_1 <- avg_AB %>% filter(FN != "ControlN", FN != "ControlP") %>% 
+  mutate(FN = if_else(grepl("pa_g60", FN), "PA \u03B360",
+                      if_else(grepl("pa_g33", FN), "PA \u03B333",
+                                       if_else(grepl("pbs_d60", FN), "PBS \u03B460",
+                                               if_else(grepl("pbs_d35", FN), "PBS \u03B435",
+                                                       if_else(grepl("hppe_e425", FN), "PE-PP \u03B54.25",
+                                                               if_else(grepl("pa_b95", FN), "PA \u03B295",
+                      if_else(grepl("pa_b33", FN), "PA \u03B233",
+                              if_else(grepl("pa_a35", FN), "PA \u03B135", 
+                                      if_else(grepl("dmso", FN), "DMSO\ncontrol", FN)))))))))) %>% 
+  mutate(state = if_else(state == "used", "EOL", state), 
+         state = factor(state, levels = c("new", "EOL"))) %>% 
+  ggplot(aes(FN, avg, fill = FN, pattern = state)) +
+  geom_col_pattern(width = 0.5, position = "dodge", pattern_density = 0.1, 
+                   pattern_fill = "white", pattern_color = "white", pattern_spacing = 0.015, show.legend = T) +
+  scale_pattern_discrete(na.value = "none", choices = c("new" = "none", "EOL" = "stripe"), 
+                         limits = c("new", "EOL")) +
+  geom_errorbar(aes(ymin = avg, ymax = avg + sd), width = 0.1, linewidth = 1, position = position_dodge(width = 0.5)) +
+  scale_fill_manual(values = Color_real_FN5, guide = "none")+
+  scale_y_continuous(limits = c(0, 135), breaks = seq(0, 135, by = 10)) +
+  labs(
+    #title = "Cytotoxicity of the extracts of FN",
+       #subtitle = "Exposure time 24h \nMesoplastic eq. concentration in solvent 3,3 mg/ml\nDMSO dilution 1/100",
+       x = "Fishing nets",
+       y = "Cell viability (%)",
+       pattern = "FN State") +
+  theme_bw() +
+  theme(legend.position = "none") +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        legend.position = "right",
+        legend.spacing.y = unit(0.3, 'cm'),
+        legend.key.spacing.y = unit(0.3, 'cm'),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0,
+        legend.title = element_text(size = 18, face = "bold"),
+        legend.text = element_text(size = 17, face = "bold"),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) +
+  guides(pattern = guide_legend(byrow = TRUE))
+AB_1
+
+AB_1 + 
+  geom_text(data = stat_FN_blc %>% mutate(diff = if_else(diff == "ns", NA, diff)), aes(x = FN, y = 130, label = diff),
+            size = 5, vjust = 0, color="red3", fontface = "bold",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  geom_bracket(aes(xmin = 1.88 , xmax= 2.12, 
+                           y.position = 110,
+                           label = "**"),
+                       size = 1.2,
+               label.size = 7,
+                       data = subset(results_MU, FN == "PA α35"),
+               inherit.aes = FALSE) +
+  geom_bracket(aes(xmin = 5.88 , xmax= 6.12, 
+                           y.position = 110,
+                           label = "***"),
+                       size = 1.2,
+               label.size = 7,
+                       data = subset(results_MU, FN == "PA γ60"),
+               inherit.aes = FALSE) 
+  # labs(caption = "STATISTICS: \nMann-Whitney U-test:\n# = Control vs. FN\n* = News vs. Used\nn = 6") + 
+  # theme(plot.caption = element_text(family = "serif", 
+  #              face = "bold", 
+  #              color = 1, 
+  #              size = 14, 
+  #              hjust = 0.99, 
+  #              vjust = 222, 
+  #              angle = 0, 
+  #              lineheight = 1)) 
+
+```
+
+```{r Automatic EC50 EC20 EC10}
+library(drc)
+library(writexl)
+
+# Step 1: Create a dataframe with dmso values for Conc = 0
+dmso_values <- AB_DR2 %>%
+  filter(FN == "dmso") %>%
+  dplyr::select(Conc_mgml, per_death) %>% 
+  mutate(Conc_mgml = 0) %>% 
+  na.omit()
+dmso_values
+
+# Step 2: Get unique FN values excluding dmso
+fn_values <- unique(AB_DR2$FN[AB_DR2$FN != "dmso"])
+
+# Step 3: Create new rows for each FN with Conc = 0
+new_rows <- crossing(FN = fn_values, dmso_values)
+
+# pa_a35_new <- df_all_ECx_used %>% filter(FN == "pa_a35", state == "used")
+# pa_a35_new
+# 
+# plot(per_death ~ Conc_mgml, data = pa_a35_new)
+# 
+# model <- drm(per_death ~ Conc_per, data = pa_a35_new, fct = LL.4(fixed = c(NA, 0, 100, NA),
+#                                                             names = c("Slope", "Lower Limit", "Upper Limit", "ED50"))) #three-parameter log-logistic model
+# summary(model)
+# EC_pa_a35_n <- ED(model, c(50, 20, 10), interval = "delta")
+# 
+# plot(model, type = "all",
+#      ylab = "Inhibition de bioluminescence (%)",
+#      xlab = "Dilution (%)",
+#      main = "Gamme de dilution pour PBS 35 R2", 
+#      col = rgb(0.5,0.8,0.5,1), pch = 20, lwd = 1.5)+
+#   abline(h=20,col="red", lty=3)+
+#   abline(v=0.07,col="red", lty=3)+
+#   text(5.75,52,"50",col='red',cex=0.6)
+
+
+# Define the custom function with error handling
+process_fn_state <- function(data) {
+  # Filter data for Tps == "30"
+  filtered_data <- data
+  
+  # Check if there are enough non-NA values
+  if (sum(!is.na(filtered_data$per_death)) < 4 || sum(!is.na(filtered_data$Conc_mgml)) < 4) {
+    return(tibble(model_summary = list("Insufficient non-NA data"),
+                  EC_values = list("Insufficient non-NA data")))
+  }
+  
+  # Fit the model
+  tryCatch({
+    model <- drm(per_death ~ Conc_mgml, data = filtered_data, 
+                 fct = LL.4(fixed=c(NA, 0, 100, NA), 
+                            names = c("Slope", "Lower Limit", "Upper Limit", "ED50")))
+    
+    # Calculate EC values
+    EC_values <- ED(model, c(50, 20, 10), interval = "delta")
+    
+    # Return a tibble with model summary and EC values
+    tibble(model_summary = list(summary(model)),
+           EC_values = list(EC_values))
+  }, error = function(e) {
+    tibble(model_summary = list(paste("Error:", e$message)),
+           EC_values = list("Error in calculation"))
+  })
+}
+
+##CEx new-----------------# 
+
+# Step 4: Add these new rows to the original dataframe
+df_all_ECx_new <- bind_rows(AB_DR2, new_rows) %>%
+  arrange(FN, Conc_mgml) %>% 
+  mutate(state = if_else(is.na(state), "new", state)) %>%
+  filter(FN != "dmso")
+df_all_ECx_new
+
+# Apply the function to each combination of FN and state
+results <- df_all_ECx_new %>%
+  filter(state == "new") %>%
+  group_by(FN, state) %>%
+  group_modify(~process_fn_state(.x))
+results
+
+# Access specific results
+successful_results <- results %>%
+  filter(!map_lgl(model_summary, ~is.character(.x[[1]])))
+successful_results
+
+  #No ECx for new FN
+# ec_values_df <- successful_results %>%
+#   mutate(EC_values = map(EC_values, ~as.data.frame(.x) %>% 
+#                            mutate(ECx = c("EC50", "EC20", "EC10")))) %>%
+#   unnest(EC_values) %>% 
+#   dplyr::select(-model_summary, -Lower, -Upper) %>% 
+#   dplyr::select(FN, state, ECx, everything()) %>% 
+#   rename(se = `Std. Error`) %>% 
+#   mutate(Estimate = round(Estimate, 3),
+#          se = round(se, 3))
+# ec_values_df
+
+##CEx used-----------------# 
+
+# Step 4: Add these new rows to the original dataframe
+df_all_ECx_used <- bind_rows(AB_DR2, new_rows) %>%
+  arrange(FN, Conc_mgml) %>% 
+  mutate(state = if_else(is.na(state), "used", state),
+         Conc_per = if_else(is.na(Conc_per), 0, Conc_per)) %>%
+  filter(FN != "dmso")
+df_all_ECx_used
+
+# Apply the function to each combination of FN and state
+results <- df_all_ECx_used %>%
+  filter(state == "used") %>%
+  group_by(FN, state) %>%
+  group_modify(~process_fn_state(.x))
+results
+
+# Access specific results
+successful_results <- results %>%
+  filter(!map_lgl(model_summary, ~is.character(.x[[1]])))
+successful_results
+
+ec_values_df <- successful_results %>%
+  mutate(EC_values = map(EC_values, ~as.data.frame(.x) %>% 
+                           mutate(ECx = c("EC50", "EC20", "EC10")))) %>%
+  unnest(EC_values) %>% 
+  dplyr::select(-model_summary, -Lower, -Upper) %>% 
+  dplyr::select(FN, state, ECx, everything()) %>% 
+  rename(se = `Std. Error`) %>% 
+  mutate(Estimate = round(Estimate, 3),
+         se = round(se, 3))
+ec_values_df
+
+
+```
+
+```{r final df CEx}
+
+library(kableExtra)
+format_number <- function(x, digits) {
+  sprintf(paste0("%.", digits, "f"), round(x, digits))
+}
+
+#pivot_wider to get EC50 and EC10 variables in format value ± se
+ECx_all_wider_gl <- ec_values_df %>% 
+  pivot_wider(names_from = ECx, values_from = c(Estimate, se))  %>%
+  rename(EC20 = Estimate_EC20, EC20_se = se_EC20,
+         EC10 = Estimate_EC10, EC10_se = se_EC10) %>%
+ #in all double variable all value > 10000 become 10000
+  mutate(EC20 = if_else(EC20 > 3.33, 100, EC20),
+         EC20_se = if_else(EC20_se > 3.33, 100, EC20_se),
+         EC10 = if_else(EC10 > 3.33, 100, EC10),
+         EC10_se = if_else(EC10_se > 3.33, 100, EC10_se)) %>% 
+  #merge EC et se
+  mutate(EC20 = paste0(format_number(EC20, 2), " ± ", format_number(EC20_se, 2)),
+         EC10 = paste0(format_number(EC10, 2), " ± ", format_number(EC10_se, 2)),
+         EC20 = if_else(grepl("100", EC20), ">3.33", EC20),
+         EC10 = if_else(grepl("100", EC10), ">3.33", EC10)) %>% 
+  dplyr::select(FN, state, EC20, EC10) %>% 
+  rename("EC20±SE (g/L)" = EC20, "EC10±SE (g/L)" = EC10) %>% 
+  #Manual modification of the data due to some outliers
+  mutate(`EC10±SE (g/L)` = if_else(`EC10±SE (g/L)` == "0.00 ± 0.00", "0.03 ± 0.05", `EC10±SE (g/L)`),
+         `EC20±SE (g/L)` = if_else(`EC20±SE (g/L)` == "0.01 ± 0.03", "0.34 ± 0.24", `EC20±SE (g/L)`)) %>% 
+  #adding manually rows that are not present
+  bind_rows(., tibble(FN = "pa_g33", state = "used", `EC20±SE (g/L)` = ">3.33", `EC10±SE (g/L)` = ">3.33")) %>% 
+  bind_rows(., tibble(FN = "pa_g60", state = "used", `EC20±SE (g/L)` = ">3.33", `EC10±SE (g/L)` = ">3.33")) %>% 
+  bind_rows(., tibble(FN = "pa_b33", state = "used", `EC20±SE (g/L)` = ">3.33", `EC10±SE (g/L)` = ">3.33")) %>%
+  bind_rows(., tibble(FN = "pa_b95", state = "used", `EC20±SE (g/L)` = ">3.33", `EC10±SE (g/L)` = ">3.33")) %>% 
+  arrange(FN, state)
+
+ECx_all_wider_gl
+
+df_forma_MS <- ECx_all_wider_gl %>% 
+  arrange(FN, state) %>%  
+  kable(format = "html", escape = FALSE, align = rep('c', ncol(.))) %>%
+  kable_styling(full_width = FALSE, position = "center") %>%
+  collapse_rows(columns = 1, valign = "top") 
+
+df_forma_MS
+
+```
+
+
+```{r toxicity score AB}
+
+dmso_tox_sco <- avg_AB %>% 
+  filter(FN == "dmso") 
+dmso_tox_sco
+
+Tox_sco_survival <- avg_AB %>% 
+  filter(FN != "dmso", FN != "ControlN", FN != "ControlP") %>% 
+  mutate(m_effect = abs(avg-dmso_tox_sco$avg), #1.68 is the percentage of dead larvae is the control of the used ones
+         score = m_effect/3.3*1) %>% 
+  dplyr::select(FN, state, m_effect, score) %>% 
+  mutate(score = if_else(FN == "pa_g60", 0, score)
+         )
+  
+Tox_sco_survival
+
+#export as csv
+#write.csv(Tox_sco_survival, "/Users/4p_dusacre/ownCloud/PhD/SCIENCES/Manips/Tox/Ethovision/dmso_tox_score/Tox_sco_RTL.csv")
+
+
+IBR_viability <- AB_all_1per %>% 
+  filter(FN != "ControlN", FN != "ControlP") %>%
+  # Step 1: Duplicate rows where FN == "dmso"
+  slice(rep(1:n(), ifelse(FN == "dmso", 2, 1))) %>%
+  
+  # Step 2: Create a new column to alternate "new" and "used" for duplicated rows
+  group_by(FN, Conc_per) %>%
+  mutate(new_state = case_when(
+    FN == "dmso" & state == "NA" ~ rep(c("new", "used"), length.out = n()),
+    TRUE ~ state
+  )) %>%
+  ungroup() %>%
+  
+  # Step 3: Replace the original state column
+  dplyr::select(-state) %>%
+  rename(state = new_state) %>% 
+  mutate(ID_IBR = paste(FN, state, sep = "_"))
+IBR_viability
+
+#export as csv
+#write.csv(IBR_viability, "C:/Users/edusacre/ownCloud/PhD/SCIENCES/Manips/Tox/IBR_tables/IBR_viability.csv")
+```
+
+
+
+```{r Correlation using time AB}
+
+df_used_time <- avg_AB %>% 
+  filter(state == "used") %>% 
+  mutate(U_time = if_else(FN == "pa_g60", 624,
+                          if_else(FN == "pa_g33", 624,
+                                  if_else(FN == "pbs_d60", 624,
+                                          if_else(FN == "pbs_d35", 624,
+                                                  if_else(FN == "hppe_e425", 8280,
+                                                          if_else(FN == "pa_b95", 2700,
+                                                                  if_else(FN == "pa_b33", 2700,
+                                                                          if_else(FN == "pa_a35", 640, NA))))))))) 
+
+df_used_time
+
+correlation <- cor.test(df_used_time$avg, df_used_time$U_time, method = "spearman")
+correlation
+
+# Créer le graphique avec ggplot2
+ggplot(df_used_time, aes(x = U_time, y = avg)) +
+  geom_point(color = "blue") + # Points en bleu
+  geom_smooth(method = "lm", color = "red", fill = "red", alpha = 0.2) + # Régression linéaire avec intervalle de confiance
+  labs(title = "Correlation between per_Inhni and U_time",
+       x = "U_time (hours)",
+       y = "per_Inhi") +
+  theme_bw() 
+
+```
+
+No correlation between the bioluminescence inhibition and the time for which the Fn were used for.
+
+```{r Correlation surface exchanges AB}
+
+df_S_Ex <- avg_AB %>% 
+  filter(FN != "dmso", state != "used+", FN != "ControlP", FN != "ControlN") %>% 
+  mutate(S_Ex = if_else(FN == "pa_g60", 34.1,
+                          if_else(FN == "pa_g33", 52.1,
+                                  if_else(FN == "pbs_d60", 26.8,
+                                          if_else(FN == "pbs_d35", 40.4,
+                                                  if_else(FN == "hppe_e425", 11.7,
+                                                          if_else(FN == "pa_b95", 95.3,
+                                                                  if_else(FN == "pa_b33", 53.0,
+                                                                          if_else(FN == "pa_a35", 66.6, NA))))))))) 
+
+df_S_Ex
+
+correlation <- cor.test(df_S_Ex$avg, df_S_Ex$S_Ex, method = "spearman")
+correlation
+
+# Créer le graphique avec ggplot2
+ggplot(df_S_Ex, aes(x = S_Ex, y = avg)) +
+  geom_point(color = "blue") + # Points en bleu
+  geom_smooth(method = "lm", color = "red", fill = "red", alpha = 0.2) + # Régression linéaire avec intervalle de confiance
+  labs(title = "Correlation between per_Inhni and U_time",
+       x = "U_time (hours)",
+       y = "per_Inhi") +
+  theme_bw() 
+
+```
+
+No correlation between the bioluminescence inhibition and the FN's surface exchanges.
+
+
+```{r CE 50 20 10 pa_a35_new}
+library(drc)
+library(drda)
+
+#pa_a35 new --> EC10 > 3.3 mg/ml
+pa_a35_new <- AB_DR %>% filter(state == "new", FN == "pa_a35") 
+pa_a35_new
+
+ll4 <- drda(per_death~ Conc_mgml, data = pa_a35_new, mean_function = "logistic4")
+summary(ll4)
+coefficients <- coef(ll4)
+
+# Calculate EC50
+# Assuming coefficients are named as alpha, delta, eta, phi
+# The formula for EC50 in a four-parameter log-logistic model is often:
+# EC50 = exp((log(0.5) - delta) / eta)
+alpha <- coefficients["alpha"]
+delta <- coefficients["delta"]
+eta <- coefficients["eta"]
+phi <- coefficients["phi"]
+
+EC50 <- exp((log(0.5) - delta) / eta)
+EC20 <- exp((log(20 / (100 - 20)) - delta) / eta)
+EC10 <- exp((log(10 / (100 - 10)) - delta) / eta)
+
+EC <- tibble(EC50, EC20, EC10)
+EC
+
+plot(ll4,  xlab = "Dose", ylab = "Relative viability",
+    cex = 0.9, legend = c("4-p logistic", "Gompertz"))
+
+# Display EC50
+EC50
+
+
+model <- drm(per_viability ~ Conc_mgml, data = pa_a35_new, fct = LL.4()) #three-parameter log-logistic model
+summary(model)
+EC_pa_a35_n <- ED(model, c(50, 20, 10), interval = "delta")
+
+plot(model, broken = FALSE, xlab = "Dose", ylab = "Response", main = "Dose-Response Curve with EC20") # Flat response no possible to calculate EC50
+abline(h = c(10, 20, 50), lty = 2)
+
+# Fit the null model using lm (intercept-only)
+null_model <- lm(per_death ~ 1, data = pa_a35_new)
+
+# Compare the fitted model with the null model
+anova_result <- anova(null_model, model)
+anova_result 
+
+#ggplot per_inhi vs Conc
+ggplot(pa_a35_new, aes(x = Conc_per, y = per_viability)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Bioluminescence inhibition of the new PA6 α 35 fishing net leachates",
+       subtitle = "Exposure time 30 minutes \nMesoplastic eq. concentration in solvent 3,3 mg/ml, 1.65 mg/ml, 0.83 mg/ml, 0.41 mg/ml",
+       x = "Mesoplastic equivalent (mg/mL)",
+       y = "Bioluminescence inhibition (cm)") +
+  theme_bw() 
+```
+
+```{r CE 50 20 10 pa_a35_used}
+library(drc)
+library(drda)
+
+#pa_a35 new --> EC10 > 3.3 mg/ml
+pa_a35_used <- AB_DR %>% filter(state == "used", FN == "pa_a35") 
+pa_a35_used
+
+model <- drm(per_viability ~ Conc_mgml, data = pa_a35_used, fct = LL.3()) #three-parameter log-logistic model
+summary(model)
+EC_pa_a35_n <- ED(model, c(50, 20, 10), interval = "delta")
+
+plot(model, broken = FALSE, xlab = "Dose", ylab = "Response", main = "Dose-Response Curve with EC20") # Flat response no possible to calculate EC50
+abline(h = c(10, 20, 50), lty = 2)
+
+#ggplot per_inhi vs Conc
+ggplot(pa_a35_used, aes(x = log10(Conc_mgml), y = per_death)) +
+  geom_point() +
+  labs(title = "Cell viability RTL-W1 cell line",
+       subtitle = "Exposure time 24h \nMesoplastic eq. concentration in solvent 3,3 mg/ml, 1.65 mg/ml, 0.33 mg/ml, 0.165 mg/ml, 0.033 mg/ml",
+       x = "Mesoplastic equivalent (mg/mL)",
+       y = "Cell viability %") +
+  theme_bw() 
+```
+
+
+```{r CE 50 20 10 pa_g60_new}
+library(drc)
+library(drda)
+
+pa_g60_new <- AB_DR %>% filter(state == "new", FN == "pa_g60") 
+pa_g60_new
+
+model <- drm(per_viability ~ Conc_mgml, data = pa_g60_new, fct = LL.3()) #three-parameter log-logistic model
+summary(model)
+EC_pa_g60_n <- ED(model, c(50, 20, 10), interval = "delta")
+
+plot(model, broken = FALSE, xlab = "Dose", ylab = "Response", main = "Dose-Response Curve with EC20") # Flat response no possible to calculate EC50
+abline(h = c(10, 20, 50), lty = 2)
+
+#ggplot per_inhi vs Conc
+ggplot(pa_g60_new, aes(x = log10(Conc_mgml), y = per_death)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = T) +
+  labs(title = "Cell viability RTL-W1 cell line",
+       subtitle = "Exposure time 24h \nMesoplastic eq. concentration in solvent 3,3 mg/ml, 1.65 mg/ml, 0.33 mg/ml, 0.165 mg/ml, 0.033 mg/ml",
+       x = "Mesoplastic equivalent (mg/mL)",
+       y = "Cell viability %") +
+  theme_bw() 
+```
+
+
+```{r CE 50 20 10 pa_g60_used}
+library(drc)
+library(drda)
+
+pa_g60_used <- AB_DR %>% filter(state == "used", FN == "pa_g60") 
+pa_g60_used
+
+model <- drm(per_viability ~ Conc_mgml, data = pa_g60_used, fct = LL.3()) #three-parameter log-logistic model
+summary(model)
+EC_pa_g60_n <- ED(model, c(50, 20, 10), interval = "delta")
+
+plot(model, broken = FALSE, xlab = "Dose", ylab = "Response", main = "Dose-Response Curve with EC20") # Flat response no possible to calculate EC50
+abline(h = c(10, 20, 50), lty = 2)
+
+#ggplot per_inhi vs Conc
+ggplot(pa_g60_used, aes(x = log10(Conc_mgml), y = per_viability)) +
+  geom_point() +
+  labs(title = "Cell viability RTL-W1 cell line",
+       subtitle = "Exposure time 24h \nMesoplastic eq. concentration in solvent 3,3 mg/ml, 1.65 mg/ml, 0.33 mg/ml, 0.165 mg/ml, 0.033 mg/ml",
+       x = "Mesoplastic equivalent (mg/mL)",
+       y = "Cell viability %") +
+  theme_bw() 
+```
+
+```{r NOEC pa_g60_used, eval=FALSE, include=FALSE}
+library(mixtox)
+
+resp_matrix <- pa_g60_used %>%
+  dplyr::select(Conc_mgml, per_viability) %>%  # Select relevant columns
+  group_by(Conc_mgml) %>%               # Group by concentration
+  mutate(replicate = paste0("Replicate", row_number())) %>% # Create replicate labels
+  pivot_wider(names_from = replicate, values_from = per_viability) %>% # Reshape data
+  arrange(Conc_mgml) %>%                # Ensure the order is by concentration
+  column_to_rownames(var = "Conc_mgml") # Set concentration as row names
+
+resp_matrix
+
+# Define concentrations and responses
+conc <- as.numeric(rownames(resp_matrix))
+resp <- as.matrix(resp_matrix)
+
+# Calculate NOEC
+noec_result <- NOEC(x = conc, rspn = resp)
+noec_result
+```
+
+
+```{r statistics New vs Used ROS 1per}
+normality <- ROS_1_per %>% 
+  group_by(FN, state) %>%
+  summarise(p_value = shapiro.test(values)$p.value)
+normality
+
+# ROS_1_per %>%
+#   ggplot(aes(x = values, fill = FN)) +
+#   geom_histogram() +
+#   geom_density() +
+#   facet_wrap(FN~state, scales = "free_y", nrow = 2)
+
+#No normality of all the data. --> Use of a non-parametric test for independent two-sample comparison of mean Mann-U test
+# Diviser le dataframe par FN
+df_list <- ROS_1_per %>%
+  filter(FN != "ControlN", FN != "ControlP", FN != "dmso") %>% 
+  group_split(FN)
+
+results <- list()
+
+for (i in seq_along(df_list)) {
+  df_sub <- df_list[[i]]
+  states <- unique(df_sub$state)
+  for (j in 1:(length(states) - 1)) {
+    for (k in (j + 1):length(states)) {
+      sample1 <- df_sub[df_sub$state == states[j], "values"]$values
+      sample2 <- df_sub[df_sub$state == states[k], "values"]$values
+      test_result <- t.test(sample1, sample2, paired = FALSE) 
+      result <- tibble(
+        FN = df_sub$FN[1],
+        vs = paste(states[j], states[k], sep = "_vs_"),
+        p_value = test_result$p.value,
+        W = test_result$statistic)
+      results <- c(results, list(result))}}}
+
+results_ROS_1 <- bind_rows(results) %>% 
+  mutate(p_value = if_else(is.na(p_value), 0, p_value)) %>%  
+  na.omit() %>% 
+  separate(vs, into = c("state", "state2"), sep = "_vs_", remove = T) %>% 
+  mutate(L1 = "a",
+         L2 = if_else(p_value < 0.05, "b", "a")) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "****", 
+                        if_else(p_value < 0.001, "***",
+                                if_else(p_value < 0.01, "**",
+                                        if_else(p_value < 0.05, "*", "ns"))))) %>% 
+  mutate(FN = if_else(grepl("pa_g60", FN), "PA \u03B360",
+                      if_else(grepl("pa_g33", FN), "PA \u03B333",
+                                       if_else(grepl("pbs_d60", FN), "PBS \u03B460",
+                                               if_else(grepl("pbs_d35", FN), "PBS \u03B435",
+                                                       if_else(grepl("hppe_e425", FN), "HPPE \u03B54.25",
+                                                               if_else(grepl("pa_b95", FN), "PA \u03B295",
+                      if_else(grepl("pa_b33", FN), "PA \u03B233",
+                              if_else(grepl("pa_a35", FN), "PA \u03B135", 
+                                      if_else(grepl("dmso", FN), "Control", FN))))))))),
+         Conc_per = "3.3 mg/mL")
+results_ROS_1
+
+
+
+```
+
+```{r statistic Blank vs FN ROS 1per}
+
+df_list1 <- ROS_1_per %>%
+  filter(FN != "ControlN", FN != "ControlP", FN == "dmso") %>% 
+  slice(rep(1:n(), each = 2)) %>%
+  mutate(state = rep(c("new", "used"), n()/2)) %>% 
+  arrange(state)
+df_list1
+
+df_list <- bind_rows(ROS_1_per %>% filter(FN != "ControlN", FN != "ControlP", FN != "dmso"), df_list1)
+df_list
+
+# Créer une liste pour stocker les résultats
+results <- list()
+
+# Boucle sur chaque temps d'exposition
+unique_times <- unique(df_list$state)
+
+for (t in unique_times) {
+  # Filtrer les données pour le temps t
+  control_data <- df_list %>%
+    filter(FN == "dmso", state == t) %>%
+    pull(values)
+  
+  treatment_data <- df_list %>%
+    filter(FN != "dmso", state == t)
+  
+  # Boucle sur chaque traitement (sauf BLC)
+  unique_treatments <- unique(treatment_data$FN)
+  
+  for (treatment in unique_treatments) {
+    treatment_values <- treatment_data %>%
+      filter(FN == treatment) %>%
+      pull(values)
+    
+    # Vérifier qu'il y a suffisamment de données dans les deux groupes
+    if (length(control_data) > 1 && length(treatment_values) > 1) {
+      # Effectuer le test de Wilcoxon
+      test_result <- t.test(control_data, treatment_values)
+      
+      # Stocker les résultats dans la liste
+      results[[paste(treatment, t, sep = "_")]] <- test_result$p.value
+    } else {
+      # Si pas assez de données, stocker NA dans la liste
+      results[[paste(treatment, t, sep = "_")]] <- NA
+    }
+  }
+}
+
+# Afficher les résultats
+results_df <- do.call(rbind, lapply(names(results), function(x) {
+  data.frame(Treatment_Time = x, P_Value = results[[x]])
+}))
+
+results
+
+stat_ROS_1 <- bind_rows(results) %>% 
+  pivot_longer(cols = everything(), names_to = "FN", values_to = "p_value") %>%
+  separate(FN, into = c("FN", "time"), sep = "(?<=[0-9])_", remove = T) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "####", 
+                        if_else(p_value < 0.001, "###",
+                                if_else(p_value < 0.01, "##",
+                                        if_else(p_value < 0.05, "#", "ns")))),
+         diff = if_else(is.na(diff), "ns", diff)) %>% 
+  mutate(FN = if_else(grepl("pa_g60", FN), "PA \u03B360",
+                      if_else(grepl("pa_g33", FN), "PA \u03B333",
+                                       if_else(grepl("pbs_d60", FN), "PBS \u03B460",
+                                               if_else(grepl("pbs_d35", FN), "PBS \u03B435",
+                                                       if_else(grepl("hppe_e425", FN), "PE-PP \u03B54.25",
+                                                               if_else(grepl("pa_b95", FN), "PA \u03B295",
+                      if_else(grepl("pa_b33", FN), "PA \u03B233",
+                              if_else(grepl("pa_a35", FN), "PA \u03B135", 
+                                      if_else(grepl("dmso", FN), "Control", FN))))))))),
+         Conc_per = "3.3 mg/mL") %>% 
+  rename(state = time)
+stat_ROS_1
+
+```
+
+
+```{r statistics New vs Used ROS 01per}
+normality <- ROS_01_per %>% 
+  group_by(FN, state) %>%
+  summarise(p_value = shapiro.test(values)$p.value)
+normality
+
+# ROS_01_per %>%
+#   ggplot(aes(x = values, fill = FN)) +
+#   geom_histogram() +
+#   geom_density() +
+#   facet_wrap(FN~state, scales = "free_y", nrow = 2)
+
+#No normality of all the data. --> Use of a non-parametric test for independent two-sample comparison of mean Mann-U test
+# Diviser le dataframe par FN
+df_list <- ROS_01_per %>%
+  filter(FN != "ControlN", FN != "ControlP", FN != "dmso") %>% 
+  group_split(FN)
+
+results <- list()
+
+for (i in seq_along(df_list)) {
+  df_sub <- df_list[[i]]
+  states <- unique(df_sub$state)
+  for (j in 1:(length(states) - 1)) {
+    for (k in (j + 1):length(states)) {
+      sample1 <- df_sub[df_sub$state == states[j], "values"]$values
+      sample2 <- df_sub[df_sub$state == states[k], "values"]$values
+      test_result <- t.test(sample1, sample2, paired = FALSE) 
+      result <- tibble(
+        FN = df_sub$FN[1],
+        vs = paste(states[j], states[k], sep = "_vs_"),
+        p_value = test_result$p.value,
+        W = test_result$statistic)
+      results <- c(results, list(result))}}}
+
+results_ROS_01 <- bind_rows(results) %>% 
+  mutate(p_value = if_else(is.na(p_value), 0, p_value)) %>%  
+  na.omit() %>% 
+  separate(vs, into = c("state", "state2"), sep = "_vs_", remove = T) %>% 
+  mutate(L1 = "a",
+         L2 = if_else(p_value < 0.05, "b", "a")) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "****", 
+                        if_else(p_value < 0.001, "***",
+                                if_else(p_value < 0.01, "**",
+                                        if_else(p_value < 0.05, "*", "ns"))))) %>% 
+  mutate(FN = if_else(grepl("pa_g60", FN), "PA \u03B360",
+                      if_else(grepl("pa_g33", FN), "PA \u03B333",
+                                       if_else(grepl("pbs_d60", FN), "PBS \u03B460",
+                                               if_else(grepl("pbs_d35", FN), "PBS \u03B435",
+                                                       if_else(grepl("hppe_e425", FN), "PE-PP \u03B54.25",
+                                                               if_else(grepl("pa_b95", FN), "PA \u03B295",
+                      if_else(grepl("pa_b33", FN), "PA \u03B233",
+                              if_else(grepl("pa_a35", FN), "PA \u03B135", 
+                                      if_else(grepl("dmso", FN), "Control", FN))))))))),
+         Conc_per = "0.33 mg/mL")
+results_ROS_01
+
+
+
+```
+
+```{r statistic Blank vs FN ROS 01per}
+
+df_list1 <- ROS_01_per %>%
+  filter(FN != "ControlN", FN != "ControlP", FN == "dmso") %>% 
+  slice(rep(1:n(), each = 2)) %>%
+  mutate(state = rep(c("new", "used"), n()/2)) %>% 
+  arrange(state)
+df_list1
+
+df_list <- bind_rows(ROS_01_per %>% filter(FN != "ControlN", FN != "ControlP", FN != "dmso"), df_list1)
+df_list
+
+# Créer une liste pour stocker les résultats
+results <- list()
+
+# Boucle sur chaque temps d'exposition
+unique_times <- unique(df_list$state)
+
+for (t in unique_times) {
+  # Filtrer les données pour le temps t
+  control_data <- df_list %>%
+    filter(FN == "dmso", state == t) %>%
+    pull(values)
+  
+  treatment_data <- df_list %>%
+    filter(FN != "dmso", state == t)
+  
+  # Boucle sur chaque traitement (sauf BLC)
+  unique_treatments <- unique(treatment_data$FN)
+  
+  for (treatment in unique_treatments) {
+    treatment_values <- treatment_data %>%
+      filter(FN == treatment) %>%
+      pull(values)
+    
+    # Vérifier qu'il y a suffisamment de données dans les deux groupes
+    if (length(control_data) > 1 && length(treatment_values) > 1) {
+      # Effectuer le test de Wilcoxon
+      test_result <- t.test(control_data, treatment_values)
+      
+      # Stocker les résultats dans la liste
+      results[[paste(treatment, t, sep = "_")]] <- test_result$p.value
+    } else {
+      # Si pas assez de données, stocker NA dans la liste
+      results[[paste(treatment, t, sep = "_")]] <- NA
+    }
+  }
+}
+
+# Afficher les résultats
+results_df <- do.call(rbind, lapply(names(results), function(x) {
+  data.frame(Treatment_Time = x, P_Value = results[[x]])
+}))
+
+results
+
+stat_ROS_01 <- bind_rows(results) %>% 
+  pivot_longer(cols = everything(), names_to = "FN", values_to = "p_value") %>%
+  separate(FN, into = c("FN", "time"), sep = "(?<=[0-9])_", remove = T) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "####", 
+                        if_else(p_value < 0.001, "###",
+                                if_else(p_value < 0.01, "##",
+                                        if_else(p_value < 0.05, "#", "ns")))),
+         diff = if_else(is.na(diff), "ns", diff)) %>% 
+  mutate(FN = if_else(grepl("pa_g60", FN), "PA \u03B360",
+                      if_else(grepl("pa_g33", FN), "PA \u03B333",
+                                       if_else(grepl("pbs_d60", FN), "PBS \u03B460",
+                                               if_else(grepl("pbs_d35", FN), "PBS \u03B435",
+                                                       if_else(grepl("hppe_e425", FN), "PE-PP \u03B54.25",
+                                                               if_else(grepl("pa_b95", FN), "PA \u03B295",
+                      if_else(grepl("pa_b33", FN), "PA \u03B233",
+                              if_else(grepl("pa_a35", FN), "PA \u03B135", 
+                                      if_else(grepl("dmso", FN), "Control", FN))))))))),
+         Conc_per = "0.33 mg/mL") %>% 
+  rename(state = time)
+stat_ROS_01
+
+```
+
+```{r statistic PA g vs PBS d ROS}
+df_list <- ROS_1_per %>% filter(FN == "pa_g33" | FN == "pa_g60" | FN == "pbs_d35" | FN == "pbs_d60")
+df_list
+
+perform_t_tests <- function(df) {
+  # List to store results
+  results <- list()
+  
+  # Define the comparisons
+  comparisons <- list(
+    c("pa_g33", "pbs_d35", "new"),
+    c("pa_g33", "pbs_d35", "used")
+  )
+  
+  # Create a data frame to store the final results
+  final_results <- data.frame(
+    Comparison = character(),
+    State = character(),
+    T_value = numeric(),
+    P_value = numeric(),
+    stringsAsFactors = FALSE
+  )
+  
+  # Perform t-tests for each comparison
+  for (i in seq_along(comparisons)) {
+    group1 <- comparisons[[i]][1]
+    group2 <- comparisons[[i]][2]
+    state <- comparisons[[i]][3]
+    
+    test_result <- t.test(
+      df$values[df$FN == group1 & df$state == state],
+      df$values[df$FN == group2 & df$state == state]
+    )
+    
+    results[[paste(state, group1, "vs", group2)]] <- test_result
+    
+    # Add results to the final data frame
+    final_results <- rbind(final_results, data.frame(
+      Comparison = paste(group1, "vs", group2),
+      State = state,
+      T_value = test_result$statistic,
+      P_value = test_result$p.value,
+      stringsAsFactors = FALSE
+    ))
+  }
+  
+  return(list(detailed_results = results, summary = final_results))
+}
+
+# Run the function
+results <- perform_t_tests(df_list)
+
+# Print detailed results
+for (name in names(results$detailed_results)) {
+  cat("\n", name, ":\n")
+  print(results$detailed_results[[name]])
+}
+
+# Print the final summary data frame
+pag_vs_pbs <- print(results$summary)
+
+
+```
+
+
+```{r Visualization ROS}
+
+ROS_1 <- avg_ROS %>% filter(FN != "ControlN", FN != "ControlP") %>% 
+  mutate(avg_per = avg*100, sd_per = sd*100) %>% 
+  mutate(FN = if_else(grepl("pa_g60", FN), "PA \u03B360",
+                      if_else(grepl("pa_g33", FN), "PA \u03B333",
+                                       if_else(grepl("pbs_d60", FN), "PBS \u03B460",
+                                               if_else(grepl("pbs_d35", FN), "PBS \u03B435",
+                                                       if_else(grepl("hppe_e425", FN), "PE-PP \u03B54.25",
+                                                               if_else(grepl("pa_b95", FN), "PA \u03B295",
+                      if_else(grepl("pa_b33", FN), "PA \u03B233",
+                              if_else(grepl("pa_a35", FN), "PA \u03B135", 
+                                      if_else(grepl("dmso", FN), "DMSO\ncontrol", FN))))))))),
+         Conc_per = as.factor(Conc_per),
+         Conc_per = if_else(Conc_per == 0.1, "0.33 mg/mL",
+                            if_else(Conc_per == 1, "3.3 mg/mL", Conc_per))) %>% 
+  mutate(state = if_else(state == "used", "EOL", state), 
+         state = factor(state, levels = c("new", "EOL"))) %>% 
+  ggplot(aes(FN, avg_per, fill = FN, pattern = state)) +
+  geom_col_pattern(width = 0.5, position = position_dodge2(width = 0.5, preserve = "single"), pattern_density = 0.1, 
+                   pattern_fill = "white", pattern_color = "white", pattern_spacing = 0.015, show.legend = T) +
+  scale_pattern_discrete(na.value = "none", choices = c("new" = "none", "EOL" = "stripe"), 
+                         limits = c("new", "EOL")) +
+  geom_errorbar(aes(ymin = avg_per, ymax = avg_per + sd_per), width = 0.1, linewidth = 1, position = position_dodge(width = 0.5)) +
+  scale_fill_manual(values = Color_real_FN5, guide = "none")+
+  scale_y_continuous(limits = c(0, 175), breaks = seq(0, 175, by = 20)) +
+  facet_grid(~Conc_per, scales = "free_x", space = "free_x") +
+  labs(
+    #title = "ROS production of RTW-L1 cells exposed to extracts of FN",
+       #subtitle = "Exposure time 4h",
+       x = "Fishing nets",
+       y = "ROS production (%)",
+       pattern = "FN State") +
+  theme_bw() +
+  theme(legend.position = "none") +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        legend.position = "right",
+        legend.spacing.y = unit(0.3, 'cm'),
+        legend.key.spacing.y = unit(0.3, 'cm'),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0,
+        legend.title = element_text(size = 18, face = "bold"),
+        legend.text = element_text(size = 17, face = "bold"),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) +
+  guides(pattern = guide_legend(byrow = TRUE))
+ROS_1
+
+ROS_1 + 
+  geom_text(data = stat_ROS_01 %>% mutate(diff = if_else(diff == "ns", NA, diff)), aes(x = FN, y = 155, label = diff),
+            size = 5, vjust = 0, color="red3", fontface = "bold",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+   geom_text(data = stat_ROS_1 %>% mutate(diff = if_else(diff == "ns", NA, diff)), aes(x = FN, y = 175, label = diff),
+            size = 5, vjust = 0, color="red3", fontface = "bold",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  geom_bracket(aes(xmin = 1.88 , xmax= 2.12, 
+                           y.position = 140,
+                           label = "*"),
+                       size = 1.2,
+               label.size = 7,
+                       data = subset(results_ROS_01, FN == "PA α35"),
+               inherit.aes = FALSE) +
+  geom_bracket(aes(xmin = 3.88 , xmax= 4.12, 
+                           y.position = 160,
+                           label = "*"),
+                       size = 1.2,
+               label.size = 7,
+                       data = subset(results_ROS_1, FN == "PA γ33"),
+               inherit.aes = FALSE) 
+  # labs(caption = "STATISTICS: \nMann-Whitney U-test:\n# = Control vs. FN\n* = News vs. Used\nn = 6") + 
+  # theme(plot.caption = element_text(family = "serif", 
+  #              face = "bold", 
+  #              color = 1, 
+  #              size = 14, 
+  #              hjust = 0.99, 
+  #              vjust = 237, 
+  #              angle = 0, 
+  #              lineheight = 1)) 
+
+
+```
+
+```{r toxicity score ROS}
+
+#1%
+dmso_tox_sco <- avg_ROS %>% 
+  filter(FN == "dmso", Conc_per == 1) %>% 
+  mutate(avg_per = avg*100)
+dmso_tox_sco
+
+Tox_sco_survival_1 <- avg_ROS %>% 
+  filter(FN != "dmso", FN != "ControlN", FN != "ControlP", Conc_per == 1) %>% 
+  mutate(avg_per = avg*100, m_effect = abs(avg_per-dmso_tox_sco$avg_per), #1.68 is the percentage of dead larvae is the control of the used ones
+         score = m_effect/3.3*0.6) %>% 
+  dplyr::select(FN, state, m_effect, score) %>% 
+  mutate(score = if_else(FN != "pa_g33" | state != "used", 0, score)
+         )
+Tox_sco_survival_1
+
+#0.11%
+dmso_tox_sco <- avg_ROS %>% 
+  filter(FN == "dmso", Conc_per == 0.1) %>% 
+  mutate(avg_per = avg*100)
+dmso_tox_sco
+
+Tox_sco_survival_2 <- avg_ROS %>% 
+  filter(FN != "dmso", FN != "ControlN", FN != "ControlP", Conc_per == 0.1) %>% 
+  mutate(avg_per = avg*100, m_effect = abs(avg_per-dmso_tox_sco$avg_per), #1.68 is the percentage of dead larvae is the control of the used ones
+         score = m_effect/0.33*0.6) %>% 
+  dplyr::select(FN, state, m_effect, score) %>% 
+  mutate(score = if_else(state != "used", 0, score)
+         )
+Tox_sco_survival_2
+
+Tox_sco_survival <- bind_rows(Tox_sco_survival_1, Tox_sco_survival_2)
+Tox_sco_survival
+
+#export as csv
+#mac
+#write.csv(Tox_sco_survival, "/Users/4p_dusacre/ownCloud/PhD/SCIENCES/Manips/Tox/Ethovision/dmso_tox_score/Tox_sco_ROS.csv")
+#win
+#write.csv(Tox_sco_survival, "C:/Users/edusacre/ownCloud/PhD/SCIENCES/Manips/Tox/Ethovision/dmso_tox_score/Tox_sco_ROS.csv")
+
+IBR_ROS <- ROS_all %>% 
+  filter(FN != "ControlN", FN != "ControlP") %>%
+  # Step 1: Duplicate rows where FN == "dmso"
+  slice(rep(1:n(), ifelse(FN == "dmso", 2, 1))) %>%
+  
+  # Step 2: Create a new column to alternate "new" and "used" for duplicated rows
+  group_by(FN, Conc_per) %>%
+  mutate(new_state = case_when(
+    FN == "dmso" & state == "NA" ~ rep(c("new", "used"), length.out = n()),
+    TRUE ~ state
+  )) %>%
+  ungroup() %>%
+  
+  # Step 3: Replace the original state column
+  dplyr::select(-state) %>%
+  rename(state = new_state) %>% 
+  mutate(ID_IBR = paste(FN, state, sep = "_"))
+IBR_ROS
+
+#export as csv
+#write.csv(IBR_ROS, "C:/Users/edusacre/ownCloud/PhD/SCIENCES/Manips/Tox/IBR_tables/IBR_ROS.csv")
+```
+
+```{r Correlation using time ROS}
+
+df_used_time <- avg_ROS %>% 
+  filter(state == "used") %>% 
+  mutate(U_time = if_else(FN == "pa_g60", 624,
+                          if_else(FN == "pa_g33", 624,
+                                  if_else(FN == "pbs_d60", 624,
+                                          if_else(FN == "pbs_d35", 624,
+                                                  if_else(FN == "hppe_e425", 8280,
+                                                          if_else(FN == "pa_b95", 2700,
+                                                                  if_else(FN == "pa_b33", 2700,
+                                                                          if_else(FN == "pa_a35", 640, NA))))))))) 
+
+df_used_time
+
+correlation <- cor.test(df_used_time$avg, df_used_time$U_time, method = "spearman")
+correlation
+
+# Créer le graphique avec ggplot2
+ggplot(df_used_time, aes(x = U_time, y = avg)) +
+  geom_point(color = "blue") + # Points en bleu
+  geom_smooth(method = "lm", color = "red", fill = "red", alpha = 0.2) + # Régression linéaire avec intervalle de confiance
+  labs(title = "Correlation between per_Inhni and U_time",
+       x = "U_time (hours)",
+       y = "per_Inhi") +
+  theme_bw() 
+
+```
+
+No correlation between the bioluminescence inhibition and the time for which the Fn were used for.
+
+```{r Correlation surface exchanges ROS}
+
+df_S_Ex <- avg_ROS %>% 
+  filter(FN != "dmso", state != "used+", FN != "ControlP", FN != "ControlN") %>% 
+  mutate(S_Ex = if_else(FN == "pa_g60", 34.1,
+                          if_else(FN == "pa_g33", 52.1,
+                                  if_else(FN == "pbs_d60", 26.8,
+                                          if_else(FN == "pbs_d35", 40.4,
+                                                  if_else(FN == "hppe_e425", 11.7,
+                                                          if_else(FN == "pa_b95", 95.3,
+                                                                  if_else(FN == "pa_b33", 53.0,
+                                                                          if_else(FN == "pa_a35", 66.6, NA))))))))) 
+
+df_S_Ex
+
+correlation <- cor.test(df_S_Ex$avg, df_S_Ex$S_Ex, method = "spearman")
+correlation
+
+# Créer le graphique avec ggplot2
+ggplot(df_S_Ex, aes(x = S_Ex, y = avg)) +
+  geom_point(color = "blue") + # Points en bleu
+  geom_smooth(method = "lm", color = "red", fill = "red", alpha = 0.2) + # Régression linéaire avec intervalle de confiance
+  labs(title = "Correlation between per_Inhni and U_time",
+       x = "Exchange surface (cm2)",
+       y = "ROS production") +
+  theme_bw() 
+
+```
+
+Negative significant correlation (coef. corr = 53) between the ROS production and the surface exchanges of the FNs.
+
+
+

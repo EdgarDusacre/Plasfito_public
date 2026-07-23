@@ -1,0 +1,3821 @@
+---
+title: "Orga_DMSO"
+author: "Edgar Dusacre"
+date: "`r Sys.Date()`"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+```{r upload package}
+library(ggplot2) 
+library(forcats)
+library(tidyr)
+library(questionr)
+library(deSolve)
+library(tidyverse)
+library(readxl)
+library(skimr)
+library(gmodels)
+library(ggrepel)
+library(lazyeval)
+library(ggpubr)
+library(multcompView)
+library(readr)
+library(scales)
+library(knitr)
+library(wesanderson)
+library(dplyr) 
+library(lubridate)
+library(report)
+library(ecotox)
+library(stats)
+library(dunn.test)
+library(boot)
+library(gridExtra)
+library(multcompView)
+library(rcompanion)
+library(RColorBrewer)
+library(car)
+library(emmeans)
+library(PMCMRplus)
+library(multcomp)
+library(kableExtra)
+library(ggpattern)
+```
+
+```{r palette colors}
+Plasfito_C <- c("#80CAD0", "#36A7A7", "#276573", "#054959","#E3CCC0", "#F7EAE1", "#A48A7B", "#C6AF8D", "#49BED3", "#256CB4", "#008163", "#44B494", "#7BC6B9")
+
+Plasfito_color <- c("GreenP4" = "#80CAD0", "GreenP3" = "#36A7A7", "GreenP2" = "#276573", "GreenP1" = "#054959","Brown1" = "#E3CCC0", "Brown2" = "#F7EAE1", "Brown3" = "#A48A7B", "Brown4" = "#C6AF8D", "Turquoise1" = "#49BED3", "Blue1" = "#256CB4", "Green1" = "#008163", "Green2" = "#44B494", "Green3" = "#7BC6B9")
+
+Color_FN <- c("pa_\u03B333"= "#054959", 
+              "pa_\u03B360"= "#36A7A7", 
+              "pbs_\u03B435"= "#49BED3", 
+              "pbs_\u03B460"= "#256CB4")
+
+Color_FN2 <- c("pa_g33_aa"= "#054959", 
+              "pa_g60_aa"= "#36A7A7", 
+              "pbs_d60_aa"= "aquamarine", 
+              "pbs_d60_aa"= "#256CB4")
+
+Color_FN3 <- c("pa_\u03B333"= "#054959", 
+              "pa_\u03B360"= "#0096FC", 
+              "pbs_\u03B435"= "#9beaa1", 
+              "pbs_\u03B460"= "#77655C")
+
+Color_FN4 <- c("pa_\u03B333"= "#80CAD0", 
+              "pa_\u03B360"= "#0039D8", 
+              "pbs_\u03B435"= "#0a7011", 
+              "pbs_\u03B460"= "#C6AF8D")
+
+color <- c("PBS 0.35 r1" = "#33aa3c", 
+                               "PBS 0.35 r2" = "#0a7011",
+                               "PBS 0.60 r1" = "#C6AF8D", 
+                               "PBS 0.60 r2" = "#A48A7B",
+                               "PA 6 0.33 r1" = "#80CAD0", 
+                               "PA 6 0.33 r2" = "#054959",
+                               "PA 6 0.60 r1" = "#0096FC",
+                               "PA 6 0.60 r2" = "#0039D8",
+                               "PBS 0.35 pHa" = "#9beaa1")
+
+replicats <- c("1"= "#054959", 
+              "2"= "#36A7A7", 
+              "3"= "aquamarine", 
+              "4"= "#256CB4")
+
+time <- c("0"= "aquamarine", 
+              "25"= "#054959")
+
+time2 <- c("0"= "aquamarine", 
+              "6"= "#33aa3c",
+              "60" = "#36A7A7",
+              "12"= "#256CB4", 
+              "25"= "#054959")
+
+Color_real_FN <- c("dmso" = "#A48A7B", "ctl H2O" = "#256CB4", "BLANK" = "#256CB4", "blc" = "#A48A7B", "pa_a35" = "#4fd355", "pa_b33" = "#ca98d3", "pa_b95" = "#6e217c", "pa_g33" = "#92b78f", "pa_g60" = "#bbb3bc", "pbs_d35" = "#d3ad4f","pbs_d60" = "#c68640", "hppe_e425" = "#36A7A7")
+
+Color_real_FN3 <- c("dmso" = "#A48A7B", "ctl H2O" = "#256CB4", "BLANK" = "#256CB4", "pa_a35" = "#4fd355", "pa_b33" = "#ca98d3", "pa_b95" = "#6e217c", "pa_g33" = "#92b78f", "PA6" = "#4fd355", "pbs_d35" = "#d3ad4f","PBS-PBAT" = "#c68640", "PE-PP" = "#36A7A7")
+
+Color_real_FN2 <- c("dmso" = "#A48A7B", "ctl H2O" = "#256CB4", "BLANK" = "#256CB4", "pa_a33_aa" = "#4fd355", "pa_b33_aa" = "#ca98d3", "pa_b95_aa" = "#6e217c", "pa_g33_aa" = "#92b78f", "pa_g60_aa" = "#bbb3bc", "pbs_d60_aa" = "#d3ad4f","pbs_d60_aa" = "#c68640", "hppe_e4.25_aa" = "#36A7A7")
+
+Color_code_FN <- c("dmso" = "#A48A7B", "ctl H2O" = "#256CB4", "BLANK" = "#256CB4", "pa_\u03B135" = "#4fd355", "pa_\u03B233" = "#ca98d3", "pa_\u03B295" = "#6e217c", "pa_\u03B333" = "#92b78f", "pa_\u03B360" = "#bbb3bc", "pbs_\u03B435" = "#d3ad4f","pbs_\u03B460" = "#c68640", "pe_\u03B54.25" = "#36A7A7")
+
+Color_real_FN5 <- c("Blank" = "#A48A7B", "blank" = "#A48A7B", "SW" = "#256CB4", "Seawater control" = "#256CB4", "PA α35" = "#4fd355", "PA β33" = "#ca98d3", "PA β95" = "#6e217c", "PA γ33" = "#92b78f", "PA γ60" = "#bbb3bc", "PBS δ35" = "#d3ad4f","PBS δ60" = "#c68640", "PE-PP ε4.25" = "#36A7A7")
+
+
+```
+5 categories of compounds are large categories in "Bilan_Analyses_EPOC_Edgar_Dusacre_CEDRE.xlsx" and tehre 6 in "Bilan_Analyses_EPOC_Edgar_Dusacre.xlsx":
+```{r import data}
+library(readxl)
+data0 <- read_excel("Bilan_Analyses_EPOC_Edgar_Dusacre.xlsx", 
+    sheet = "R") 
+data0
+
+#46 - 6 = 40 --> 40 compounds quantified
+
+CrossTable(data0$compounds)
+
+data_bis <- read_excel("Bilan_Analyses_EPOC_Edgar_Dusacre_CEDRE.xlsx", 
+    sheet = "Bilan_R") 
+data_bis
+
+data1 <- left_join(data0, data_bis, by = c("LD_(ng_mL)", "LQ_(ng_mL)", "compounds")) %>% 
+  filter(!(compounds %in% c(
+    "1-methylnaphtalene",
+    "2-methylfluoranthene",
+    "2-methylnaphtalene",
+    "perylene",
+    "benzoapyrene",
+    "4-NP")))
+data1
+
+data_metals <- read_excel("df_PhD_def.xlsx") %>% 
+  mutate(state = if_else(state == "used", "EOL", state)) %>% 
+  group_by(FN, state, rep) %>% 
+  summarise(values_corr = sum(Conc_corr, na.rm = TRUE),
+            values = sum(Concentration, na.rm = TRUE)) %>% 
+  mutate(compounds = "Metals", LD = NA, LQ = NA, avg_blc = NA, sd_blc = NA) %>%  #to get the values of LD, LQ, avg_blc and sd_blc please go in the R script for metals
+  dplyr::select(FN, state, rep, compounds, LD, LQ, values, avg_blc, sd_blc, values_corr) %>% 
+  mutate(FN = case_when(
+    FN == "pa_a35" ~ "PA α35",
+    FN == "pa_b33" ~ "PA β33", 
+    FN == "pa_b95" ~ "PA β95",
+    FN == "pa_g33" ~ "PA γ33",
+    FN == "pa_g60" ~ "PA γ60",
+    FN == "pbd_d35" ~ "PBS δ35",
+    FN == "pbd_d60" ~ "PBS δ60",
+    FN == "hppe_e425" ~ "PE-PP ε4.25",
+    TRUE ~ FN  # Garde les autres valeurs inchangées
+  ))
+data_metals
+
+CrossTable(data_metals$FN)
+
+data_metals_cp <- read_excel("df_PhD_def.xlsx") %>% 
+  mutate(state = if_else(state == "used", "EOL", state)) %>% 
+  rename(compounds = Metals, values =Concentration, avg_blc = Avg_blc, values_corr = Conc_corr) %>%
+  mutate(LD = NA, LQ = NA, avg_blc = NA, sd_blc = NA) %>%  #to get the values of LD, LQ, avg_blc and sd_blc please go in the R script for metals
+  dplyr::select(FN, state, rep, compounds, LD, LQ, values, avg_blc, sd_blc, values_corr) %>% 
+  mutate(FN = case_when(
+    FN == "pa_a35" ~ "PA α35",
+    FN == "pa_b33" ~ "PA β33", 
+    FN == "pa_b95" ~ "PA β95",
+    FN == "pa_g33" ~ "PA γ33",
+    FN == "pa_g60" ~ "PA γ60",
+    FN == "pbd_d35" ~ "PBS δ35",
+    FN == "pbd_d60" ~ "PBS δ60",
+    FN == "hppe_e425" ~ "PE-PP ε4.25",
+    TRUE ~ FN  # Garde les autres valeurs inchangées
+  ))
+data_metals_cp
+
+data_metals_rep <- data_metals %>% 
+  filter(rep == "3" | rep == "4" | rep == "5") %>% 
+  group_by(FN, state, compounds) %>% 
+  summarise(values_corr = mean(values_corr, na.rm = T)) %>% 
+  mutate(rep = "3")
+data_metals_rep
+
+data_metal_short <- data_metals %>% 
+  filter(rep == "1" | rep == "2") %>% 
+  bind_rows(data_metals_rep) %>% 
+  #change name FNs
+  mutate(FN = case_when(
+    FN == "pa_a35" ~ "PA α35",
+    FN == "pa_b33" ~ "PA β33", 
+    FN == "pa_b95" ~ "PA β95",
+    FN == "pa_g33" ~ "PA γ33",
+    FN == "pa_g60" ~ "PA γ60",
+    FN == "pbd_d35" ~ "PBS δ35",
+    FN == "pbd_d60" ~ "PBS δ60",
+    FN == "hppe_e425" ~ "PE-PP ε4.25",
+    TRUE ~ FN  # Garde les autres valeurs inchangées
+  ))
+data_metal_short
+
+avg_metals_sum <- data_metal_short %>% 
+  group_by(FN, state, compounds) %>% 
+  summarise(n = n(),
+            avg_corr = mean(values_corr, na.rm = T))
+avg_metals_sum
+```
+
+When for a FN of a specific state the values of the 3 replicates are <LQ or <LD --> NA
+When one or more values <LQ or <LD --> LQ/2 or LD/2
+
+
+```{r tidydata}
+compounds <- data1 %>% dplyr::select(compounds)
+
+data2 <- data1 %>% 
+  # mutate(across(
+  #   .cols = where(is.character) & !c("compounds"), # Exclude metadata
+  #   .fns = ~ case_when(
+  #     .x == "<LQ" ~ as.character(`LQ_(ng_mL)`),
+  #     .x == "<LD" ~ as.character(`LD_(ng_mL)`),
+  #     TRUE ~ .x
+  #   )
+  # )) %>% 
+  dplyr::select(-compounds) %>% 
+  #mutate_if(is.character, as.double) %>%
+  bind_cols(compounds) %>%
+  pivot_longer(!c(`LD_(ng_mL)`, `LQ_(ng_mL)`, compounds), names_to = "FN", values_to = "values") %>% 
+  #split the column FN in two columns with the first "_"
+  separate(FN, into = c("rep", "FN"), sep = "_", extra = "merge") %>% 
+  separate(FN, into = c("FN", "state"), sep = "_", extra = "merge") %>% 
+  mutate(state = if_else(state == "n", "new",
+                         if_else(state == "u", "EOL", NA))) %>% 
+  rename(LD = `LD_(ng_mL)`, LQ = `LQ_(ng_mL)`) %>% 
+  dplyr::select(FN, state, rep, compounds, LD, LQ, values) %>% 
+  mutate(FN = case_when(
+    FN %in% c("alpha", "PA α ø.35", "pa_a33", "α35") ~ "PA α35",
+    FN %in% c("beta33", "PA β ø.33", "pa_b33", "β33") ~ "PA β33", 
+    FN %in% c("beta95", "PA β ø.95", "pa_b95", "β95") ~ "PA β95",
+    FN %in% c("gamma33", "PA γ ø.33", "pa_g33", "γ33") ~ "PA γ33",
+    FN %in% c("gamma60", "PA γ ø.60", "pa_g60", "γ60") ~ "PA γ60",
+    FN %in% c("delta35", "PBS δ ø.35", "pbs_d35", "δ35") ~ "PBS δ35",
+    FN %in% c("delta60", "PBS δ ø.60", "pbs_d60", "δ60") ~ "PBS δ60",
+    FN %in% c("epsi", "HPPE ε ø4.25", "pe_e4.25", "ε4,25") ~ "PE-PP ε4.25",
+    TRUE ~ FN  # Garde les autres valeurs inchangées
+  )) %>% 
+  #LOD & LOQ transformations
+  ##if for a same FN of same state and same compounds only <LD or/and <LQ values become NA
+  # group_by(FN, state, compounds) %>%
+  # mutate(
+  #   # Is there at least one numeric value in this group?
+  #   has_numeric = any(!values %in% c("<LD", "<LQ") & !is.na(values)),
+  #   # If no numeric in the group and value is <LD or <LQ → NA
+  #   values = if_else(
+  #     !has_numeric & values %in% c("<LD", "<LQ"),
+  #     NA_character_,
+  #     values
+  #   )
+  # ) %>%
+  # ungroup() %>%
+  # dplyr::select(-has_numeric) %>% 
+  ##if <LD or <lQ --> LQ/2 or LD/2
+  mutate(values = if_else(values == "<LD", "-1", 
+                          if_else(values == "<LQ", "-2", values))) %>% 
+  mutate(values = as.numeric(values)) %>% 
+  mutate(values = case_when(
+    values == -2 ~ LQ/2,
+    values == -1 ~ LD/2,
+    TRUE ~ values
+  ))
+data2
+
+data_no_LDLQ <- data2 %>% filter(LD != values & LQ != values)
+data_no_LDLQ
+
+Comp_cat <- data2 %>% filter(compounds %in% c("HAP", "PBDE", "Phtalates", "non_Phtalates", "AKP"))
+Comp_cat
+
+```
+
+```{r avg}
+data_avg <- data2 %>% 
+  filter(!(compounds %in% c("HAP", "PBDE", "Phtalates", "non_Phtalates", "AKP", "AKP_NP"))) %>% 
+   mutate(values = if_else(abs(values - LD) < 1e-6 | abs(values - LQ) < 1e-6, NA_real_, values)) %>% 
+  group_by(FN, state, compounds) %>% 
+  summarise( n = n(),
+             avg = mean(values, na.rm = T),
+             sd = sd(values, na.rm = T)) 
+data_avg
+
+
+data_sum_FN <- data_avg %>% 
+  summarize(n_avg_gt0 = sum(avg > 0, na.rm = TRUE))
+data_sum_FN
+
+df <- data_avg %>%
+  filter(avg > 0) 
+
+data_avg_cat <- data2 %>% 
+  filter((compounds %in% c("HAP", "PBDE", "Phtalates", "non_Phtalates", "AKP"))) %>% 
+   #mutate(values = if_else(abs(values - LD) < 1e-6 | abs(values - LQ) < 1e-6, NA_real_, values)) %>% 
+  group_by(FN, state, compounds) %>% 
+  summarise( n = n(),
+             avg = mean(values, na.rm = T),
+             sd = sd(values, na.rm = T)) 
+data_avg_cat
+
+```
+
+
+```{r corr blank substraction cat}
+avg_blc_cat <- Comp_cat %>% 
+  group_by(FN, state, compounds) %>% 
+  summarise( n = n(),
+             avg = mean(values, na.rm = T),
+             sd = sd(values, na.rm = T)
+             ) %>% 
+  filter(FN == "blank") %>% 
+  ungroup() %>% 
+  dplyr::select(-state, -n) %>%
+  rename(avg_blc = avg, sd_blc = sd)
+avg_blc_cat
+
+data_corr_cat <- Comp_cat %>% 
+  left_join(avg_blc_cat, by = c("compounds")) %>% 
+  mutate(values_corr = values - avg_blc) %>% 
+  mutate(values_corr = if_else(values_corr < 0, 0, values_corr)) %>% 
+  dplyr::select(-FN.y) %>% 
+  rename(FN = FN.x) 
+data_corr_cat
+
+metal_orga <- data_corr_cat %>% 
+  bind_rows(data_metals) %>% 
+  mutate(compounds = case_when(
+    compounds == "Phtalates" ~ "Phthalates",
+    compounds == "non_Phtalates" ~ "Non phthalate plasticizers",
+    TRUE ~ compounds
+  ))
+metal_orga
+
+data_avg_corr_cat <- data_corr_cat %>% 
+  filter(FN != "blank") %>% 
+  group_by(state, compounds) %>% 
+  summarise(n = n(),
+             avg_corr = mean(values_corr, na.rm = T),
+            sd_corr = sd(values_corr, na.rm = T)) %>% 
+  mutate(avg_ng_gFN = avg_corr*0.003*1000,
+         sd_ng_gFN = sd_corr*0.003*1000) #%>% 
+#   filter(compounds == "HAP") %>% 
+#   group_by(state, compounds) %>%
+#   summarise(n = n(),
+#              avg_corr = mean(avg_ng_gFN, na.rm = T),
+#             sd_corr = sd(sd_ng_gFN, na.rm = T))
+data_avg_corr_cat
+
+#export excel
+# library(writexl)
+# write_xlsx(data_avg_corr_cat, "orga_dmso_avg_cat.xlsx")
+```
+
+```{r corr blank substraction compounds}
+avg_blc <- data2 %>% 
+  filter(!(compounds %in% c("HAP", "PBDE", "Phtalates", "non_Phtalates", "AKP", "AKP_NP"))) %>% 
+  group_by(FN, state, compounds) %>% 
+  summarise( n = n(),
+             avg = mean(values, na.rm = T),
+             sd = sd(values, na.rm = T)
+             ) %>% 
+  filter(FN == "blank") %>% 
+  ungroup() %>% 
+  dplyr::select(-state, -n) %>%
+  rename(avg_blc = avg, sd_blc = sd)
+avg_blc
+
+data_corr <- data2 %>% 
+  filter(!(compounds %in% c("HAP", "PBDE", "Phtalates", "non_Phtalates", "AKP", "AKP_NP"))) %>% 
+  left_join(avg_blc, by = c("compounds")) %>% 
+  rename(FN = FN.x) %>% 
+  mutate(values_corr = if_else(FN != "blank", values - avg_blc, values)) %>% 
+  mutate(values_corr = if_else(values_corr < 0, 0, values_corr)) %>% 
+  dplyr::select(-FN.y)
+data_corr
+
+metal_orga_cp <- data_corr %>% 
+  bind_rows(data_metals_cp) 
+metal_orga_cp
+
+data_avg_corr <- metal_orga_cp %>% 
+  filter(!(compounds %in% c("HAP", "PBDE", "Phtalates", "non_Phtalates", "AKP", "AKP_NP"))) %>% 
+  #filter(FN != "blank") %>% 
+  filter(!(compounds %in% c(
+    "1-methylnaphtalene",
+    "2-methylfluoranthene",
+    "2-methylnaphtalene",
+    "perylene",
+    "benzoapyrene",
+    "4-NP"))) %>%
+  group_by(FN, state, compounds) %>% 
+  summarise(n = n(),
+            avg = mean(values, na.rm = T),
+             sd = sd(values, na.rm = T),
+             avg_corr = mean(values_corr, na.rm = T),
+             sd_corr = sd(values_corr, na.rm = T)) 
+data_avg_corr
+
+nb_compound_by_FN <- data_avg_corr %>% 
+  mutate(cat = case_when(
+    compounds %in% c("As", "Ag", "Al", "Cu", "Fe", "Zn", "Mn") ~ "metals",
+    TRUE ~ "organic"
+  )) %>% 
+  filter(avg_corr >0 & sd_corr >0) %>% 
+  #don't tale into account the trace metals
+  #filter(cat != "metals") %>% 
+  group_by(FN, state, cat) %>% 
+  summarise(
+    n_compounds = n_distinct(compounds),
+    .groups = "drop"
+  ) %>% 
+  mutate(percentage = case_when(
+    cat == "metals" ~ n_compounds *100 /7,
+    cat == "organic" ~ n_compounds *100 /34))
+nb_compound_by_FN
+
+
+# #export excel
+# library(writexl)
+# write_xlsx(data_avg_corr, "orga_dmso_avg.xlsx")
+```
+
+
+Compounds with values below LD or LD:
+1-methylnaphtalene
+2-methylfluoranthene
+2-methylnaphtalene
+perylene
+benzoapyrene
+
+4-NP
+
+Results of the nonylphenol seems wrong due to high strange values for the FNs:
+
+##Statistics large categories
+```{r Anova ou kruskal including blanks - new FNs}
+# ANOVA or Kruskal-Wallis test including blanks
+df_new <- metal_orga %>% 
+  mutate(state = if_else(is.na(state), "blank", state)) %>%
+  filter(state != "EOL") %>% 
+  arrange(compounds) 
+df_new
+
+CrossTable(df_new$compounds)
+
+res_aov <- df_new %>% 
+  group_by(compounds) %>% 
+  nest() %>% 
+  mutate(
+    aov_model = map(data, ~ aov(values ~ FN, data = .x)),
+    aov_tidy  = map(aov_model, ~ broom::tidy(.x)),
+    resid     = map(aov_model, residuals),
+    shapiro   = map(resid, ~ shapiro.test(.x)),
+    bartlett  = map(data, ~ bartlett.test(values ~ FN, data = .x))
+  )
+
+res_aov$shapiro
+
+res_kw <- df_new %>% 
+  group_by(compounds) %>% 
+  nest() %>% 
+  mutate(
+    kw_test  = map(data, ~ kruskal.test(values ~ FN, data = .x)),
+    kw_tidy  = map(kw_test, ~ broom::tidy(.x))
+  )
+res_kw$kw_tidy
+
+# 2) Keep only compounds with p.value < 0.05
+res_kw_sig <- res_kw %>% 
+  mutate(p_value = map_dbl(kw_tidy, ~ .x$p.value)) %>% 
+  filter(p_value < 0.05)
+res_kw_sig
+
+# 3) Dunn test for those significant compounds
+res_dunn <- res_kw_sig %>% 
+  mutate(
+    dunn_raw = map(data, ~ FSA::dunnTest(values ~ FN, data = .x, method = "holm")),
+    dunn_tbl = map(dunn_raw, ~ .x$res %>% as_tibble())
+  )
+
+# 4) Flat table of all post-hoc comparisons
+dunn_table <- res_dunn %>% 
+  dplyr::select(compounds, dunn_tbl) %>%   # use the real column name
+  unnest(dunn_tbl)
+dunn_table
+
+# 3bis) Dunn test + letters for significant compounds only
+res_letters <- res_kw_sig %>% 
+  mutate(
+    # Dunn all-pairs test per compound
+    dunn_kw   = map(data, ~ kwAllPairsDunnTest(values ~ as.factor(FN),
+                                               data = .x,
+                                               p.adjust.method = "holm")),
+    # matrix of adjusted p-values
+    p_mat     = map(dunn_kw, ~ round(.x$p.value, digits = 3)),
+    # full symmetric matrix required by multcompLetters
+    p_full    = map(p_mat, fullPTable),
+    # compact letter display
+    letters   = map(p_full, ~ multcompLetters(.x)$Letters),
+    # convert named vector of letters to tibble
+    letters_df = map(letters, ~ tibble(
+      FN = names(.x),
+      label = as.vector(unlist(.x))
+    ))
+  )
+
+letters_table_new <- res_letters %>% 
+  dplyr::select(compounds, letters_df) %>% 
+  unnest(letters_df)
+letters_table_new
+```
+
+```{r Anova ou kruskal including blanks - EOL FNs}
+# ANOVA or Kruskal-Wallis test including blanks
+df_EOL <- metal_orga %>% 
+  mutate(state = if_else(is.na(state), "blank", state)) %>%
+  filter(state != "new") %>% 
+  arrange(compounds)
+df_EOL
+
+res_aov <- df_EOL %>% 
+  group_by(compounds) %>% 
+  nest() %>% 
+  mutate(
+    aov_model = map(data, ~ aov(values ~ FN, data = .x)),
+    aov_tidy  = map(aov_model, ~ broom::tidy(.x)),
+    resid     = map(aov_model, residuals),
+    shapiro   = map(resid, ~ shapiro.test(.x)),
+    bartlett  = map(data, ~ bartlett.test(values ~ FN, data = .x))
+  )
+
+res_aov$shapiro
+
+res_kw <- df_EOL %>% 
+  group_by(compounds) %>% 
+  nest() %>% 
+  mutate(
+    kw_test  = map(data, ~ kruskal.test(values ~ FN, data = .x)),
+    kw_tidy  = map(kw_test, ~ broom::tidy(.x))
+  )
+res_kw$kw_tidy
+
+# 2) Keep only compounds with p.value < 0.05
+res_kw_sig <- res_kw %>% 
+  mutate(p_value = map_dbl(kw_tidy, ~ .x$p.value)) %>% 
+  filter(p_value < 0.05)
+res_kw_sig
+
+# 3) Dunn test for those significant compounds
+res_dunn <- res_kw_sig %>% 
+  mutate(
+    dunn_raw = map(data, ~ FSA::dunnTest(values ~ FN, data = .x, method = "holm")),
+    dunn_tbl = map(dunn_raw, ~ .x$res %>% as_tibble())
+  )
+
+# 4) Flat table of all post-hoc comparisons
+dunn_table <- res_dunn %>% 
+  dplyr::select(compounds, dunn_tbl) %>%   # use the real column name
+  unnest(dunn_tbl)
+dunn_table
+
+# 3bis) Dunn test + letters for significant compounds only
+res_letters <- res_kw_sig %>% 
+  mutate(
+    # Dunn all-pairs test per compound
+    dunn_kw   = map(data, ~ kwAllPairsDunnTest(values ~ as.factor(FN),
+                                               data = .x,
+                                               p.adjust.method = "holm")),
+    # matrix of adjusted p-values
+    p_mat     = map(dunn_kw, ~ round(.x$p.value, digits = 3)),
+    # full symmetric matrix required by multcompLetters
+    p_full    = map(p_mat, fullPTable),
+    # compact letter display
+    letters   = map(p_full, ~ multcompLetters(.x)$Letters),
+    # convert named vector of letters to tibble
+    letters_df = map(letters, ~ tibble(
+      FN = names(.x),
+      label = as.vector(unlist(.x))
+    ))
+  )
+
+letters_table_EOL <- res_letters %>% 
+  dplyr::select(compounds, letters_df) %>% 
+  unnest(letters_df)
+letters_table_EOL
+```
+
+```{r df with all letters KW including blanks}
+results_KW_blc <- bind_rows(
+  letters_table_new %>% mutate(state = "new"),
+  letters_table_EOL %>% mutate(state = "EOL")
+) %>%
+  #mutate(state = if_else(FN == "blank", "blank", state)) %>% 
+  arrange(compounds, state, FN) %>% 
+  #if state = new label in capital letters
+  mutate(
+    label = case_when(
+      state == "new" ~ toupper(label),
+      TRUE ~ label))
+results_KW_blc 
+```
+
+```{r Anova ou kruskal excluding blanks - new FNs}
+# ANOVA or Kruskal-Wallis test including blanks
+df_new <- data_corr_cat %>% 
+  mutate(state = if_else(is.na(state), "blank", state)) %>%
+  filter(state != "EOL", FN != "blank") 
+df_new
+
+res_aov <- df_new %>% 
+  group_by(compounds) %>% 
+  nest() %>% 
+  mutate(
+    aov_model = map(data, ~ aov(values ~ FN, data = .x)),
+    aov_tidy  = map(aov_model, ~ broom::tidy(.x)),
+    resid     = map(aov_model, residuals),
+    shapiro   = map(resid, ~ shapiro.test(.x)),
+    bartlett  = map(data, ~ bartlett.test(values ~ FN, data = .x))
+  )
+
+res_aov$shapiro
+
+res_kw <- df_new %>% 
+  group_by(compounds) %>% 
+  nest() %>% 
+  mutate(
+    kw_test  = map(data, ~ kruskal.test(values ~ FN, data = .x)),
+    kw_tidy  = map(kw_test, ~ broom::tidy(.x))
+  )
+res_kw$kw_tidy
+
+# 2) Keep only compounds with p.value < 0.05
+res_kw_sig <- res_kw %>% 
+  mutate(p_value = map_dbl(kw_tidy, ~ .x$p.value)) %>% 
+  filter(p_value < 0.05)
+
+# 3) Dunn test for those significant compounds
+res_dunn <- res_kw_sig %>% 
+  mutate(
+    dunn_raw = map(data, ~ FSA::dunnTest(values ~ FN, data = .x, method = "holm")),
+    dunn_tbl = map(dunn_raw, ~ .x$res %>% as_tibble())
+  )
+
+# 4) Flat table of all post-hoc comparisons
+dunn_table <- res_dunn %>% 
+  dplyr::select(compounds, dunn_tbl) %>%   # use the real column name
+  unnest(dunn_tbl)
+dunn_table
+
+# 3bis) Dunn test + letters for significant compounds only
+res_letters <- res_kw_sig %>% 
+  mutate(
+    # Dunn all-pairs test per compound
+    dunn_kw   = map(data, ~ kwAllPairsDunnTest(values ~ as.factor(FN),
+                                               data = .x,
+                                               p.adjust.method = "holm")),
+    # matrix of adjusted p-values
+    p_mat     = map(dunn_kw, ~ round(.x$p.value, digits = 3)),
+    # full symmetric matrix required by multcompLetters
+    p_full    = map(p_mat, fullPTable),
+    # compact letter display
+    letters   = map(p_full, ~ multcompLetters(.x)$Letters),
+    # convert named vector of letters to tibble
+    letters_df = map(letters, ~ tibble(
+      FN = names(.x),
+      label = as.vector(unlist(.x))
+    ))
+  )
+
+letters_table_new <- res_letters %>% 
+  dplyr::select(compounds, letters_df) %>% 
+  unnest(letters_df)
+letters_table_new
+```
+
+```{r Anova ou kruskal excluding blanks - EOL FNs}
+# ANOVA or Kruskal-Wallis test including blanks
+df_EOL <- data_corr_cat %>% 
+  mutate(state = if_else(is.na(state), "blank", state)) %>%
+  filter(state != "new", FN != "blank") 
+df_EOL
+
+res_aov <- df_EOL %>% 
+  group_by(compounds) %>% 
+  nest() %>% 
+  mutate(
+    aov_model = map(data, ~ aov(values ~ FN, data = .x)),
+    aov_tidy  = map(aov_model, ~ broom::tidy(.x)),
+    resid     = map(aov_model, residuals),
+    shapiro   = map(resid, ~ shapiro.test(.x)),
+    bartlett  = map(data, ~ bartlett.test(values ~ FN, data = .x))
+  )
+
+res_aov$shapiro
+
+res_kw <- df_EOL %>% 
+  group_by(compounds) %>% 
+  nest() %>% 
+  mutate(
+    kw_test  = map(data, ~ kruskal.test(values ~ FN, data = .x)),
+    kw_tidy  = map(kw_test, ~ broom::tidy(.x))
+  )
+res_kw$kw_tidy
+
+# 2) Keep only compounds with p.value < 0.05
+res_kw_sig <- res_kw %>% 
+  mutate(p_value = map_dbl(kw_tidy, ~ .x$p.value)) %>% 
+  filter(p_value < 0.05)
+
+# 3) Dunn test for those significant compounds
+res_dunn <- res_kw_sig %>% 
+  mutate(
+    dunn_raw = map(data, ~ FSA::dunnTest(values ~ FN, data = .x, method = "holm")),
+    dunn_tbl = map(dunn_raw, ~ .x$res %>% as_tibble())
+  )
+
+# 4) Flat table of all post-hoc comparisons
+dunn_table <- res_dunn %>% 
+  dplyr::select(compounds, dunn_tbl) %>%   # use the real column name
+  unnest(dunn_tbl)
+dunn_table
+
+# 3bis) Dunn test + letters for significant compounds only
+res_letters <- res_kw_sig %>% 
+  mutate(
+    # Dunn all-pairs test per compound
+    dunn_kw   = map(data, ~ kwAllPairsDunnTest(values ~ as.factor(FN),
+                                               data = .x,
+                                               p.adjust.method = "holm")),
+    # matrix of adjusted p-values
+    p_mat     = map(dunn_kw, ~ round(.x$p.value, digits = 3)),
+    # full symmetric matrix required by multcompLetters
+    p_full    = map(p_mat, fullPTable),
+    # compact letter display
+    letters   = map(p_full, ~ multcompLetters(.x)$Letters),
+    # convert named vector of letters to tibble
+    letters_df = map(letters, ~ tibble(
+      FN = names(.x),
+      label = as.vector(unlist(.x))
+    ))
+  )
+
+letters_table_EOL <- res_letters %>% 
+  dplyr::select(compounds, letters_df) %>% 
+  unnest(letters_df)
+letters_table_EOL
+```
+
+```{r df with all letters KW excluding blanks}
+results_KW_nblc <- bind_rows(
+  letters_table_new %>% mutate(state = "new"),
+  letters_table_EOL %>% mutate(state = "EOL")
+) %>%
+  #mutate(state = if_else(FN == "blank", "blank", state)) %>% 
+  arrange(compounds, state, FN) %>% 
+  #if state = new label in capital letters
+  mutate(
+    label = case_when(
+      state == "new" ~ toupper(label),
+      TRUE ~ label))
+results_KW_nblc 
+```
+
+
+```{r Statistics new vs EOL}
+df_new_EOL <- metal_orga %>% 
+  filter(FN != "blank") 
+df_new_EOL
+
+#Eliminate the FN and state for which the values of the three replicates were = 0
+df_counts <-
+  df_new_EOL %>%
+  group_by(FN, compounds, state) %>%
+  summarise(
+    n_zero = sum(!is.na(values_corr) & values_corr == 0),
+    .groups = "drop"
+  )
+
+compounds_ok <-
+  df_counts %>%
+  group_by(FN, compounds) %>%
+  filter(all(n_zero < 3)) %>%   # remove FN/compound with any state having 3 zeros
+  ungroup() %>%
+  distinct(FN, compounds)
+
+df_new_EOL_ok <-
+  df_new_EOL %>%
+  semi_join(compounds_ok, by = c("FN", "compounds"))
+df_new_EOL_ok
+
+results_tests <-
+  df_new_EOL_ok %>%
+  group_by(compounds, FN) %>%
+  group_modify(~{
+    # simple one-way model: values_corr ~ state
+    mod <- lm(values_corr ~ state, data = .x)
+    
+    # Shapiro–Wilk on residuals (normality)
+    shapiro_p <- shapiro.test(residuals(mod))$p.value
+    
+    # Levene’s test (homogeneity of variance across states)
+    lev_p <- leveneTest(values_corr ~ state, data = .x)$`Pr(>F)`[1]
+    
+    tibble(
+      shapiro_p = shapiro_p,
+      levene_p  = lev_p,
+      n         = n_distinct(.x$state)
+    )
+  }) %>%
+  ungroup()
+results_tests
+
+# One MWU test per FN × compounds, comparing new vs EOL
+tt_results <- df_new_EOL_ok %>% 
+  group_by(FN, compounds) %>% 
+  summarise(
+    tt = list(t.test(values_corr ~ state, var.equal = T)),  # t test
+    .groups = "drop"
+  ) %>% 
+  mutate(
+    tt_tidy = map(tt, broom::tidy)
+  ) %>% 
+  unnest(tt_tidy) %>% 
+  mutate(
+    diff = if_else(p.value < 0.0001, "****", 
+                   if_else(p.value < 0.001, "***",
+                           if_else(p.value < 0.01, "**",
+                                   if_else(p.value < 0.05, "*", "ns"))))
+  ) 
+tt_results
+
+
+```
+
+
+```{r Statistics blank vs. FN and state}
+
+#1) Prepare data
+
+df <- metal_orga %>%
+  filter(!is.na(values)) %>% 
+  filter(!compounds %in% c("Metals"))
+
+
+# blank replicated for each state so comparisons are "compound + state"
+blank_states <- tibble(state = c("new", "EOL"))
+
+df_blank <- df %>%
+  filter(FN == "blank") %>%
+  dplyr::select(FN, compounds, values) %>%
+  crossing(blank_states)
+
+df_test <- df %>%
+  filter(FN != "blank", state %in% c("new", "EOL")) %>%
+  dplyr::select(FN, state, compounds, values)
+
+# 2) Run MWU test: FN vs blank
+#    for each (FN, state, compounds)
+
+results_vs_blank <- df_test %>%
+  group_by(FN, state, compounds) %>%
+  summarise(
+    n_FN = sum(!is.na(values)),
+    x = list(values),
+    .groups = "drop"
+  ) %>%
+  left_join(
+    df_blank %>%
+      group_by(state, compounds) %>%
+      summarise(
+        n_blank = sum(!is.na(values)),
+        y = list(values),
+        .groups = "drop"
+      ),
+    by = c("state", "compounds")
+  ) %>%
+  mutate(
+    # Welch t-test only if both groups have enough data + some variability
+    p_value = pmap_dbl(
+      list(x, y, n_FN, n_blank),
+      ~{
+        if (..3 < 2 || ..4 < 2) return(NA_real_)
+        if (dplyr::n_distinct(..1) < 2 && dplyr::n_distinct(..2) < 2) return(NA_real_)
+        suppressWarnings(wilcox.test(..1, ..2, paired = FALSE)$p.value)
+      }
+    ),
+    stars = case_when(
+      is.na(p_value)  ~ NA_character_,
+      p_value < 0.001 ~ "###",
+      p_value < 0.01  ~ "##",
+      p_value < 0.05  ~ "#",
+      TRUE            ~ "ns"
+    )
+  ) %>%
+  dplyr::select(FN, state, compounds, n_FN, n_blank, p_value, stars) %>%
+  arrange(compounds, state, FN) #%>% 
+  #filter(stars != "ns")
+
+results_vs_blank
+
+
+```
+
+```{r test homogeneity of the variance}
+
+df <- metal_orga %>%
+  filter(!is.na(values)) %>% 
+  group_by(FN, state, compounds) %>%
+  filter(n() >= 3) %>%                    # keep only groups with ≥ 3 rows
+  ungroup() #%>% 
+  #filter(compounds %in% c("Metals"))
+
+# 1) store blanks once (they have FN == "blank", state == NA)
+df_blanks <- df %>%
+  filter(FN == "blank") %>%
+  dplyr::select(FN, state, rep, compounds, LD, LQ, values, avg_blc, sd_blc, values_corr)
+
+# 2) for each FN-state-compound (non-blank), bind the corresponding blank rows (same compound)
+lst_FN_state_compound <- df %>%
+  filter(FN != "blank") %>%
+  group_by(FN, state, compounds) %>%
+  group_split(.keep = TRUE) %>%                         # list of tibbles (one per FN-state-compound) [web:8]
+  map(\(.x) bind_rows(
+    .x,
+    df_blanks %>% filter(compounds == .x$compounds[1])
+  ))
+
+# optional: name the list for easier access
+keys <- df %>%
+  filter(FN != "blank") %>%
+  distinct(FN, state, compounds) %>%
+  mutate(id = paste(FN, state, compounds, sep = "_"))
+
+names(lst_FN_state_compound) <- keys$id
+
+# lst_FN_state_compound[[1]]
+# lst_FN_state_compound[["PA α35_new_HAP"]]
+
+bartlett_by_df <- imap_dfr(
+  lst_FN_state_compound,
+  \(d, id) {
+    # Bartlett needs >=2 observations in each FN level (here: blank vs your FN)
+    n_by_FN <- d %>% count(FN)
+
+    ok <- (n_distinct(d$FN) == 2) && all(n_by_FN$n >= 2)  # blank + sample, each >=2 [web:49]
+
+    out <- if (ok) {
+      broom::tidy(bartlett.test(values ~ FN, data = d))   # returns statistic/parameter/p.value/method [web:22]
+    } else {
+      tibble(
+        statistic = NA_real_,
+        parameter = NA_real_,
+        p.value   = NA_real_,
+        method    = "Bartlett test of homogeneity of variances"
+      )
+    }
+
+    tibble(id = id, ok = ok) %>%
+      bind_cols(out)
+      
+  }
+)
+
+bartlett_by_df
+
+df_bartlett <- bartlett_by_df %>% 
+  tidyr::separate(
+    col  = id,
+    into = c("FN", "state", "compounds"),
+    sep  = "_",
+    remove = TRUE
+  ) %>% 
+  dplyr::select(FN, state, compounds, p.value) %>% 
+  mutate(res = case_when(
+    p.value < 0.05 ~ "variances different",
+    p.value >= 0.05 ~ "variances homogeneous",
+    TRUE ~ NA_character_
+  ))
+df_bartlett 
+```
+
+
+students better for metals because normal distri + homogeneity of variance
+
+```{r test statistics blc vs FN metals student}
+
+#1) Prepare data
+
+df <- metal_orga %>%
+  filter(!is.na(values)) %>% 
+  group_by(FN, state, compounds) %>%
+  filter(n() >= 3) %>%                    # keep only groups with ≥ 3 rows
+  ungroup() %>% 
+  filter(compounds %in% c("Metals"))
+
+# blank replicated for each state so comparisons are "compound + state"
+blank_states <- tibble(state = c("new", "EOL"))
+
+df_blank <- df %>%
+  filter(FN == "blank") %>%
+  dplyr::select(FN, compounds, values) %>%
+  crossing(blank_states)
+
+df_test <- df %>%
+  filter(FN != "blank", state %in% c("new", "EOL")) %>%
+  dplyr::select(FN, state, compounds, values)
+
+
+# 1. Long data with group indicator
+df_all <- bind_rows(
+  df_test  %>% mutate(group = "FN"),
+  df_blank %>% mutate(group = "blank")
+)
+
+# 2. Shapiro–Wilk normality per FN/state/compound and group
+normality_results <- df_all %>%
+  group_by(FN, state, compounds, group) %>%
+  summarise(
+    shapiro_p = if (sum(!is.na(values)) >= 3 && dplyr::n_distinct(values) > 1) {
+      shapiro.test(values)$p.value
+    } else {
+      NA_real_
+    },
+    .groups = "drop"
+  )
+
+# 3. Levene test FN vs blank per state/compound
+levene_results <- df_all %>%
+  filter(!is.na(values)) %>%
+  group_by(state, compounds) %>%
+  summarise(
+    levene_p = tryCatch(
+      car::leveneTest(values, group)$`Pr(>F)`[1],
+      error = function(e) NA_real_
+    ),
+    .groups = "drop"
+  )
+
+# 4. Combine and choose Student / Welch / Wilcoxon
+results_vs_blank_auto <- df_test %>%
+  group_by(FN, state, compounds) %>%
+  summarise(
+    n_FN = sum(!is.na(values)),
+    x = list(values),
+    .groups = "drop"
+  ) %>%
+  # keep an explicit copy of FN that will survive joins
+  mutate(FN_source = FN) %>%
+  left_join(
+    df_blank %>%
+      group_by(state, compounds) %>%
+      summarise(
+        n_blank = sum(!is.na(values)),
+        y = list(values),
+        .groups = "drop"
+      ),
+    by = c("state", "compounds")
+  ) %>%
+  left_join(
+    normality_results %>%
+      filter(group == "FN") %>%
+      rename(shapiro_p_FN = shapiro_p) %>%
+      dplyr::select(-group),
+    by = c("FN" = "FN", "state", "compounds")
+  ) %>%
+  left_join(
+    normality_results %>%
+      filter(group == "blank") %>%
+      rename(shapiro_p_blank = shapiro_p) %>%
+      dplyr::select(-group),
+    by = c("state", "compounds")
+  ) %>%
+  left_join(
+    levene_results,
+    by = c("state", "compounds")
+  ) %>%
+  mutate(
+    test_type = case_when(
+      is.na(shapiro_p_FN) | is.na(shapiro_p_blank) ~ "wilcox",
+      shapiro_p_FN  > 0.03 &
+        shapiro_p_blank > 0.03 &
+        !is.na(levene_p) &
+        levene_p > 0.05 ~ "student",
+      shapiro_p_FN  > 0.03 &
+        shapiro_p_blank > 0.05 &
+        !is.na(levene_p) &
+        levene_p <= 0.05 ~ "welch",
+      TRUE ~ "wilcox"
+    ),
+    p_value = pmap_dbl(
+      list(x, y, n_FN, n_blank, test_type),
+      ~{
+        if (..3 < 2 || ..4 < 2) return(NA_real_)
+        if (dplyr::n_distinct(..1) < 2 && dplyr::n_distinct(..2) < 2) return(NA_real_)
+
+        if (..5 == "student") {
+          suppressWarnings(t.test(..1, ..2,
+                                  var.equal = TRUE,
+                                  paired = FALSE)$p.value)
+        } else if (..5 == "welch") {
+          suppressWarnings(t.test(..1, ..2,
+                                  var.equal = FALSE,
+                                  paired = FALSE)$p.value)
+        } else {
+          suppressWarnings(wilcox.test(..1, ..2,
+                                       paired = FALSE)$p.value)
+        }
+      }
+    ),
+    stars = case_when(
+      is.na(p_value)  ~ NA_character_,
+      p_value < 0.001 ~ "###",
+      p_value < 0.01  ~ "##",
+      p_value < 0.05  ~ "#",
+      TRUE            ~ "ns"
+    )
+  ) %>%
+  # recreate FN from the preserved copy, then select
+  mutate(FN = FN_source) %>%
+  dplyr::select(
+    FN, state, compounds,
+    n_FN, n_blank,
+    shapiro_p_FN, shapiro_p_blank, levene_p, test_type,
+    p_value, stars
+  ) %>%
+  arrange(compounds, state, FN, test_type) #%>% 
+  #replace results of wilcox test by ns because not meaningfull and useless to show it because very low power
+  # mutate(stars_corr   = if_else(test_type == "wilcox", "ns", stars)
+  # ) %>% 
+  # filter(stars_corr != "ns") %>% 
+  # dplyr::select(FN,          state, compounds,  n_FN, n_blank, p_value, stars)
+
+
+results_vs_blank_auto
+
+#compare tables
+compare <- results_vs_blank_auto %>%
+  left_join(results_vs_blank %>% mutate(test_type = "wilcox"),
+            by = c("FN", "state", "compounds")) %>% 
+  dplyr::select(FN, state, compounds, test_type.x, test_type.y, stars.x, stars.y) %>% 
+  mutate(compare = if_else(grepl("#", stars.x) & grepl("#", stars.y) | stars.x == stars.y, "ok", "diff"))
+compare
+
+results_vs_blank_metals <- results_vs_blank_auto %>% 
+  dplyr::select(FN, state, compounds, n_FN, n_blank, p_value, stars)
+
+results_blc_FN <- results_vs_blank %>% 
+  bind_rows(results_vs_blank_metals)
+results_blc_FN
+```
+
+
+##Statistics individual compounds
+```{r Anova ou kruskal including blanks - new FNs}
+# ANOVA or Kruskal-Wallis test including blanks
+df_new_cp <- metal_orga_cp %>% 
+  mutate(state = if_else(is.na(state), "blank", state)) %>%
+  filter(state != "EOL") 
+df_new_cp
+
+# res_aov <- df_new_cp %>% 
+#   group_by(compounds) %>% 
+#   nest() %>% 
+#   mutate(
+#     aov_model = map(data, ~ aov(values ~ FN, data = .x)),
+#     aov_tidy  = map(aov_model, ~ broom::tidy(.x)),
+#     resid     = map(aov_model, residuals),
+#     shapiro   = map(resid, ~ shapiro.test(.x)),
+#     bartlett  = map(data, ~ bartlett.test(values ~ FN, data = .x))
+#   )
+# 
+# res_aov$shapiro
+
+res_kw <- df_new_cp %>% 
+  group_by(compounds) %>% 
+  nest() %>% 
+  mutate(
+    kw_test  = map(data, ~ kruskal.test(values ~ FN, data = .x)),
+    kw_tidy  = map(kw_test, ~ broom::tidy(.x))
+  )
+res_kw$kw_tidy
+
+# 2) Keep only compounds with p.value < 0.05
+res_kw_sig <- res_kw %>% 
+  mutate(p_value = map_dbl(kw_tidy, ~ .x$p.value)) %>% 
+  filter(p_value < 0.05)
+
+# 3) Dunn test for those significant compounds
+res_dunn <- res_kw_sig %>% 
+  mutate(
+    dunn_raw = map(data, ~ FSA::dunnTest(values ~ FN, data = .x, method = "holm")),
+    dunn_tbl = map(dunn_raw, ~ .x$res %>% as_tibble())
+  )
+
+# 4) Flat table of all post-hoc comparisons
+dunn_table <- res_dunn %>% 
+  dplyr::select(compounds, dunn_tbl) %>%   # use the real column name
+  unnest(dunn_tbl)
+dunn_table
+
+# 3bis) Dunn test + letters for significant compounds only
+res_letters <- res_kw_sig %>% 
+  mutate(
+    # Dunn all-pairs test per compound
+    dunn_kw   = map(data, ~ kwAllPairsDunnTest(values ~ as.factor(FN),
+                                               data = .x,
+                                               p.adjust.method = "holm")),
+    # matrix of adjusted p-values
+    p_mat     = map(dunn_kw, ~ round(.x$p.value, digits = 3)),
+    # full symmetric matrix required by multcompLetters
+    p_full    = map(p_mat, fullPTable),
+    # compact letter display
+    letters   = map(p_full, ~ multcompLetters(.x)$Letters),
+    # convert named vector of letters to tibble
+    letters_df = map(letters, ~ tibble(
+      FN = names(.x),
+      label = as.vector(unlist(.x))
+    ))
+  )
+
+letters_table_new_cp <- res_letters %>% 
+  dplyr::select(compounds, letters_df) %>% 
+  unnest(letters_df) %>% 
+  group_by(compounds) %>%
+  filter(n_distinct(label) > 1) %>%   # keep compounds having ≥2 different labels
+  ungroup()
+  
+letters_table_new_cp
+```
+
+```{r Anova ou kruskal including blanks - EOL FNs}
+# ANOVA or Kruskal-Wallis test including blanks
+df_EOL_cp <- metal_orga_cp %>% 
+  mutate(state = if_else(is.na(state), "blank", state)) %>%
+  filter(state != "new") 
+df_EOL_cp
+
+# res_aov <- df_EOL_cp %>% 
+#   group_by(compounds) %>% 
+#   nest() %>% 
+#   mutate(
+#     aov_model = map(data, ~ aov(values ~ FN, data = .x)),
+#     aov_tidy  = map(aov_model, ~ broom::tidy(.x)),
+#     resid     = map(aov_model, residuals),
+#     shapiro   = map(resid, ~ shapiro.test(.x)),
+#     bartlett  = map(data, ~ bartlett.test(values ~ FN, data = .x))
+#   )
+# 
+# res_aov$shapiro
+
+res_kw <- df_EOL_cp %>% 
+  group_by(compounds) %>% 
+  nest() %>% 
+  mutate(
+    kw_test  = map(data, ~ kruskal.test(values ~ FN, data = .x)),
+    kw_tidy  = map(kw_test, ~ broom::tidy(.x))
+  )
+res_kw$kw_tidy
+
+# 2) Keep only compounds with p.value < 0.05
+res_kw_sig <- res_kw %>% 
+  mutate(p_value = map_dbl(kw_tidy, ~ .x$p.value)) %>% 
+  filter(p_value < 0.05)
+
+# 3) Dunn test for those significant compounds
+res_dunn <- res_kw_sig %>% 
+  mutate(
+    dunn_raw = map(data, ~ FSA::dunnTest(values ~ FN, data = .x, method = "holm")),
+    dunn_tbl = map(dunn_raw, ~ .x$res %>% as_tibble())
+  )
+
+# 4) Flat table of all post-hoc comparisons
+dunn_table <- res_dunn %>% 
+  dplyr::select(compounds, dunn_tbl) %>%   # use the real column name
+  unnest(dunn_tbl)
+dunn_table
+
+# 3bis) Dunn test + letters for significant compounds only
+res_letters <- res_kw_sig %>% 
+  mutate(
+    # Dunn all-pairs test per compound
+    dunn_kw   = map(data, ~ kwAllPairsDunnTest(values ~ as.factor(FN),
+                                               data = .x,
+                                               p.adjust.method = "holm")),
+    # matrix of adjusted p-values
+    p_mat     = map(dunn_kw, ~ round(.x$p.value, digits = 3)),
+    # full symmetric matrix required by multcompLetters
+    p_full    = map(p_mat, fullPTable),
+    # compact letter display
+    letters   = map(p_full, ~ multcompLetters(.x)$Letters),
+    # convert named vector of letters to tibble
+    letters_df = map(letters, ~ tibble(
+      FN = names(.x),
+      label = as.vector(unlist(.x))
+    ))
+  )
+
+letters_table_EOL_cp <- res_letters %>% 
+  dplyr::select(compounds, letters_df) %>% 
+  unnest(letters_df) %>% 
+  group_by(compounds) %>%
+  filter(n_distinct(label) > 1) %>%   # keep compounds having ≥2 different labels
+  ungroup()
+  
+letters_table_EOL_cp
+```
+
+```{r df with all letters KW including blanks}
+results_KW_blc_cp <- bind_rows(
+  letters_table_new_cp %>% mutate(state = "new"),
+  letters_table_EOL_cp %>% mutate(state = "EOL")
+) %>%
+  #mutate(state = if_else(FN == "blank", "blank", state)) %>% 
+  arrange(compounds, state, FN) %>% 
+  #if state = new label in capital letters
+  mutate(
+    label = case_when(
+      state == "new" ~ toupper(label),
+      TRUE ~ label))
+results_KW_blc_cp 
+```
+
+```{r Anova ou kruskal excluding blanks - new FNs}
+# ANOVA or Kruskal-Wallis test including blanks
+df_new_cp <- metal_orga_cp %>% 
+  mutate(state = if_else(is.na(state), "blank", state)) %>%
+  filter(state != "EOL", FN != "blank") 
+df_new_cp
+
+# res_aov <- df_new_cp %>% 
+#   group_by(compounds) %>% 
+#   nest() %>% 
+#   mutate(
+#     aov_model = map(data, ~ aov(values ~ FN, data = .x)),
+#     aov_tidy  = map(aov_model, ~ broom::tidy(.x)),
+#     resid     = map(aov_model, residuals),
+#     shapiro   = map(resid, ~ shapiro.test(.x)),
+#     bartlett  = map(data, ~ bartlett.test(values ~ FN, data = .x))
+#   )
+# 
+# res_aov$shapiro
+
+res_kw <- df_new_cp %>% 
+  group_by(compounds) %>% 
+  nest() %>% 
+  mutate(
+    kw_test  = map(data, ~ kruskal.test(values ~ FN, data = .x)),
+    kw_tidy  = map(kw_test, ~ broom::tidy(.x))
+  )
+res_kw$kw_tidy
+
+# 2) Keep only compounds with p.value < 0.05
+res_kw_sig <- res_kw %>% 
+  mutate(p_value = map_dbl(kw_tidy, ~ .x$p.value)) %>% 
+  filter(p_value < 0.05)
+
+# 3) Dunn test for those significant compounds
+res_dunn <- res_kw_sig %>% 
+  mutate(
+    dunn_raw = map(data, ~ FSA::dunnTest(values ~ FN, data = .x, method = "holm")),
+    dunn_tbl = map(dunn_raw, ~ .x$res %>% as_tibble())
+  )
+
+# 4) Flat table of all post-hoc comparisons
+dunn_table <- res_dunn %>% 
+  dplyr::select(compounds, dunn_tbl) %>%   # use the real column name
+  unnest(dunn_tbl)
+dunn_table
+
+# 3bis) Dunn test + letters for significant compounds only
+res_letters <- res_kw_sig %>% 
+  mutate(
+    # Dunn all-pairs test per compound
+    dunn_kw   = map(data, ~ kwAllPairsDunnTest(values ~ as.factor(FN),
+                                               data = .x,
+                                               p.adjust.method = "holm")),
+    # matrix of adjusted p-values
+    p_mat     = map(dunn_kw, ~ round(.x$p.value, digits = 3)),
+    # full symmetric matrix required by multcompLetters
+    p_full    = map(p_mat, fullPTable),
+    # compact letter display
+    letters   = map(p_full, ~ multcompLetters(.x)$Letters),
+    # convert named vector of letters to tibble
+    letters_df = map(letters, ~ tibble(
+      FN = names(.x),
+      label = as.vector(unlist(.x))
+    ))
+  )
+
+letters_table_new_cp <- res_letters %>% 
+  dplyr::select(compounds, letters_df) %>% 
+  unnest(letters_df) %>% 
+  group_by(compounds) %>%
+  filter(n_distinct(label) > 1) %>%   # keep compounds having ≥2 different labels
+  ungroup()
+  
+letters_table_new_cp
+```
+
+```{r Anova ou kruskal including blanks - EOL FNs}
+# ANOVA or Kruskal-Wallis test including blanks
+df_EOL_cp <- metal_orga_cp %>% 
+  mutate(state = if_else(is.na(state), "blank", state)) %>%
+  filter(state != "new", FN != "blank") 
+df_EOL_cp
+
+# res_aov <- df_EOL_cp %>% 
+#   group_by(compounds) %>% 
+#   nest() %>% 
+#   mutate(
+#     aov_model = map(data, ~ aov(values ~ FN, data = .x)),
+#     aov_tidy  = map(aov_model, ~ broom::tidy(.x)),
+#     resid     = map(aov_model, residuals),
+#     shapiro   = map(resid, ~ shapiro.test(.x)),
+#     bartlett  = map(data, ~ bartlett.test(values ~ FN, data = .x))
+#   )
+# 
+# res_aov$shapiro
+
+res_kw <- df_EOL_cp %>% 
+  group_by(compounds) %>% 
+  nest() %>% 
+  mutate(
+    kw_test  = map(data, ~ kruskal.test(values ~ FN, data = .x)),
+    kw_tidy  = map(kw_test, ~ broom::tidy(.x))
+  )
+res_kw$kw_tidy
+
+# 2) Keep only compounds with p.value < 0.05
+res_kw_sig <- res_kw %>% 
+  mutate(p_value = map_dbl(kw_tidy, ~ .x$p.value)) %>% 
+  filter(p_value < 0.05)
+
+# 3) Dunn test for those significant compounds
+res_dunn <- res_kw_sig %>% 
+  mutate(
+    dunn_raw = map(data, ~ FSA::dunnTest(values ~ FN, data = .x, method = "holm")),
+    dunn_tbl = map(dunn_raw, ~ .x$res %>% as_tibble())
+  )
+
+# 4) Flat table of all post-hoc comparisons
+dunn_table <- res_dunn %>% 
+  dplyr::select(compounds, dunn_tbl) %>%   # use the real column name
+  unnest(dunn_tbl)
+dunn_table
+
+# 3bis) Dunn test + letters for significant compounds only
+res_letters <- res_kw_sig %>% 
+  mutate(
+    # Dunn all-pairs test per compound
+    dunn_kw   = map(data, ~ kwAllPairsDunnTest(values ~ as.factor(FN),
+                                               data = .x,
+                                               p.adjust.method = "holm")),
+    # matrix of adjusted p-values
+    p_mat     = map(dunn_kw, ~ round(.x$p.value, digits = 3)),
+    # full symmetric matrix required by multcompLetters
+    p_full    = map(p_mat, fullPTable),
+    # compact letter display
+    letters   = map(p_full, ~ multcompLetters(.x)$Letters),
+    # convert named vector of letters to tibble
+    letters_df = map(letters, ~ tibble(
+      FN = names(.x),
+      label = as.vector(unlist(.x))
+    ))
+  )
+
+letters_table_EOL_cp <- res_letters %>% 
+  dplyr::select(compounds, letters_df) %>% 
+  unnest(letters_df) %>% 
+  group_by(compounds) %>%
+  filter(n_distinct(label) > 1) %>%   # keep compounds having ≥2 different labels
+  ungroup()
+  
+letters_table_EOL_cp
+```
+
+```{r df with all letters KW excluding blanks}
+results_KW_nblc_cp <- bind_rows(
+  letters_table_new_cp %>% mutate(state = "new"),
+  letters_table_EOL_cp %>% mutate(state = "EOL")
+) %>%
+  #mutate(state = if_else(FN == "blank", "blank", state)) %>% 
+  arrange(compounds, state, FN) %>% 
+  #if state = new label in capital letters
+  mutate(
+    label = case_when(
+      state == "new" ~ toupper(label),
+      TRUE ~ label))
+results_KW_nblc_cp 
+```
+
+
+```{r Statistics blank vs. FN and state}
+
+#1) Prepare data
+
+df <- metal_orga_cp %>%
+  filter(!is.na(values))
+
+# blank replicated for each state so comparisons are "compound + state"
+blank_states <- tibble(state = c("new", "EOL"))
+
+df_blank <- df %>%
+  filter(FN == "blank") %>%
+  dplyr::select(FN, compounds, values) %>%
+  crossing(blank_states)
+
+df_test <- df %>%
+  filter(FN != "blank", state %in% c("new", "EOL")) %>%
+  dplyr::select(FN, state, compounds, values)
+
+# 2) Run MWU test: FN vs blank
+#    for each (FN, state, compounds)
+
+results_vs_blank <- df_test %>%
+  group_by(FN, state, compounds) %>%
+  summarise(
+    n_FN = sum(!is.na(values)),
+    x = list(values),
+    .groups = "drop"
+  ) %>%
+  left_join(
+    df_blank %>%
+      group_by(state, compounds) %>%
+      summarise(
+        n_blank = sum(!is.na(values)),
+        y = list(values),
+        .groups = "drop"
+      ),
+    by = c("state", "compounds")
+  ) %>%
+  mutate(
+    # MWU only if both groups have enough data + at least some variability
+    p_value = pmap_dbl(
+      list(x, y, n_FN, n_blank),
+      ~{
+        if (..3 < 2 || ..4 < 2) return(NA_real_)
+        if (dplyr::n_distinct(..1) < 2 && dplyr::n_distinct(..2) < 2) return(NA_real_)
+        suppressWarnings(wilcox.test(..1, ..2, paired = FALSE)$p.value)
+      }
+    ),
+    stars = case_when(
+      is.na(p_value)  ~ NA_character_,
+      p_value < 0.001 ~ "###",
+      p_value < 0.01  ~ "##",
+      p_value < 0.05  ~ "#",
+      TRUE            ~ "ns"
+    )
+  ) %>%
+  dplyr::select(FN, state, compounds, n_FN, n_blank, p_value, stars) %>%
+  arrange(compounds, state, FN)
+
+results_vs_blank
+
+```
+
+
+
+```{r Statistics new vs EOL}
+df_new_EOL_cp <- metal_orga_cp %>% 
+  filter(FN != "blank") %>% 
+  mutate(
+    state     = as.factor(state),
+    FN        = as.factor(FN),
+    compounds = as.factor(compounds)
+  ) 
+df_new_EOL_cp
+
+#Eliminate the FN and state for which the values of the three replicates were = 0
+df_counts <-
+  df_new_EOL_cp %>%
+  group_by(FN, compounds, state) %>%
+  summarise(
+    n_zero = sum(!is.na(values_corr) & values_corr == 0),
+    .groups = "drop"
+  )
+
+metals <- c("Ag", "As", "Al", "Fe", "Cu", "Mn", "Zn")
+
+compounds_ok <- df_counts %>%
+  group_by(FN, compounds) %>%
+  filter(
+    all(
+      n_zero < if_else(first(compounds) %in% metals, 3L, 3L)
+    )
+  ) %>%
+  ungroup() %>%
+  distinct(FN, compounds)
+
+compounds_ok
+
+df_new_EOL_cp_ok <-
+  df_new_EOL_cp %>%
+  semi_join(compounds_ok, by = c("FN", "compounds"))
+df_new_EOL_cp_ok
+
+results_tests <-
+  df_new_EOL_cp_ok %>%
+  group_by(compounds, FN) %>%
+  group_modify(~{
+    # simple one-way model: values_corr ~ state
+    mod <- lm(values_corr ~ state, data = .x)
+    
+    # Shapiro–Wilk on residuals (normality)
+    shapiro_p <- shapiro.test(residuals(mod))$p.value
+    
+    # Levene’s test (homogeneity of variance across states)
+    lev_p <- leveneTest(values_corr ~ state, data = .x)$`Pr(>F)`[1]
+    
+    tibble(
+      shapiro_p = shapiro_p,
+      levene_p  = lev_p,
+      n         = n_distinct(.x$state)
+    )
+  }) %>%
+  ungroup()
+results_tests
+
+# One MWU test per FN × compounds, comparing new vs EOL
+tt_results_cp <- df_new_EOL_cp_ok %>% 
+  group_by(FN, compounds) %>% 
+  summarise(
+    tt = list(t.test(values_corr ~ state, var.equal = T)),  # Mann-Whitney
+    .groups = "drop"
+  ) %>% 
+  mutate(
+    tt_tidy = map(tt, broom::tidy)
+  ) %>% 
+  unnest(tt_tidy) %>% 
+  mutate(
+    diff = if_else(p.value < 0.0001, "****", 
+                   if_else(p.value < 0.001, "***",
+                           if_else(p.value < 0.01, "**",
+                                   if_else(p.value < 0.05, "*", "ns"))))
+  ) 
+tt_results_cp
+
+```
+
+#Visualizations
+```{r First visualization}
+G_comp_cat <- Comp_cat %>% ggplot(aes(x = rep, y = values, fill = state)) + 
+  geom_col(position = position_dodge()) +
+  facet_grid(compounds~FN, scales = "free")
+G_comp_cat
+
+# G_all <- data2 %>% ggplot(aes(x = rep, y = values, fill = state)) + 
+#   geom_col(position = position_dodge()) +
+#   facet_grid(compounds~FN, scales = "free")
+# G_all
+
+G_avg <- data_avg %>% 
+  mutate(state = if_else(is.na(state), "blank", state)) %>% 
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) %>%
+  ggplot(aes(x = state, y = avg, fill = FN)) + 
+  geom_col(position = position_dodge()) +
+  geom_errorbar(aes(ymin = avg, ymax = avg + sd), 
+                position = position_dodge(width = 0.9), 
+                width = 0.2) +
+  scale_fill_viridis_d(option = "turbo") +
+  facet_wrap(~compounds, scales = "free")
+G_avg
+
+G_avg_cat <- data_avg_cat %>% 
+  mutate(state = if_else(is.na(state), "blank", state)) %>% 
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) %>%
+  ggplot(aes(x = state, y = avg, fill = FN)) + 
+  geom_col(position = position_dodge()) +
+  geom_errorbar(aes(ymin = avg, ymax = avg + sd), 
+                position = position_dodge(width = 0.9), 
+                width = 0.2) +
+  scale_fill_viridis_d(option = "turbo") +
+  facet_wrap(~compounds, scales = "free")
+G_avg_cat
+
+G_avg_corr <- data_avg_corr %>% 
+  mutate(compounds = case_when(
+      compounds == "acenaphtene" ~ "Acenaphtene",
+      compounds == "acenaphtylene" ~ "Acenaphtylene",
+      compounds == "anthracene" ~ "Anthracene",
+      compounds == "benzo(ghi)péryléne" ~ "Benzo(ghi)perylene",
+      compounds == "benzo[b+k]fluoranthene" ~ "Benzo[b+k]fluoranthene",
+      compounds == "benzoaanthracene" ~ "Benzo[a]anthracene",
+      compounds == "benzoepyrene" ~ "Benzo[e]pyrene",
+      compounds == "benzothiophene" ~ "Benzothiophene",
+      compounds == "biphenyl" ~ "Biphenyl",
+      compounds == "chrysene" ~ "Chrysene",
+      compounds == "dibenzoahanthracene" ~ "Dibenzo[a,h]anthracene",
+      compounds == "fluoranthene" ~ "Fluoranthene",
+      compounds == "fluorene" ~ "Fluorene",
+      compounds == "indeno123cdpyrene" ~ "Indeno[1,2,3-cd]pyrene",
+      compounds == "naphtalene" ~ "Naphtalene",
+      compounds == "pyrene" ~ "Pyrene",
+      compounds == "4-tOP" ~ "4-tert-Octylphenol",
+      compounds == "Nonylphénols" ~ "Nonylphenols",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(compounds = factor(compounds, levels = c(
+      "Acenaphtene", "Acenaphtylene", "Anthracene", "Benzo[e]pyrene", "Benzo(ghi)perylene", "Benzo[b+k]fluoranthene", "Benzo[a]anthracene", "Benzothiophene", "Biphenyl", "Chrysene", "Dibenzo[a,h]anthracene", "Dibenzothiophene", "Fluoranthene", "Fluorene", "Indeno[1,2,3-cd]pyrene", "Phenanthrene", "Naphtalene", "Pyrene",
+      "BDE 28", "BDE 47", "BDE 99", "BDE 100", "BDE 153", "BDE 154", "BDE 183",
+      "ATBC", "BBP", "DBP", "DEHA", "DEHP", "DEP", "DMP",
+      "4-tert-Octylphenol", "Nonylphenols"))) %>% 
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) %>%
+  ggplot(aes(x = state, y = avg_corr, fill = FN)) + 
+  geom_col(position = position_dodge()) +
+  #scale_fill_viridis_d(option = "turbo") +
+  geom_errorbar(aes(ymin = avg_corr, ymax = avg_corr + sd_corr), 
+                position = position_dodge(width = 0.9), 
+                width = 0.2) +
+  scale_fill_manual(values = Color_real_FN5) +
+  facet_wrap(~compounds, scales = "free") +
+  labs(
+    # title = "Concentrations of organic compounds in fishing net extracts",
+    #    subtitle = "Values corrected by average blank (n = 4) subtraction\n",
+       x = "State of the FNs", 
+       y = "Average concentration (µg/L)", 
+       fill = "Fishing net\nextracts") +
+  theme_bw() +
+  theme(
+    axis.text.x = ggtext::element_markdown(size = 16, face = 'bold', angle = 0, hjust = 1),
+    axis.text.y = ggtext::element_markdown(size = 16, face = 'bold'),
+    axis.title.x = element_text(size = 15, face = "bold"),
+    axis.title.y = element_text(size = 15, face = "bold"),
+    title = element_text(size = 18, face = "bold"),
+    strip.text = element_text(face = "bold", size = rel(1.2)),
+    legend.position = "right",
+    legend.spacing.y = unit(0.3, 'cm'),
+    legend.text = element_text(size = 16, face = 'bold', color = "black"),
+    legend.key.size = unit(0.85, "cm"),
+    legend.key.width = unit(1, "cm"),
+    legend.title.align = 0,
+    legend.title = element_text(size = 16, face = "bold"),
+    plot.margin = unit(c(1, 1, 1, 1), "cm"),
+    legend.key.spacing.y = unit(0.3, "cm")
+  ) 
+G_avg_corr
+
+G_avg_corr_cat <- metal_orga %>% 
+  mutate(compounds = case_when(
+      compounds == "AKP" ~ "Alkylphenols",
+      compounds == "AKP_NP" ~ "Alkylphenols without Nonylphenols",
+      compounds == "HAP" ~ "PAHs",
+      compounds == "PBDE" ~ "PBDEs",
+      compounds == "Phtalates" ~ "Phthalates",
+      compounds == "metals" ~ "Trace metals",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(compounds = factor(compounds, levels = c(
+      "PAHs", "PBDEs", "Phthalates", "Alkylphenols", "Alkylphenols without Nonylphenols", "Trace metals"))) %>%
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) %>%
+  filter(compounds != "Alkylphenols", FN != "blank") %>%
+  mutate(compounds = if_else(compounds == "Alkylphenols without Nonylphenols", "Alkylphenols", compounds)) %>%
+  ggplot(aes(x = state, y = values_corr, color = compounds, shape = rep, group = compounds)) + 
+  scale_y_log10(
+    breaks = c(0.1, 1, 10, 100, 1000),          # Set your desired breaks
+    labels = label_number(trim = TRUE)           # Remove scientific format
+  ) +
+  geom_point(position = position_dodge(width = 0.7), 
+    size = 4) +
+  scale_shape_manual(values = c(19, 18, 17)) + 
+  #scale_color_viridis_d(option = "turbo") +
+  scale_color_manual(
+    values = c(
+      "PAHs" = "#1ae4b6",              # Dark goldenrod
+      "PBDEs" = "#4686fb",             # Steel blue
+      "Phthalates" = "#faba39",        # Vivid red
+      "Alkylphenols" = "#770000",      # Strong green
+      "Trace metals" = "#B12090FF"      # Strong green
+    )) +
+  #scale_fill_manual(values = Color_real_FN5) +
+  facet_wrap(~FN) +
+  labs(#title = "Concentrations of organic compounds in fishing net extracts",
+       #subtitle = "Values corrected by average blank (n = 4) subtraction\n",
+       x = "State of the FNs", 
+       y = "Average concentration (µg/L)", 
+       fill = "Organic compounds") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = -4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 15, face = "bold"),
+        axis.text.y = element_text(size = 15, face = 'bold'),
+        title = element_text(size = 18, face = "bold", margin = margin(t = 0, r = 0, b = 20, l = 0)),
+        strip.text = element_text(face = "bold", size = rel(1.5)),
+        strip.background = element_rect(fill = "grey", color = "grey", linewidth = 0.1),
+        legend.title= element_text(size = 18, face = "bold", vjust = 1, margin = margin(t = 0, r = 5, b = 10, l = 0)),
+        legend.text = element_text(size = 18),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.spacing.y = unit(0.5, 'cm'),
+        legend.key.spacing.y = unit(0.2, "cm"),
+        legend.position="right",
+        panel.spacing = unit(2, "lines"),
+        plot.margin = unit(c(1, 1, 2, 1), "cm")) +
+  guides(
+    color = guide_legend(title = "Plastic chemical \ncategories", order = 1),
+    shape = guide_legend(title = "Replicates", order = 2))
+G_avg_corr_cat
+
+G_avg_corr_cat2 <- metal_orga %>% 
+  #avg and sd with reframe
+  group_by(FN, state, compounds) %>%
+  reframe(
+    n = n(),
+    avg_corr = mean(values_corr, na.rm = T),
+    sd_corr = sd(values_corr, na.rm = T)) %>%
+  mutate(avg_corr = if_else(avg_corr <1, avg_corr+1, avg_corr),
+         sd_corr = if_else(sd_corr <1, sd_corr+1, sd_corr)) %>%
+  mutate(avg_corr_log = log10(avg_corr),
+         sd_corr_log = log10(sd_corr)) %>%
+  mutate(compounds = case_when(
+      compounds == "AKP" ~ "Alkylphenols",
+      compounds == "AKP_NP" ~ "Alkylphenols without Nonylphenols",
+      compounds == "HAP" ~ "PAHs",
+      compounds == "PBDE" ~ "PBDEs",
+      compounds == "Phtalates" ~ "Phthalates",
+      compounds == "metals" ~ "Trace metals",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(compounds = factor(compounds, levels = c(
+      "PAHs", "PBDEs", "Phthalates", "Alkylphenols", "Alkylphenols without Nonylphenols", "Trace metals"))) %>%
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) %>%
+  filter(compounds != "Alkylphenols without Nonylphenols", FN != "blank") %>%
+  #mutate(compounds = if_else(compounds == "Alkylphenols without Nonylphenols", "Alkylphenols", compounds)) %>%
+  ggplot(aes(x = state, y = avg_corr, 
+             fill = compounds 
+             #shape = rep, 
+             #group = compounds
+             )) + 
+  scale_y_log10(
+    breaks = c(0.1, 1, 10, 100, 1000),          # Set your desired breaks
+    labels = label_number(trim = TRUE)           # Remove scientific format
+  ) +
+  geom_col(position = position_dodge(width = 0.5), 
+    width = 0.5) +
+  geom_errorbar(aes(ymin = avg_corr, ymax = if_else(avg_corr > 1, avg_corr + sd_corr, avg_corr)), 
+                position = position_dodge(width = 0.5), 
+                width = 0.2) + 
+  #scale_color_viridis_d(option = "turbo") +
+  scale_color_manual(
+    values = c(
+      "PAHs" = "#1ae4b6",              # Dark goldenrod
+      "PBDEs" = "#4686fb",             # Steel blue
+      "Phthalates" = "#faba39",        # Vivid red
+      "Alkylphenols" = "#770000",      # Strong green
+      "Trace metals" = "#B12090FF"      # Strong green
+    )) +
+  #scale_fill_manual(values = Color_real_FN5) +
+  facet_wrap(~FN) +
+  labs(#title = "Concentrations of organic compounds in fishing net extracts",
+       #subtitle = "Values corrected by average blank (n = 4) subtraction\n",
+       x = "State of the FNs", 
+       y = "Average concentration (µg/L)", 
+       fill = "Organic compounds") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = -4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 15, face = "bold"),
+        axis.text.y = element_text(size = 15, face = 'bold'),
+        title = element_text(size = 18, face = "bold", margin = margin(t = 0, r = 0, b = 20, l = 0)),
+        strip.text = element_text(face = "bold", size = rel(1.5)),
+        strip.background = element_rect(fill = "grey", color = "grey", linewidth = 0.1),
+        legend.title= element_text(size = 18, face = "bold", vjust = 1, margin = margin(t = 0, r = 5, b = 10, l = 0)),
+        legend.text = element_text(size = 18),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.spacing.y = unit(0.5, 'cm'),
+        legend.key.spacing.y = unit(0.2, "cm"),
+        legend.position="right",
+        panel.spacing = unit(2, "lines"),
+        plot.margin = unit(c(1, 1, 2, 1), "cm")) +
+  guides(
+    color = guide_legend(title = "Plastic chemical \ncategories", order = 1),
+    shape = guide_legend(title = "Replicates", order = 2))
+G_avg_corr_cat2
+
+```
+
+```{r visualization by compounds orga}
+df_prepa_raw <- data_avg_corr %>% 
+  mutate(compounds = case_when(
+      compounds == "acenaphtene" ~ "Acenaphtene",
+      compounds == "acenaphtylene" ~ "Acenaphtylene",
+      compounds == "anthracene" ~ "Anthracene",
+      compounds == "benzo(ghi)péryléne" ~ "Benzo(ghi)perylene",
+      compounds == "benzo[b+k]fluoranthene" ~ "Benzo[b+k]fluoranthene",
+      compounds == "benzoaanthracene" ~ "Benzo[a]anthracene",
+      compounds == "benzoepyrene" ~ "Benzo[e]pyrene",
+      compounds == "benzothiophene" ~ "Benzothiophene",
+      compounds == "biphenyl" ~ "Biphenyl",
+      compounds == "chrysene" ~ "Chrysene",
+      compounds == "dibenzoahanthracene" ~ "Dibenzo[a,h]anthracene",
+      compounds == "fluoranthene" ~ "Fluoranthene",
+      compounds == "fluorene" ~ "Fluorene",
+      compounds == "indeno123cdpyrene" ~ "Indeno[1,2,3-cd]pyrene",
+      compounds == "naphtalene" ~ "Naphthalene",
+      compounds == "pyrene" ~ "Pyrene",
+      compounds == "4-tOP" ~ "4-tert-Octylphenol",
+      compounds == "Nonylphénols" ~ "Nonylphenols",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(compounds = factor(compounds, levels = c(
+      "Acenaphtene", "Acenaphtylene", "Anthracene", "Benzo[e]pyrene", "Benzo(ghi)perylene", "Benzo[b+k]fluoranthene", "Benzo[a]anthracene", "Benzothiophene", "Biphenyl", "Chrysene", "Dibenzo[a,h]anthracene", "Dibenzothiophene", "Fluoranthene", "Fluorene", "Indeno[1,2,3-cd]pyrene", "Phenanthrene", "Naphthalene", "Pyrene",
+      "BDE 28", "BDE 47", "BDE 99", "BDE 100", "BDE 153", "BDE 154", "BDE 183",
+      "ATBC", "BBP", "DBP", "DEHA", "DEHP", "DEP", "DMP",
+      "4-tert-Octylphenol", "Nonylphenols"))) %>% 
+  mutate(state = if_else(is.na(state), "blank", state)) %>%
+  mutate(state = factor(state, levels = c("blank", "new", "EOL")))  
+df_prepa_raw
+
+G_compounds <- df_prepa_raw %>% 
+  filter(FN != "blank") %>%
+  ggplot(aes(x = state, y = avg_corr, fill = FN)) +
+  geom_col(
+    width = 0.8,
+    position = position_dodge(width = 0.8)
+  ) +
+  geom_errorbar(
+    aes(ymin = avg_corr, ymax = avg_corr + sd_corr),
+    position = position_dodge(width = 0.8),
+    width = 0.2
+  ) +
+  scale_fill_viridis_d(option = "turbo") +
+  facet_wrap(~compounds, scales = "free_y") +
+  ## add some headroom above the tallest bar/errorbar
+  #scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
+  labs(
+    x = "State of the FNs",
+    y = "Average concentration (ng/L)",
+    fill = "Fishing net\nextracts"
+  ) +
+  theme_bw() +
+  theme(
+    axis.title.x = element_text(size = 18, face = "bold", vjust = -4,
+                                margin = margin(t = 0, r = 5, b = 0, l = 0)),
+    axis.title.y = element_text(size = 18, face = "bold", vjust = 4,
+                                margin = margin(t = 0, r = 5, b = 0, l = 0)),
+    axis.text.x  = element_text(size = 15, face = "bold"),
+    axis.text.y  = element_text(size = 15, face = "bold"),
+    strip.text   = element_text(face = "bold", size = rel(1.3)),
+    legend.title = element_text(size = 18, face = "bold", vjust = 1,
+                                margin = margin(t = 0, r = 5, b = 10, l = 0)),
+    legend.text  = element_text(size = 18),
+    legend.spacing.x = unit(0.5, "cm"),
+    legend.spacing.y = unit(0.5, "cm"),
+    legend.key.spacing.y = unit(0.2, "cm"),
+    legend.position = "right",
+    plot.margin = unit(c(1, 1, 2, 1), "cm")
+  ) 
+G_compounds
+
+#graph without blank correction
+df_prepa_raw <- data_avg_corr %>% 
+  mutate(compounds = case_when(
+      compounds == "acenaphtene" ~ "Acenaphtene",
+      compounds == "acenaphtylene" ~ "Acenaphtylene",
+      compounds == "anthracene" ~ "Anthracene",
+      compounds == "benzo(ghi)péryléne" ~ "Benzo(ghi)perylene",
+      compounds == "benzo[b+k]fluoranthene" ~ "Benzo[b+k]fluoranthene",
+      compounds == "benzoaanthracene" ~ "Benzo[a]anthracene",
+      compounds == "benzoepyrene" ~ "Benzo[e]pyrene",
+      compounds == "benzothiophene" ~ "Benzothiophene",
+      compounds == "biphenyl" ~ "Biphenyl",
+      compounds == "chrysene" ~ "Chrysene",
+      compounds == "dibenzoahanthracene" ~ "Dibenzo[a,h]anthracene",
+      compounds == "fluoranthene" ~ "Fluoranthene",
+      compounds == "fluorene" ~ "Fluorene",
+      compounds == "indeno123cdpyrene" ~ "Indeno[1,2,3-cd]pyrene",
+      compounds == "naphtalene" ~ "Naphthalene",
+      compounds == "pyrene" ~ "Pyrene",
+      compounds == "4-tOP" ~ "4-tert-Octylphenol",
+      compounds == "Nonylphénols" ~ "Nonylphenols",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(compounds = factor(compounds, levels = c(
+      "Acenaphtene", "Acenaphtylene", "Anthracene", "Benzo[e]pyrene", "Benzo(ghi)perylene", "Benzo[b+k]fluoranthene", "Benzo[a]anthracene", "Benzothiophene", "Biphenyl", "Chrysene", "Dibenzo[a,h]anthracene", "Dibenzothiophene", "Fluoranthene", "Fluorene", "Indeno[1,2,3-cd]pyrene", "Phenanthrene", "Naphthalene", "Pyrene",
+      "BDE 28", "BDE 47", "BDE 99", "BDE 100", "BDE 153", "BDE 154", "BDE 183",
+      "ATBC", "BBP", "DBP", "DEHA", "DEHP", "DEP", "DMP",
+      "4-tert-Octylphenol", "Nonylphenols"))) %>% 
+  mutate(state = if_else(is.na(state), "blank", state)) %>%
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) 
+df_prepa_raw
+
+tt_results_Gcp <- tt_results_cp %>%  dplyr::select(FN, compounds, diff) %>% 
+  # duplicate each row exactly 2 times
+  slice(rep(row_number(), each = 2)) %>% 
+  # create the new variable with values "new" and "EOL"
+  mutate(state = rep(c("new", "EOL"), times = nrow(tt_results_cp))) %>% 
+  #mutate(diff = if_else(state == "new", "ns", diff)) %>% 
+  arrange(compounds) %>% 
+  group_by(compounds) %>% 
+  filter(any(diff != "ns")) %>%  # keep compounds with at least one non-"ns"
+  ungroup() %>% 
+  mutate(compounds = case_when(
+      compounds == "acenaphtene" ~ "Acenaphtene",
+      compounds == "acenaphtylene" ~ "Acenaphtylene",
+      compounds == "anthracene" ~ "Anthracene",
+      compounds == "benzo(ghi)péryléne" ~ "Benzo(ghi)perylene",
+      compounds == "benzo[b+k]fluoranthene" ~ "Benzo[b+k]fluoranthene",
+      compounds == "benzoaanthracene" ~ "Benzo[a]anthracene",
+      compounds == "benzoepyrene" ~ "Benzo[e]pyrene",
+      compounds == "benzothiophene" ~ "Benzothiophene",
+      compounds == "biphenyl" ~ "Biphenyl",
+      compounds == "chrysene" ~ "Chrysene",
+      compounds == "dibenzoahanthracene" ~ "Dibenzo[a,h]anthracene",
+      compounds == "fluoranthene" ~ "Fluoranthene",
+      compounds == "fluorene" ~ "Fluorene",
+      compounds == "indeno123cdpyrene" ~ "Indeno[1,2,3-cd]pyrene",
+      compounds == "naphtalene" ~ "Naphthalene",
+      compounds == "pyrene" ~ "Pyrene",
+      compounds == "4-tOP" ~ "4-tert-Octylphenol",
+      compounds == "Nonylphénols" ~ "Nonylphenols",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(state = factor(state, levels = c("new", "EOL")))
+tt_results_Gcp
+
+# match names and states between tables
+results_KW_lab <- results_KW_blc_cp  %>% 
+  mutate(compounds = case_when(
+      compounds == "acenaphtene" ~ "Acenaphtene",
+      compounds == "acenaphtylene" ~ "Acenaphtylene",
+      compounds == "anthracene" ~ "Anthracene",
+      compounds == "benzo(ghi)péryléne" ~ "Benzo(ghi)perylene",
+      compounds == "benzo[b+k]fluoranthene" ~ "Benzo[b+k]fluoranthene",
+      compounds == "benzoaanthracene" ~ "Benzo[a]anthracene",
+      compounds == "benzoepyrene" ~ "Benzo[e]pyrene",
+      compounds == "benzothiophene" ~ "Benzothiophene",
+      compounds == "biphenyl" ~ "Biphenyl",
+      compounds == "chrysene" ~ "Chrysene",
+      compounds == "dibenzoahanthracene" ~ "Dibenzo[a,h]anthracene",
+      compounds == "fluoranthene" ~ "Fluoranthene",
+      compounds == "fluorene" ~ "Fluorene",
+      compounds == "indeno123cdpyrene" ~ "Indeno[1,2,3-cd]pyrene",
+      compounds == "naphtalene" ~ "Naphthalene",
+      compounds == "pyrene" ~ "Pyrene",
+      compounds == "4-tOP" ~ "4-tert-Octylphenol",
+      compounds == "Nonylphénols" ~ "Nonylphenols",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(y_top = case_when(
+      compounds == "Anthracene" ~ 3.2,
+      compounds == "Benzo(ghi)perylene" ~ 6.2,
+      compounds == "Benzo[b+k]fluoranthene" ~ 4.2,
+      compounds == "Benzo[a]anthracene" ~ 7.5,
+      compounds == "Biphenyl" ~ 17,
+      compounds == "Chrysene" ~ 25,
+      compounds == "Fluoranthene" ~ 35,
+      compounds == "Phenanthrene" ~ 60,
+      compounds == "Naphthalene" ~ 38,
+      compounds == "Pyrene" ~ 36,
+      compounds == "ATBC" ~ 42,
+      compounds == "DEHA" ~ 190,
+      compounds == "4-tert-Octylphenol" ~ 17,
+      compounds == "Nonylphenols" ~ 5300,
+      TRUE ~ NA_real_
+  )) %>% 
+  #change order state
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) %>% 
+  mutate(label = if_else(compounds == "Phenanthrene" & state == "EOL", NA, label)) %>% 
+  na.omit()
+
+results_KW_lab
+
+df_cp_stat <- df_prepa_raw %>% 
+  filter(compounds %in% c("Anthracene", "Benzo(ghi)perylene", "Benzo[b+k]fluoranthene","Benzo[a]anthracene", "Biphenyl",
+                          "Chrysene", "Fluoranthene", "Phenanthrene", "Naphthalene", "Pyrene",
+                          "ATBC", "DEHA", 
+                          "Nonylphenols", "4-tert-Octylphenol"))
+df_cp_stat 
+
+pos_dodge <- position_dodge(width = 0.5)
+
+Gcp_no_corr <- df_cp_stat %>% 
+  ggplot(aes(x = FN, y = avg, fill = FN, pattern = state, group = state)) +
+  geom_bar_pattern(
+    stat = "identity",
+    width = 0.5,
+    position = pos_dodge,
+    pattern_density = 0.15,
+    pattern_fill = "white",
+    pattern_color = "white",
+    pattern_spacing = 0.04,
+    show.legend = TRUE
+  ) +
+  geom_errorbar(
+    aes(ymin = avg, ymax = avg + sd),
+    position = pos_dodge,
+    width = 0.2
+  ) +
+  scale_pattern_discrete(
+    na.value = "none",
+    choices = c("new" = "none", "EOL" = "stripe", "blank" = "circle"),
+    limits = c("new", "EOL", "blank")
+  ) +
+  #scale_fill_viridis_d(option = "turbo") +
+  scale_fill_manual(values = Color_real_FN5) +
+  facet_wrap(~compounds, scales = "free_y") +
+  ## add some headroom above the tallest bar/errorbar
+  #scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
+  labs(
+    x = "Fishing nets",
+    y = "Average concentration (µg/L)",
+    fill = "Fishing net",
+    pattern = "State"
+  ) +
+  theme_bw() +
+  theme(
+    axis.title.x = element_text(size = 18, face = "bold"#, vjust = -4,
+                                #margin = margin(t = 0, r = 5, b = 0, l = 0)
+                                ),
+    axis.title.y = element_text(size = 18, face = "bold"#, vjust = -4,
+                                #margin = margin(t = 0, r = 5, b = 0, l = 0)
+                                ),
+    axis.text.x  = element_text(size = 15, face = "bold"),
+    axis.text.y  = element_text(size = 15, face = "bold"),
+    strip.text   = element_text(face = "bold", size = rel(1.5)),
+    legend.title = element_text(size = 18, face = "bold"#, vjust = -4,
+                                #margin = margin(t = 0, r = 5, b = 0, l = 0)
+                                ),
+    legend.text  = element_text(size = 18),
+    legend.spacing.x = unit(0.5, "cm"),
+    legend.spacing.y = unit(0.5, "cm"),
+    legend.key.spacing.y = unit(0.2, "cm"),
+    legend.position = "right"#,
+    #aspect.ratio = 1/2,
+    #plot.margin = grid::unit(c(0.3, 0, 0.7, 0.7), "cm")
+  ) +
+  rotate_x_text(40)
+
+Gcp_no_corr +
+  geom_text(
+    data = results_KW_lab,
+    aes(x = FN, y = y_top, label = label, group = state, hjust = if_else(state == "new", 0.7, 
+                    if_else(state == "EOL", -0.3, 0))),
+    position = pos_dodge,
+    size = 4
+    ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "4-tert-Octylphenol",  # adapt to your facet name if needed
+      xmin       = c(4.88, 6.88, 7.88),
+      xmax       = c(5.12, 7.12, 8.12),
+      y.position = c(6, 9.5, 14),
+      label      = c("**", "***", "**")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Anthracene",  # adapt to your facet name if needed
+      xmin       = c(2.88, 6.88),
+      xmax       = c(3.12, 7.12),
+      y.position = c(0.7, 2.8),
+      label      = c("*", "****")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "ATBC",  # adapt to your facet name if needed
+      xmin       = c(4.88, 6.88),
+      xmax       = c(5.12, 7.12),
+      y.position = c(43, 39),
+      label      = c("**", "**")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Benzo[a]anthracene",  # adapt to your facet name if needed
+      xmin       = c(2.88, 6.88),
+      xmax       = c(3.12, 7.12),
+      y.position = c(1.5, 2.3),
+      label      = c("*", "***")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Benzo[b+k]fluoranthene",  # adapt to your facet name if needed
+      xmin       = c(6.88, 8.88),
+      xmax       = c(7.12, 9.12),
+      y.position = c(3.6, 2),
+      label      = c("**", "**")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Biphenyl",  # adapt to your facet name if needed
+      xmin       = c(5.88),
+      xmax       = c(6.12),
+      y.position = c(3.5),
+      label      = c("**")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Chrysene",  # adapt to your facet name if needed
+      xmin       = c(6.88),
+      xmax       = c(7.12),
+      y.position = c(9),
+      label      = c("*")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "DEHA",  # adapt to your facet name if needed
+      xmin       = c(6.88),
+      xmax       = c(7.12),
+      y.position = c(163),
+      label      = c("*")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Naphthalene",  # adapt to your facet name if needed
+      xmin       = c(6.88, 7.88),
+      xmax       = c(7.12, 8.12),
+      y.position = c(41, 27),
+      label      = c("****", "**")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Phenanthrene",  # adapt to your facet name if needed
+      xmin       = c(3.88, 6.88),
+      xmax       = c(4.12, 7.12),
+      y.position = c(13, 50),
+      label      = c("**", "**")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) 
+
+#-------------------Plot with blank correction-------------
+
+results_KW_lab <- results_KW_nblc_cp  %>% 
+  mutate(compounds = case_when(
+      compounds == "acenaphtene" ~ "Acenaphtene",
+      compounds == "acenaphtylene" ~ "Acenaphtylene",
+      compounds == "anthracene" ~ "Anthracene",
+      compounds == "benzo(ghi)péryléne" ~ "Benzo(ghi)perylene",
+      compounds == "benzo[b+k]fluoranthene" ~ "Benzo[b+k]fluoranthene",
+      compounds == "benzoaanthracene" ~ "Benzo[a]anthracene",
+      compounds == "benzoepyrene" ~ "Benzo[e]pyrene",
+      compounds == "benzothiophene" ~ "Benzothiophene",
+      compounds == "biphenyl" ~ "Biphenyl",
+      compounds == "chrysene" ~ "Chrysene",
+      compounds == "dibenzoahanthracene" ~ "Dibenzo[a,h]anthracene",
+      compounds == "fluoranthene" ~ "Fluoranthene",
+      compounds == "fluorene" ~ "Fluorene",
+      compounds == "indeno123cdpyrene" ~ "Indeno[1,2,3-cd]pyrene",
+      compounds == "naphtalene" ~ "Naphthalene",
+      compounds == "pyrene" ~ "Pyrene",
+      compounds == "4-tOP" ~ "4-tert-Octylphenol",
+      compounds == "Nonylphénols" ~ "Nonylphenols",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(y_top = case_when(
+      compounds == "Anthracene" ~ 3.2,
+      compounds == "Benzo(ghi)perylene" ~ 5.2,
+      compounds == "Benzo[b+k]fluoranthene" ~ 3.8,
+      compounds == "Benzo[a]anthracene" ~ 7.5,
+      compounds == "Biphenyl" ~ 17,
+      compounds == "Chrysene" ~ 25,
+      compounds == "Fluoranthene" ~ 35,
+      compounds == "Phenanthrene" ~ 60,
+      compounds == "Naphthalene" ~ 70,
+      compounds == "Pyrene" ~ 36,
+      compounds == "ATBC" ~ 42,
+      compounds == "DEHA" ~ 190,
+      compounds == "4-tert-Octylphenol" ~ 16,
+      compounds == "Nonylphenols" ~ 4900,
+      TRUE ~ NA_real_
+  )) %>% 
+  #change order state
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) %>% 
+  # mutate(label = if_else(compounds == "Phenanthrene" & state == "EOL", NA, label)) %>% 
+  na.omit()
+
+results_KW_lab
+
+Gcp_no_corr <- df_cp_stat %>% 
+  filter(FN != "blank") %>% 
+  ggplot(aes(x = FN, y = avg_corr, fill = FN, pattern = state, group = state)) +
+  geom_bar_pattern(
+    stat = "identity",
+    width = 0.5,
+    position = pos_dodge,
+    pattern_density = 0.15,
+    pattern_fill = "white",
+    pattern_color = "white",
+    pattern_spacing = 0.04,
+    show.legend = TRUE
+  ) +
+  geom_errorbar(
+    aes(ymin = avg_corr, ymax = avg_corr + sd_corr),
+    position = pos_dodge,
+    width = 0.2
+  ) +
+  scale_pattern_discrete(
+    na.value = "none",
+    choices = c("new" = "none", "EOL" = "stripe"),
+    limits = c("new", "EOL")
+  ) +
+  #scale_fill_viridis_d(option = "turbo") +
+  scale_fill_manual(values = Color_real_FN5) +
+  facet_wrap(~compounds, scales = "free_y") +
+  ## add some headroom above the tallest bar/errorbar
+  #scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
+  labs(
+    x = "Fishing nets",
+    y = "Average concentration (µg/L)",
+    fill = "Fishing net",
+    pattern = "State"
+  ) +
+  theme_bw() +
+  theme(
+    axis.title.x = element_text(size = 20, face = "bold"#, vjust = -4,
+                                #margin = margin(t = 0, r = 5, b = 0, l = 0)
+                                ),
+    axis.title.y = element_text(size = 20, face = "bold"#, vjust = -4,
+                                #margin = margin(t = 0, r = 5, b = 0, l = 0)
+                                ),
+    axis.text.x  = element_text(size = 18, face = "bold"),
+    axis.text.y  = element_text(size = 18, face = "bold"),
+    strip.text   = element_text(face = "bold", size = rel(1.5)),
+    legend.title = element_text(size = 18, face = "bold"#, vjust = -4,
+                                #margin = margin(t = 0, r = 5, b = 0, l = 0)
+                                ),
+    legend.text  = element_text(size = 18),
+    legend.spacing.x = unit(0.5, "cm"),
+    legend.spacing.y = unit(0.5, "cm"),
+    legend.key.spacing.y = unit(0.2, "cm"),
+    legend.position = "right"#,
+    #aspect.ratio = 1/2,
+    #plot.margin = grid::unit(c(0.3, 0, 0.7, 0.7), "cm")
+  ) +
+  rotate_x_text(40)
+
+
+Gcp_no_corr +
+  geom_text(
+    data = results_KW_lab,
+    aes(x = FN, y = y_top, label = label, group = state, hjust = if_else(state == "new", 0.7, 
+                    if_else(state == "EOL", -0.3, 0))),
+    position = pos_dodge,
+    size = 4
+    ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "4-tert-Octylphenol",  # adapt to your facet name if needed
+      xmin       = c(3.88, 5.88, 6.88),
+      xmax       = c(4.12, 6.12, 7.12),
+      y.position = c(5, 8.5, 13),
+      label      = c("**", "***", "**")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Anthracene",  # adapt to your facet name if needed
+      xmin       = c(1.88, 5.88),
+      xmax       = c(2.12, 6.12),
+      y.position = c(0.5, 2.7),
+      label      = c("*", "****")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "ATBC",  # adapt to your facet name if needed
+      xmin       = c(3.88, 5.88),
+      xmax       = c(4.12, 6.12),
+      y.position = c(30, 28),
+      label      = c("**", "**")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Benzo[a]anthracene",  # adapt to your facet name if needed
+      xmin       = c(1.88, 5.88),
+      xmax       = c(2.12, 6.12),
+      y.position = c(1.3, 2.1),
+      label      = c("*", "***")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Benzo[b+k]fluoranthene",  # adapt to your facet name if needed
+      xmin       = c(5.88, 7.88),
+      xmax       = c(6.12, 8.12),
+      y.position = c(3.3, 1.8),
+      label      = c("**", "**")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Biphenyl",  # adapt to your facet name if needed
+      xmin       = c(4.88),
+      xmax       = c(5.12),
+      y.position = c(2.5),
+      label      = c("**")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Chrysene",  # adapt to your facet name if needed
+      xmin       = c(5.88),
+      xmax       = c(6.12),
+      y.position = c(7),
+      label      = c("*")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "DEHA",  # adapt to your facet name if needed
+      xmin       = c(5.88),
+      xmax       = c(6.12),
+      y.position = c(160),
+      label      = c("*")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Naphthalene",  # adapt to your facet name if needed
+      xmin       = c(5.88, 6.88),
+      xmax       = c(6.12, 7.12),
+      y.position = c(38, 24),
+      label      = c("****", "**")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Phenanthrene",  # adapt to your facet name if needed
+      xmin       = c(2.88, 5.88),
+      xmax       = c(3.12, 6.12),
+      y.position = c(13, 50),
+      label      = c("**", "**")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) 
+
+
+```
+
+
+```{r visualization by compounds metals}
+df_prepa_raw <- data_avg_corr %>% 
+  mutate(compounds = case_when(
+      compounds == "acenaphtene" ~ "Acenaphtene",
+      compounds == "acenaphtylene" ~ "Acenaphtylene",
+      compounds == "anthracene" ~ "Anthracene",
+      compounds == "benzo(ghi)péryléne" ~ "Benzo(ghi)perylene",
+      compounds == "benzo[b+k]fluoranthene" ~ "Benzo[b+k]fluoranthene",
+      compounds == "benzoaanthracene" ~ "Benzo[a]anthracene",
+      compounds == "benzoepyrene" ~ "Benzo[e]pyrene",
+      compounds == "benzothiophene" ~ "Benzothiophene",
+      compounds == "biphenyl" ~ "Biphenyl",
+      compounds == "chrysene" ~ "Chrysene",
+      compounds == "dibenzoahanthracene" ~ "Dibenzo[a,h]anthracene",
+      compounds == "fluoranthene" ~ "Fluoranthene",
+      compounds == "fluorene" ~ "Fluorene",
+      compounds == "indeno123cdpyrene" ~ "Indeno[1,2,3-cd]pyrene",
+      compounds == "naphtalene" ~ "Naphtalene",
+      compounds == "pyrene" ~ "Pyrene",
+      compounds == "4-tOP" ~ "4-tert-Octylphenol",
+      compounds == "Nonylphénols" ~ "Nonylphenols",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(compounds = factor(compounds, levels = c(
+      "Acenaphtene", "Acenaphtylene", "Anthracene", "Benzo[e]pyrene", "Benzo(ghi)perylene", "Benzo[b+k]fluoranthene", "Benzo[a]anthracene", "Benzothiophene", "Biphenyl", "Chrysene", "Dibenzo[a,h]anthracene", "Dibenzothiophene", "Fluoranthene", "Fluorene", "Indeno[1,2,3-cd]pyrene", "Phenanthrene", "Naphtalene", "Pyrene",
+      "BDE 28", "BDE 47", "BDE 99", "BDE 100", "BDE 153", "BDE 154", "BDE 183",
+      "ATBC", "BBP", "DBP", "DEHA", "DEHP", "DEP", "DMP",
+      "4-tert-Octylphenol", "Nonylphenols", "Ag", "As", "Al", "Fe", "Cu", "Mn", "Zn"))) %>% 
+  mutate(state = if_else(is.na(state), "blank", state)) %>%
+  mutate(state = factor(state, levels = c("blank", "new", "EOL")))  
+df_prepa_raw
+
+#graph without blank correction
+df_prepa_raw <- data_avg_corr %>% 
+  mutate(compounds = case_when(
+      compounds == "acenaphtene" ~ "Acenaphtene",
+      compounds == "acenaphtylene" ~ "Acenaphtylene",
+      compounds == "anthracene" ~ "Anthracene",
+      compounds == "benzo(ghi)péryléne" ~ "Benzo(ghi)perylene",
+      compounds == "benzo[b+k]fluoranthene" ~ "Benzo[b+k]fluoranthene",
+      compounds == "benzoaanthracene" ~ "Benzo[a]anthracene",
+      compounds == "benzoepyrene" ~ "Benzo[e]pyrene",
+      compounds == "benzothiophene" ~ "Benzothiophene",
+      compounds == "biphenyl" ~ "Biphenyl",
+      compounds == "chrysene" ~ "Chrysene",
+      compounds == "dibenzoahanthracene" ~ "Dibenzo[a,h]anthracene",
+      compounds == "fluoranthene" ~ "Fluoranthene",
+      compounds == "fluorene" ~ "Fluorene",
+      compounds == "indeno123cdpyrene" ~ "Indeno[1,2,3-cd]pyrene",
+      compounds == "naphtalene" ~ "Naphtalene",
+      compounds == "pyrene" ~ "Pyrene",
+      compounds == "4-tOP" ~ "4-tert-Octylphenol",
+      compounds == "Nonylphénols" ~ "Nonylphenols",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(compounds = factor(compounds, levels = c(
+      "Acenaphtene", "Acenaphtylene", "Anthracene", "Benzo[e]pyrene", "Benzo(ghi)perylene", "Benzo[b+k]fluoranthene", "Benzo[a]anthracene", "Benzothiophene", "Biphenyl", "Chrysene", "Dibenzo[a,h]anthracene", "Dibenzothiophene", "Fluoranthene", "Fluorene", "Indeno[1,2,3-cd]pyrene", "Phenanthrene", "Naphtalene", "Pyrene",
+      "BDE 28", "BDE 47", "BDE 99", "BDE 100", "BDE 153", "BDE 154", "BDE 183",
+      "ATBC", "BBP", "DBP", "DEHA", "DEHP", "DEP", "DMP",
+      "4-tert-Octylphenol", "Nonylphenols", "Ag", "As", "Al", "Fe", "Cu", "Mn", "Zn"))) %>% 
+  mutate(state = if_else(is.na(state), "blank", state)) %>%
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) 
+df_prepa_raw
+
+tt_results_Gcp <- tt_results_cp %>%  dplyr::select(FN, compounds, diff) %>% 
+  # duplicate each row exactly 2 times
+  slice(rep(row_number(), each = 2)) %>% 
+  # create the new variable with values "new" and "EOL"
+  mutate(state = rep(c("new", "EOL"), times = nrow(tt_results_cp))) %>% 
+  #mutate(diff = if_else(state == "new", "ns", diff)) %>% 
+  arrange(compounds) %>% 
+  group_by(compounds) %>% 
+  filter(any(diff != "ns")) %>%  # keep compounds with at least one non-"ns"
+  ungroup() %>% 
+  mutate(compounds = case_when(
+      compounds == "acenaphtene" ~ "Acenaphtene",
+      compounds == "acenaphtylene" ~ "Acenaphtylene",
+      compounds == "anthracene" ~ "Anthracene",
+      compounds == "benzo(ghi)péryléne" ~ "Benzo(ghi)perylene",
+      compounds == "benzo[b+k]fluoranthene" ~ "Benzo[b+k]fluoranthene",
+      compounds == "benzoaanthracene" ~ "Benzo[a]anthracene",
+      compounds == "benzoepyrene" ~ "Benzo[e]pyrene",
+      compounds == "benzothiophene" ~ "Benzothiophene",
+      compounds == "biphenyl" ~ "Biphenyl",
+      compounds == "chrysene" ~ "Chrysene",
+      compounds == "dibenzoahanthracene" ~ "Dibenzo[a,h]anthracene",
+      compounds == "fluoranthene" ~ "Fluoranthene",
+      compounds == "fluorene" ~ "Fluorene",
+      compounds == "indeno123cdpyrene" ~ "Indeno[1,2,3-cd]pyrene",
+      compounds == "naphtalene" ~ "Naphtalene",
+      compounds == "pyrene" ~ "Pyrene",
+      compounds == "4-tOP" ~ "4-tert-Octylphenol",
+      compounds == "Nonylphénols" ~ "Nonylphenols",
+      TRUE ~ compounds
+      )) 
+tt_results_Gcp
+
+
+#-------------------Plot with blank correction-------------
+
+results_KW_lab <- results_KW_nblc_cp  %>% 
+  mutate(y_top = case_when(
+      compounds == "Ag" & state == "new" ~ 50,
+      compounds == "Ag" & state == "EOL" ~ 55,
+      # compounds == "Al" & state == "new" ~ 300,
+      # compounds == "Al" & state == "EOL" ~ 320,
+      # compounds == "As" & state == "new" ~ 110,
+      compounds == "As" & state == "EOL" ~ 130,
+      compounds == "Cu" & state == "new" ~ 880,
+      compounds == "Cu" & state == "EOL" ~ 1000,
+      compounds == "Fe" & state == "new" ~ 360,
+      compounds == "Fe" & state == "EOL" ~ 410,
+      compounds == "Mn" & state == "new" ~ 155,
+      compounds == "Mn" & state == "EOL" ~ 180,
+      compounds == "Zn" & state == "new" ~ 1500,
+      compounds == "Zn" & state == "EOL" ~ 1700,
+      TRUE ~ NA_real_
+  )) %>% 
+  #change order state
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) %>% 
+  na.omit()
+
+results_KW_lab
+
+Gcp_no_corr <- df_cp_stat %>% 
+  filter(FN != "blank") %>% 
+  ggplot(aes(x = FN, y = avg_corr, fill = FN, pattern = state, group = state)) +
+  geom_bar_pattern(
+    stat = "identity",
+    width = 0.5,
+    position = pos_dodge,
+    pattern_density = 0.15,
+    pattern_fill = "white",
+    pattern_color = "white",
+    pattern_spacing = 0.04,
+    show.legend = TRUE
+  ) +
+  geom_errorbar(
+    aes(ymin = avg_corr, ymax = avg_corr + sd_corr),
+    position = pos_dodge,
+    width = 0.2
+  ) +
+  scale_pattern_discrete(
+    na.value = "none",
+    choices = c("new" = "none", "EOL" = "stripe"),
+    limits = c("new", "EOL")
+  ) +
+  #scale_fill_viridis_d(option = "turbo") +
+  scale_fill_manual(values = Color_real_FN5) +
+  facet_wrap(~compounds, scales = "free_y") +
+  ## add some headroom above the tallest bar/errorbar
+  #scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
+  labs(
+    x = "Fishing net",
+    y = "Average concentration (µg/L)",
+    fill = "Fishing net",
+    pattern = "State"
+  ) +
+  theme_bw() +
+  theme(
+    axis.title.x = element_text(size = 18, face = "bold", vjust = -4,
+                                margin = margin(t = 0, r = 5, b = 0, l = 0)),
+    axis.title.y = element_text(size = 18, face = "bold", vjust = 4,
+                                margin = margin(t = 0, r = 5, b = 0, l = 0)),
+    axis.text.x  = element_text(size = 15, face = "bold"),
+    axis.text.y  = element_text(size = 15, face = "bold"),
+    strip.text   = element_text(face = "bold", size = rel(1.5)),
+    legend.title = element_text(size = 18, face = "bold", vjust = 1,
+                                margin = margin(t = 0, r = 5, b = 10, l = 0)),
+    legend.text  = element_text(size = 18),
+    legend.spacing.x = unit(0.5, "cm"),
+    legend.spacing.y = unit(0.5, "cm"),
+    legend.key.spacing.y = unit(0.2, "cm"),
+    legend.position = "right",
+    plot.margin = unit(c(1, 1, 1, 1), "cm")
+  ) +
+  rotate_x_text(30)
+
+tt_results_cp_plot <- tt_results_cp %>% 
+  filter(compounds %in% c("Ag", "As", "Al", "Fe", "Cu", "Mn", "Zn")) %>% 
+  dplyr::select(FN, compounds, diff) %>% 
+  filter(diff != "ns") %>% 
+  arrange(compounds)
+tt_results_cp_plot
+
+Gcp_no_corr +
+  geom_text(
+    data = results_KW_lab,
+    aes(x = FN, y = y_top, label = label, group = state, hjust = if_else(state == "new", 0.7, 
+                    if_else(state == "EOL", 0, 0))),
+    position = pos_dodge,
+    size = 4
+    ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Ag",  # adapt to your facet name if needed
+      xmin       = c(5.88, 6.88),
+      xmax       = c(6.12, 7.12),
+      y.position = c(37, 14),
+      label      = c("***", "**")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "As",  # adapt to your facet name if needed
+      xmin       = c(5.88),
+      xmax       = c(6.12),
+      y.position = c(30),
+      label      = c("**")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Cu",  # adapt to your facet name if needed
+      xmin       = c(5.88, 6.88),
+      xmax       = c(6.12, 7.12),
+      y.position = c(435, 500),
+      label      = c("***", "**")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+    ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Mn",  # adapt to your facet name if needed
+      xmin       = c(0.88, 5.88, 6.88),
+      xmax       = c(1.12, 6.12, 7.12),
+      y.position = c(125, 135, 75),
+      label      = c("**", "****", "*")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) +
+    ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Zn",  # adapt to your facet name if needed
+      xmin       = c(5.88, 6.88),
+      xmax       = c(6.12, 7.12),
+      y.position = c(1250, 600),
+      label      = c("****", "****")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 4,
+    vjust      = 0.3,
+    tip.length = c(0.03, 0.03),
+    inherit.aes = FALSE
+  ) 
+
+```
+
+
+```{r visualization by large categories orga + metals no publi}
+
+G_avg_corr_cat <- metal_orga %>% 
+  mutate(compounds = case_when(
+      compounds == "AKP" ~ "Alkylphenols",
+      compounds == "AKP_NP" ~ "Alkylphenols without Nonylphenols",
+      compounds == "HAP" ~ "PAHs",
+      compounds == "PBDE" ~ "PBDEs",
+      compounds == "Phtalates" ~ "Phthalates",
+      compounds == "metals" ~ "Trace metals",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(compounds = factor(compounds, levels = c(
+      "PAHs", "PBDEs", "Phthalates", "Alkylphenols", "Alkylphenols without Nonylphenols", "Trace metals"))) %>%
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) %>%
+  filter(compounds != "Alkylphenols", FN != "blank") %>%
+  mutate(compounds = if_else(compounds == "Alkylphenols without Nonylphenols", "Alkylphenols", compounds)) %>%
+  ggplot(aes(x = state, y = values_corr, color = compounds, shape = rep, group = compounds)) + 
+  scale_y_log10(
+    breaks = c(0.1, 1, 10, 100, 1000),          # Set your desired breaks
+    labels = label_number(trim = TRUE)           # Remove scientific format
+  ) +
+  geom_point(position = position_dodge(width = 0.7), 
+    size = 4) +
+  scale_shape_manual(values = c(19, 18, 17)) + 
+  #scale_color_viridis_d(option = "turbo") +
+  scale_color_manual(
+    values = c(
+      "PAHs" = "#1ae4b6",              # Dark goldenrod
+      "PBDEs" = "#4686fb",             # Steel blue
+      "Phthalates" = "#faba39",        # Vivid red
+      "Alkylphenols" = "#770000",      # Strong green
+      "Trace metals" = "#B12090FF"      # Strong green
+    )) +
+  #scale_fill_manual(values = Color_real_FN5) +
+  facet_wrap(~FN) +
+  labs(#title = "Concentrations of organic compounds in fishing net extracts",
+       #subtitle = "Values corrected by average blank (n = 4) subtraction\n",
+       x = "State of the FNs", 
+       y = "Average concentration (µg/L)", 
+       fill = "Organic compounds") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = -4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 15, face = "bold"),
+        axis.text.y = element_text(size = 15, face = 'bold'),
+        title = element_text(size = 18, face = "bold", margin = margin(t = 0, r = 0, b = 20, l = 0)),
+        strip.text = element_text(face = "bold", size = rel(1.5)),
+        strip.background = element_rect(fill = "grey", color = "grey", linewidth = 0.1),
+        legend.title= element_text(size = 18, face = "bold", vjust = 1, margin = margin(t = 0, r = 5, b = 10, l = 0)),
+        legend.text = element_text(size = 18),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.spacing.y = unit(0.5, 'cm'),
+        legend.key.spacing.y = unit(0.2, "cm"),
+        legend.position="right",
+        panel.spacing = unit(2, "lines"),
+        plot.margin = unit(c(1, 1, 2, 1), "cm")) +
+  guides(
+    color = guide_legend(title = "Plastic chemical \ncategories", order = 1),
+    shape = guide_legend(title = "Replicates", order = 2))
+G_avg_corr_cat
+
+G_avg_corr_cat2 <- metal_orga %>% 
+  #avg and sd with reframe
+  group_by(FN, state, compounds) %>%
+  reframe(
+    n = n(),
+    avg_corr = mean(values_corr, na.rm = T),
+    sd_corr = sd(values_corr, na.rm = T)) %>%
+  mutate(avg_corr = if_else(avg_corr <1, avg_corr+1, avg_corr),
+         sd_corr = if_else(sd_corr <1, sd_corr+1, sd_corr)) %>%
+  mutate(avg_corr_log = log10(avg_corr),
+         sd_corr_log = log10(sd_corr)) %>%
+  mutate(compounds = case_when(
+      compounds == "AKP" ~ "Alkylphenols",
+      compounds == "AKP_NP" ~ "Alkylphenols without Nonylphenols",
+      compounds == "HAP" ~ "PAHs",
+      compounds == "PBDE" ~ "PBDEs",
+      compounds == "Phtalates" ~ "Phthalates",
+      compounds == "metals" ~ "Metallic elements",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(compounds = factor(compounds, levels = c(
+      "PAHs", "PBDEs", "Phthalates", "Alkylphenols", "Alkylphenols without Nonylphenols", "Metallic elements"))) %>%
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) %>%
+  filter(compounds != "Alkylphenols without Nonylphenols", 
+         #FN != "blank"
+         ) %>%
+  #mutate(compounds = if_else(compounds == "Alkylphenols without Nonylphenols", "Alkylphenols", compounds)) %>%
+  ggplot(aes(x = state, y = avg_corr, 
+             fill = compounds 
+             #shape = rep, 
+             #group = compounds
+             )) + 
+  scale_y_log10(
+    breaks = c(0.1, 1, 10, 100, 1000),          # Set your desired breaks
+    labels = label_number(trim = TRUE)           # Remove scientific format
+  ) +
+  geom_col(position = position_dodge(width = 0.5), 
+    width = 0.5) +
+  geom_errorbar(aes(ymin = avg_corr, ymax = if_else(avg_corr > 1, avg_corr + sd_corr, avg_corr)), 
+                position = position_dodge(width = 0.5), 
+                width = 0.2) + 
+  #scale_color_viridis_d(option = "turbo") +
+  scale_color_manual(
+    values = c(
+      "PAHs" = "#1ae4b6",              # Dark goldenrod
+      "PBDEs" = "#4686fb",             # Steel blue
+      "Phthalates" = "#faba39",        # Vivid red
+      "Alkylphenols" = "#770000",      # Strong green
+      "Metallic elements" = "#B12090FF"      # Strong green
+    )) +
+  #scale_fill_manual(values = Color_real_FN5) +
+  facet_wrap(~FN) +
+  labs(#title = "Concentrations of organic compounds in fishing net extracts",
+       #subtitle = "Values corrected by average blank (n = 4) subtraction\n",
+       x = "State of the FNs", 
+       y = "Average concentration (µg/L)", 
+       fill = "Organic compounds") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = -4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 15, face = "bold"),
+        axis.text.y = element_text(size = 15, face = 'bold'),
+        title = element_text(size = 18, face = "bold", margin = margin(t = 0, r = 0, b = 20, l = 0)),
+        strip.text = element_text(face = "bold", size = rel(1.5)),
+        strip.background = element_rect(fill = "grey", color = "grey", linewidth = 0.1),
+        legend.title= element_text(size = 18, face = "bold", vjust = 1, margin = margin(t = 0, r = 5, b = 10, l = 0)),
+        legend.text = element_text(size = 18),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.spacing.y = unit(0.5, 'cm'),
+        legend.key.spacing.y = unit(0.2, "cm"),
+        legend.position="right",
+        panel.spacing = unit(2, "lines"),
+        plot.margin = unit(c(1, 1, 2, 1), "cm")) +
+  guides(
+    color = guide_legend(title = "Plastic chemical \ncategories", order = 1),
+    shape = guide_legend(title = "Replicates", order = 2))
+G_avg_corr_cat2
+
+G_avg_corr_cat3 <- metal_orga %>% 
+  #avg and sd with reframe
+  group_by(FN, state, compounds) %>%
+  reframe(
+    n = n(),
+    avg_corr = mean(values_corr, na.rm = T),
+    sd_corr = sd(values_corr, na.rm = T)) %>%
+  mutate(avg_corr = if_else(avg_corr <1, avg_corr+1, avg_corr),
+         sd_corr = if_else(sd_corr <1, sd_corr+1, sd_corr)) %>%
+  mutate(avg_corr_log = log10(avg_corr),
+         sd_corr_log = log10(sd_corr)) %>%
+  mutate(compounds = case_when(
+      compounds == "AKP" ~ "Alkylphenols",
+      compounds == "AKP_NP" ~ "Alkylphenols without Nonylphenols",
+      compounds == "HAP" ~ "PAHs",
+      compounds == "PBDE" ~ "PBDEs",
+      compounds == "Phtalates" ~ "Phthalates",
+      compounds == "Metals" ~ "Metallic elements",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(compounds = factor(compounds, levels = c(
+      "PAHs", "PBDEs", "Phthalates", "Non phthalate plasticizers" ,"Alkylphenols", "Alkylphenols without Nonylphenols", "Metallic elements"))) %>%
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) %>%
+  filter(compounds != "Alkylphenols without Nonylphenols", 
+         #FN != "blank"
+         ) %>%
+  #mutate(compounds = if_else(compounds == "Alkylphenols without Nonylphenols", "Alkylphenols", compounds)) %>%
+  ggplot(aes(x = FN, y = avg_corr, 
+             fill = FN, 
+             pattern = state, 
+             #group = compounds
+             )) + 
+  # scale_y_log10(
+  #   breaks = c(0.1, 1, 10, 100, 1000),          # Set your desired breaks
+  #   labels = label_number(trim = TRUE)           # Remove scientific format
+  # ) +
+  geom_bar_pattern(stat = "identity", width = 0.5, position = position_dodge(width = 0.5), pattern_density = 0.1, 
+                   pattern_fill = "white", pattern_color = "white", pattern_spacing = 0.015, show.legend = T) +
+  scale_pattern_discrete(na.value = "none", 
+                         choices = c("new" = "none", "EOL" = "stripe"), 
+                         limits = c("new", "EOL")) +
+  geom_errorbar(aes(ymin = avg_corr, ymax = if_else(avg_corr > 1, avg_corr + sd_corr, avg_corr)), 
+                position = position_dodge(width = 0.5), linewidth = 1, width = 0.2) + 
+  facet_wrap(~compounds, scales = "free_y") +
+  #scale_fill_viridis_d(option = "turbo") +
+  scale_fill_manual(values = Color_real_FN5) +
+  labs(#title = "Concentrations of organic compounds in fishing net extracts",
+       #subtitle = "Values corrected by average blank (n = 4) subtraction\n",
+       x = "Fishing nets", 
+       y = "Average concentration (µg/L)", 
+       fill = "Fishing nets",
+       pattern = "FN state") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = -4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 15, face = "bold"),
+        axis.text.y = element_text(size = 15, face = 'bold'),
+        strip.text = element_text(face = "bold", size = rel(1.5)),
+        #strip.background = element_rect(fill = "grey", color = "grey", linewidth = 0.1),
+        legend.title= element_text(size = 18, face = "bold", vjust = 1, margin = margin(t = 0, r = 5, b = 10, l = 0)),
+        legend.text = element_text(size = 18),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.spacing.y = unit(0.5, 'cm'),
+        legend.key.spacing.y = unit(0.2, "cm"),
+        legend.position="right",
+        #panel.spacing = unit(2, "lines"),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) +
+  rotate_x_text(angle = 30)
+  #coord_flip()
+G_avg_corr_cat3
+
+tt_results_G <- tt_results %>%  dplyr::select(FN, compounds, diff) %>% 
+  # duplicate each row exactly 2 times
+  slice(rep(row_number(), each = 2)) %>% 
+  # create the new variable with values "new" and "EOL"
+  mutate(state = rep(c("new", "EOL"), times = nrow(tt_results))) %>% 
+  mutate(diff = if_else(state == "new", "ns", diff)) %>% 
+  mutate(compounds = case_when(
+      compounds == "AKP" ~ "Alkylphenols",
+      compounds == "AKP_NP" ~ "Alkylphenols without Nonylphenols",
+      compounds == "HAP" ~ "PAHs",
+      compounds == "PBDE" ~ "PBDEs",
+      compounds == "Phtalates" ~ "Phthalates",
+      compounds == "metals" ~ "Trace metals",
+      TRUE ~ compounds
+      ))
+tt_results_G
+
+results_vs_blank2 <- results_vs_blank %>%
+mutate(stars = if_else(compounds == "AKP", "ns", stars)) %>%
+  mutate(y_stars = case_when(
+           compounds == "AKP" ~ 4900,
+           compounds == "HAP" ~ 190,
+           compounds == "PBDE" ~ 10,
+           compounds == "Metals" ~ 2100,
+           compounds == "Phthalates" ~ 3500,
+           compounds == "Non phthalate plasticizers" ~ 200,
+           TRUE ~ NA_real_)) %>% 
+  mutate(compounds = case_when(
+      compounds == "AKP" ~ "Alkylphenols",
+      compounds == "AKP_NP" ~ "Alkylphenols without Nonylphenols",
+      compounds == "HAP" ~ "PAHs",
+      compounds == "PBDE" ~ "PBDEs",
+      compounds == "Phtalates" ~ "Phthalates",
+      compounds == "Metals" ~ "Metallic elements",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(stars = if_else(stars == "ns", NA, stars)) #%>% 
+  #change order state
+  mutate(state = factor(state, levels = c("blank", "new", "EOL")))
+
+G_avg_corr_cat3 +
+  #add letter stats with results_KW df
+    geom_text(
+    data = results_vs_blank2,
+    aes(x = FN, y = y_stars, label = stars, color = state),
+    position = position_dodge(width = 0.55),
+    #hjust = -0.1,
+    size = 5,
+    color = "red4"
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "PAHs",  # adapt to your facet name if needed
+      xmin       = c(1.88, 2.88, 6.88),
+      xmax       = c(2.12, 3.12, 7.12),
+      y.position = c(35, 35, 170),
+      label      = c("*", "*", "**")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 6,
+    vjust      = 0.3,
+    tip.length = c(0.02, 0.02),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Non phthalate plasticizers",  # adapt to your facet name if needed
+      xmin       = c(6.88),
+      xmax       = c(7.12),
+      y.position = c(190),
+      label      = c("*")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 6,
+    vjust      = 0.3,
+    tip.length = c(0.02, 0.02),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Metallic elements",  # adapt to your facet name if needed
+      xmin       = c(6.88),
+      xmax       = c(7.12),
+      y.position = c(1850),
+      label      = c("***")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 6,
+    vjust      = 0.3,
+    tip.length = c(0.02, 0.02),
+    inherit.aes = FALSE
+  ) 
+
+
+```
+
+```{r visualization by large categories orga + metals publi}
+
+highlights <- metal_orga %>% 
+  mutate(cat = if_else(compounds == "Metals", "Metals", "Organics")) %>%
+  #avg and sd with reframe
+  group_by(FN, state, cat) %>%
+  reframe(
+    n = n(),
+    avg_corr = mean(values_corr, na.rm = T),
+    sd_corr = sd(values_corr, na.rm = T)) %>%
+  mutate(avg_corr = if_else(avg_corr <1, avg_corr+1, avg_corr),
+         sd_corr = if_else(sd_corr <1, sd_corr+1, sd_corr))
+highlights
+
+G_avg_corr_cat3 <- metal_orga %>% 
+  #avg and sd with reframe
+  group_by(FN, state, compounds) %>%
+  reframe(
+    n = n(),
+    avg_corr = mean(values_corr, na.rm = T),
+    sd_corr = sd(values_corr, na.rm = T)) %>%
+  mutate(avg_corr = if_else(avg_corr <1, avg_corr+1, avg_corr),
+         sd_corr = if_else(sd_corr <1, sd_corr+1, sd_corr)) %>%
+  mutate(avg_corr_log = log10(avg_corr),
+         sd_corr_log = log10(sd_corr)) %>%
+  mutate(compounds = case_when(
+      compounds == "AKP" ~ "Alkylphenols",
+      compounds == "AKP_NP" ~ "Alkylphenols without Nonylphenols",
+      compounds == "HAP" ~ "PAHs",
+      compounds == "PBDE" ~ "PBDEs",
+      compounds == "Phtalates" ~ "Phthalates",
+      compounds == "Metals" ~ "Metallic elements",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(compounds = factor(compounds, levels = c(
+      "PAHs", "PBDEs", "Phthalates", "Non phthalate plasticizers" ,"Alkylphenols", "Alkylphenols without Nonylphenols", "Metallic elements"))) %>%
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) %>%
+  filter(compounds != "Alkylphenols without Nonylphenols", 
+         #FN != "blank"
+         ) %>%
+  #mutate(compounds = if_else(compounds == "Alkylphenols without Nonylphenols", "Alkylphenols", compounds)) %>%
+  ggplot(aes(x = FN, y = avg_corr, 
+             fill = FN, 
+             pattern = state, 
+             #group = compounds
+             )) + 
+  # scale_y_log10(
+  #   breaks = c(0.1, 1, 10, 100, 1000),          # Set your desired breaks
+  #   labels = label_number(trim = TRUE)           # Remove scientific format
+  # ) +
+  geom_bar_pattern(stat = "identity", width = 0.5, position = position_dodge(width = 0.5), pattern_density = 0.1, 
+                   pattern_fill = "white", pattern_color = "white", pattern_spacing = 0.015, show.legend = T) +
+  scale_pattern_discrete(na.value = "none", 
+                         choices = c("new" = "none", "EOL" = "stripe"), 
+                         limits = c("new", "EOL")) +
+  geom_errorbar(aes(ymin = avg_corr, ymax = if_else(avg_corr > 1, avg_corr + sd_corr, avg_corr)), 
+                position = position_dodge(width = 0.5), linewidth = 1, width = 0.2) + 
+  facet_wrap(~compounds, scales = "free_y") +
+  #scale_fill_viridis_d(option = "turbo") +
+  scale_fill_manual(values = Color_real_FN5) +
+  labs(#title = "Concentrations of organic compounds in fishing net extracts",
+       #subtitle = "Values corrected by average blank (n = 4) subtraction\n",
+       x = "Fishing nets", 
+       y = "Average concentration (µg/L)", 
+       fill = "Fishing nets",
+       pattern = "FN state") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = -4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 15, face = "bold"),
+        axis.text.y = element_text(size = 15, face = 'bold'),
+        strip.text = element_text(face = "bold", size = rel(1.5)),
+        #strip.background = element_rect(fill = "grey", color = "grey", linewidth = 0.1),
+        legend.title= element_text(size = 18, face = "bold", vjust = 1, margin = margin(t = 0, r = 5, b = 10, l = 0)),
+        legend.text = element_text(size = 18),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.spacing.y = unit(0.5, 'cm'),
+        legend.key.spacing.y = unit(0.2, "cm"),
+        legend.position="right",
+        #panel.spacing = unit(2, "lines"),
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) +
+  rotate_x_text(angle = 30)
+  #coord_flip()
+G_avg_corr_cat3
+
+tt_results_G <- tt_results %>%  dplyr::select(FN, compounds, diff) %>% 
+  # duplicate each row exactly 2 times
+  slice(rep(row_number(), each = 2)) %>% 
+  # create the new variable with values "new" and "EOL"
+  mutate(state = rep(c("new", "EOL"), times = nrow(tt_results))) %>% 
+  mutate(diff = if_else(state == "new", "ns", diff)) %>% 
+  mutate(compounds = case_when(
+      compounds == "AKP" ~ "Alkylphenols",
+      compounds == "AKP_NP" ~ "Alkylphenols without Nonylphenols",
+      compounds == "HAP" ~ "PAHs",
+      compounds == "PBDE" ~ "PBDEs",
+      compounds == "Phtalates" ~ "Phthalates",
+      compounds == "metals" ~ "Metallic elements",
+      TRUE ~ compounds
+      )) %>% 
+  filter(diff != "ns")
+tt_results_G
+
+results_vs_blank2 <- results_blc_FN %>%
+  mutate(stars = if_else(compounds == "AKP", "ns", stars)) %>%
+  mutate(stars = if_else(compounds == "Metals" & FN == "PBS δ60" & state == "EOL", "#", stars)) %>% #manual modif car results of wilcox
+  mutate(y_stars = case_when(
+           compounds == "AKP" ~ 4900,
+           compounds == "HAP" ~ 190,
+           compounds == "PBDE" ~ 10,
+           compounds == "Metals" ~ 2100,
+           compounds == "Phthalates" ~ 3500,
+           compounds == "Non phthalate plasticizers" ~ 200,
+           TRUE ~ NA_real_)) %>% 
+  mutate(compounds = case_when(
+      compounds == "AKP" ~ "Alkylphenols",
+      compounds == "AKP_NP" ~ "Alkylphenols without Nonylphenols",
+      compounds == "HAP" ~ "PAHs",
+      compounds == "PBDE" ~ "PBDEs",
+      compounds == "Phtalates" ~ "Phthalates",
+      compounds == "Metals" ~ "Metallic elements",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(stars = if_else(stars == "ns", NA, stars)) %>% 
+  #change order state
+  mutate(state = factor(state, levels = c("blank", "new", "EOL")))
+results_vs_blank2
+
+G_avg_corr_cat3 +
+  #add letter stats with results_KW df
+    geom_text(
+    data = results_vs_blank2,
+    aes(x = FN, y = y_stars, label = stars, color = state),
+    position = position_dodge(width = 0.8),
+    #hjust = -0.1,
+    size = 4,
+    color = "red4"
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "PAHs",  # adapt to your facet name if needed
+      xmin       = c(3.88, 2.88, 6.88),
+      xmax       = c(4.12, 3.12, 7.12),
+      y.position = c(52, 35, 170),
+      label      = c("*", "*", "**")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 6,
+    vjust      = 0.3,
+    tip.length = c(0.02, 0.02),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Non phthalate plasticizers",  # adapt to your facet name if needed
+      xmin       = c(6.88),
+      xmax       = c(7.12),
+      y.position = c(190),
+      label      = c("*")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 6,
+    vjust      = 0.3,
+    tip.length = c(0.02, 0.02),
+    inherit.aes = FALSE
+  ) +
+  ggpubr::geom_bracket(
+    data = tibble(
+      compounds  = "Metallic elements",  # adapt to your facet name if needed
+      xmin       = c(6.88),
+      xmax       = c(7.12),
+      y.position = c(1850),
+      label      = c("***")
+    ),
+    aes(xmin = xmin, xmax = xmax, y.position = y.position, label = label),
+    size       = 1.06,
+    label.size = 6,
+    vjust      = 0.3,
+    tip.length = c(0.02, 0.02),
+    inherit.aes = FALSE
+  ) 
+
+
+```
+
+
+```{r visualization by large categories orga}
+
+#orga alone without blank correction
+df_no_corr <- data_corr_cat %>% 
+  mutate(state = if_else(is.na(state), "blank", state)) %>%
+  #avg and sd with reframe
+  group_by(FN, state, compounds) %>%
+  reframe(
+    n = n(),
+    avg_corr = mean(values, na.rm = T),
+    sd_corr = sd(values, na.rm = T)) %>%
+  mutate(avg_corr = if_else(avg_corr <1, avg_corr+1, avg_corr),
+         sd_corr = if_else(sd_corr <1, sd_corr+1, sd_corr)) %>%
+  mutate(avg_corr_log = log10(avg_corr),
+         sd_corr_log = log10(sd_corr)) %>%
+  mutate(compounds = case_when(
+      compounds == "AKP" ~ "Alkylphenols",
+      compounds == "AKP_NP" ~ "Alkylphenols without Nonylphenols",
+      compounds == "HAP" ~ "PAHs",
+      compounds == "PBDE" ~ "PBDEs",
+      compounds == "Phtalates" ~ "Phthalates",
+      compounds == "metals" ~ "Trace metals",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(compounds = factor(compounds, levels = c(
+      "PAHs", "PBDEs", "Phthalates", "Alkylphenols", "Alkylphenols without Nonylphenols", "Trace metals"))) %>%
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) %>%
+  filter(compounds != "Alkylphenols without Nonylphenols") 
+df_no_corr
+
+G_avg_corr_cat4 <- df_no_corr %>% ggplot(aes(x = FN, y = avg_corr, 
+             fill = FN, 
+             pattern = state, 
+             #group = compounds
+             )) + 
+  # scale_y_log10(
+  #   breaks = c(0.1, 1, 10, 100, 1000),          # Set your desired breaks
+  #   labels = label_number(trim = TRUE)           # Remove scientific format
+  # ) +
+  geom_bar_pattern(stat = "identity", width = 0.5, position = position_dodge(width = 0.5), pattern_density = 0.1, 
+                   pattern_fill = "white", pattern_color = "white", pattern_spacing = 0.015, show.legend = T) +
+  scale_pattern_discrete(na.value = "none", 
+                         choices = c("new" = "none", "EOL" = "stripe", "blank" = "circle"), 
+                         limits = c("new", "EOL", "blank")) +
+  geom_errorbar(aes(ymin = avg_corr, ymax = if_else(avg_corr > 1, avg_corr + sd_corr, avg_corr)), 
+                position = position_dodge(width = 0.5), linewidth = 1, width = 0.2) + 
+  facet_wrap(~compounds, scales = "free_y") +
+  scale_fill_viridis_d(option = "turbo") +
+  labs(#title = "Concentrations of organic compounds in fishing net extracts",
+       #subtitle = "Values corrected by average blank (n = 4) subtraction\n",
+       x = "Fishing nets", 
+       y = "Average concentration (µg/L)", 
+       fill = "Fishing nets", pattern = "Fishing net states") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = -4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 15, face = "bold"),
+        axis.text.y = element_text(size = 15, face = 'bold'),
+        strip.text = element_text(face = "bold", size = rel(1.5)),
+        #strip.background = element_rect(fill = "grey", color = "grey", linewidth = 0.1),
+        legend.title= element_text(size = 18, face = "bold", vjust = 1, margin = margin(t = 0, r = 5, b = 10, l = 0)),
+        legend.text = element_text(size = 18),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.spacing.y = unit(0.5, 'cm'),
+        legend.key.spacing.y = unit(0.2, "cm"),
+        legend.position="right",
+        #panel.spacing = unit(2, "lines"),
+        plot.margin = unit(c(1, 1, 2, 1), "cm")) +
+  rotate_x_text(angle = 30)
+  #coord_flip()
+G_avg_corr_cat4
+
+# match names and states between tables
+results_KW_lab <- results_KW_blc %>% 
+  mutate(compounds = case_when(
+      compounds == "AKP" ~ "Alkylphenols",
+      compounds == "AKP_NP" ~ "Alkylphenols without Nonylphenols",
+      compounds == "HAP" ~ "PAHs",
+      compounds == "PBDE" ~ "PBDEs",
+      compounds == "Phtalates" ~ "Phthalates",
+      compounds == "metals" ~ "Trace metals",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(y_top = case_when(
+      compounds == "PAHs" ~ 175,
+      compounds == "PBDEs" ~ 11.5,
+      compounds == "Phthalates" ~ 3700,
+      compounds == "Alkylphenols" ~ 5000,
+      compounds == "Trace metals" ~ 250,
+      TRUE ~ NA_real_
+  )) %>% 
+  #delete lables all similar 
+  mutate(label = case_when(
+      compounds == "PBDEs" ~ NA,
+      compounds == "Phthalates" ~ NA,
+      TRUE ~ label
+    )) %>% 
+  mutate(label = case_when(
+      compounds == "Alkylphenols" ~ NA,
+      TRUE ~ label
+    )) %>% 
+  #change order state
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) %>% 
+  na.omit()
+  
+results_KW_lab
+
+tt_results_G <- tt_results %>%  dplyr::select(FN, compounds, diff) %>% 
+  # duplicate each row exactly 2 times
+  slice(rep(row_number(), each = 2)) %>% 
+  # create the new variable with values "new" and "EOL"
+  mutate(state = rep(c("new", "EOL"), times = nrow(tt_results))) %>% 
+  mutate(diff = if_else(state == "new", "ns", diff)) %>% 
+  mutate(compounds = case_when(
+      compounds == "AKP" ~ "Alkylphenols",
+      compounds == "AKP_NP" ~ "Alkylphenols without Nonylphenols",
+      compounds == "HAP" ~ "PAHs",
+      compounds == "PBDE" ~ "PBDEs",
+      compounds == "Phtalates" ~ "Phthalates",
+      compounds == "metals" ~ "Trace metals",
+      TRUE ~ compounds
+      ))
+tt_results_G
+
+G_avg_corr_cat4 +
+  #add letter stats with results_KW df
+    geom_text(
+    data = results_KW_lab,
+    aes(x = FN, y = y_top+30, label = label, color = state),
+    position = position_dodge(width = 0.9),
+    hjust = -0.1,
+    size = 5,
+  ) +
+  scale_color_manual(values = c("black", "red4")) + 
+  guides(color = "none") +
+  geom_bracket(aes(xmin = 2.88 , xmax= 3.12,
+                           y.position = 55,
+                           label = "*"),
+               size = 1.1,
+               label.size = 7,
+               vjust = 0.3,
+               tip.length = c(0.03, 0.03),
+               data = subset(tt_results_G, compounds == "PAHs"),
+               inherit.aes = FALSE
+               ) +
+  geom_bracket(aes(xmin = 3.88 , xmax= 4.12,
+                             y.position = 55,
+                             label = "*"),
+                 size = 1.1,
+                 label.size = 7,
+                 vjust = 0.3,
+                 tip.length = c(0.03, 0.03),
+                 data = subset(tt_results_G, compounds == "PAHs"),
+                 inherit.aes = FALSE
+                 ) +
+    geom_bracket(aes(xmin = 6.88 , xmax= 7.12,
+                           y.position = 177,
+                           label = "**"),
+               size = 1.1,
+               label.size = 7,
+               vjust = 0.3,
+               tip.length = c(0.03, 0.03),
+               data = subset(tt_results_G, compounds == "PAHs"),
+               inherit.aes = FALSE
+               )
+
+#orga alone with blank correction
+df_corr_graph <- data_corr_cat %>% 
+  mutate(state = if_else(is.na(state), "blank", state)) %>%
+  #avg and sd with reframe
+  group_by(FN, state, compounds) %>%
+  reframe(
+    n = n(),
+    avg_corr = mean(values_corr, na.rm = T),
+    sd_corr = sd(values_corr, na.rm = T)) %>%
+  mutate(avg_corr = if_else(avg_corr <1, avg_corr+1, avg_corr),
+         sd_corr = if_else(sd_corr <1, sd_corr+1, sd_corr)) %>%
+  mutate(avg_corr_log = log10(avg_corr),
+         sd_corr_log = log10(sd_corr)) %>%
+  mutate(compounds = case_when(
+      compounds == "AKP" ~ "Alkylphenols",
+      compounds == "AKP_NP" ~ "Alkylphenols without Nonylphenols",
+      compounds == "HAP" ~ "PAHs",
+      compounds == "PBDE" ~ "PBDEs",
+      compounds == "Phtalates" ~ "Phthalates",
+      compounds == "metals" ~ "Trace metals",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(compounds = factor(compounds, levels = c(
+      "PAHs", "PBDEs", "Phthalates", "Alkylphenols", "Alkylphenols without Nonylphenols", "Trace metals"))) %>%
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) %>%
+  filter(compounds != "Alkylphenols without Nonylphenols", FN != "blank")
+df_corr_graph
+ 
+G_avg_corr_cat5 <-  df_corr_graph %>% ggplot(aes(x = FN, y = avg_corr, 
+             fill = FN, 
+             pattern = state, 
+             #group = compounds
+             )) + 
+  # scale_y_log10(
+  #   breaks = c(0.1, 1, 10, 100, 1000),          # Set your desired breaks
+  #   labels = label_number(trim = TRUE)           # Remove scientific format
+  # ) +
+  geom_bar_pattern(stat = "identity", width = 0.5, position = position_dodge(width = 0.5), pattern_density = 0.1, 
+                   pattern_fill = "white", pattern_color = "white", pattern_spacing = 0.015, show.legend = T) +
+  scale_pattern_discrete(na.value = "none", 
+                         choices = c("new" = "none", "EOL" = "stripe"), 
+                         limits = c("new", "EOL")) +
+  geom_errorbar(aes(ymin = avg_corr, ymax = if_else(avg_corr > 1, avg_corr + sd_corr, avg_corr)), 
+                position = position_dodge(width = 0.5), linewidth = 1, width = 0.2) + 
+  facet_wrap(~compounds, scales = "free_y") +
+  scale_fill_viridis_d(option = "turbo") +
+  labs(#title = "Concentrations of organic compounds in fishing net extracts",
+       #subtitle = "Values corrected by average blank (n = 4) subtraction\n",
+       x = "Fishing nets", 
+       y = "Average concentration (µg/L)", 
+       fill = "Fishing nets",
+       pattern = "Fishing net states") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = -4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 15, face = "bold"),
+        axis.text.y = element_text(size = 15, face = 'bold'),
+        strip.text = element_text(face = "bold", size = rel(1.5)),
+        #strip.background = element_rect(fill = "grey", color = "grey", linewidth = 0.1),
+        legend.title= element_text(size = 18, face = "bold", vjust = 1, margin = margin(t = 0, r = 5, b = 10, l = 0)),
+        legend.text = element_text(size = 18),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.spacing.y = unit(0.5, 'cm'),
+        legend.key.spacing.y = unit(0.2, "cm"),
+        legend.position="right",
+        #panel.spacing = unit(2, "lines"),
+        plot.margin = unit(c(1, 1, 2, 1), "cm")) +
+  rotate_x_text(angle = 30)
+  #coord_flip()
+G_avg_corr_cat5
+
+# match names and states between tables
+results_KW_lab <- results_KW_nblc %>% 
+  mutate(compounds = case_when(
+      compounds == "AKP" ~ "Alkylphenols",
+      compounds == "AKP_NP" ~ "Alkylphenols without Nonylphenols",
+      compounds == "HAP" ~ "PAHs",
+      compounds == "PBDE" ~ "PBDEs",
+      compounds == "Phtalates" ~ "Phthalates",
+      compounds == "metals" ~ "Trace metals",
+      TRUE ~ compounds
+      )) %>% 
+  mutate(y_top = case_when(
+      compounds == "Alkylphenols" ~ 4700,
+      TRUE ~ NA_real_
+  )) %>% 
+  #delete lables all similar
+  mutate(label = case_when(
+      compounds == "PAHs" ~ NA,
+      TRUE ~ label
+    )) %>%
+  mutate(label = case_when(
+      compounds == "Alkylphenols" & state == "new" ~ NA,
+      TRUE ~ label
+    )) %>%
+  #change order state
+  mutate(state = factor(state, levels = c("blank", "new", "EOL"))) %>% 
+  na.omit()
+  
+results_KW_lab
+
+tt_results_G <- tt_results %>%  dplyr::select(FN, compounds, diff) %>% 
+  # duplicate each row exactly 2 times
+  slice(rep(row_number(), each = 2)) %>% 
+  # create the new variable with values "new" and "EOL"
+  mutate(state = rep(c("new", "EOL"), times = nrow(tt_results))) %>% 
+  mutate(diff = if_else(state == "new", "ns", diff)) %>% 
+  mutate(compounds = case_when(
+      compounds == "AKP" ~ "Alkylphenols",
+      compounds == "AKP_NP" ~ "Alkylphenols without Nonylphenols",
+      compounds == "HAP" ~ "PAHs",
+      compounds == "PBDE" ~ "PBDEs",
+      compounds == "Phtalates" ~ "Phthalates",
+      compounds == "metals" ~ "Trace metals",
+      TRUE ~ compounds
+      ))
+tt_results_G
+
+G_avg_corr_cat5 +
+  #add letter stats with results_KW df
+  #   geom_text(
+  #   data = results_KW_lab,
+  #   aes(x = FN, y = y_top, label = label, color = state),
+  #   position = position_dodge(width = 0.5),
+  #   size = 5,
+  # ) +
+  scale_color_manual(values = c("black", "red4")) + 
+  guides(color = "none") +
+  geom_bracket(aes(xmin = 1.88 , xmax= 2.12,
+                           y.position = 50,
+                           label = "*"),
+               size = 1.1,
+               label.size = 7,
+               vjust = 0.3,
+               tip.length = c(0.03, 0.03),
+               data = subset(tt_results_G, compounds == "PAHs"),
+               inherit.aes = FALSE
+               ) +
+  geom_bracket(aes(xmin = 2.88 , xmax= 3.12,
+                             y.position = 50,
+                             label = "*"),
+                 size = 1.1,
+                 label.size = 7,
+                 vjust = 0.3,
+                 tip.length = c(0.03, 0.03),
+                 data = subset(tt_results_G, compounds == "PAHs"),
+                 inherit.aes = FALSE
+                 ) +
+    geom_bracket(aes(xmin = 5.88 , xmax= 6.12,
+                           y.position = 167,
+                           label = "**"),
+               size = 1.1,
+               label.size = 7,
+               vjust = 0.3,
+               tip.length = c(0.03, 0.03),
+               data = subset(tt_results_G, compounds == "PAHs"),
+               inherit.aes = FALSE
+               )
+
+```
+
+Compounds also found in leachates:
+ATBC
+DEP
+
+
+Compounds not in new FN extracts (5/34):
+benzo[b+k]fluoranthene
+dibenzoahanthracene
+BDE 100
+BDE 153
+BDE 183
+
+
+Compounds not in EOL FN extracts (5/34):
+benzothiophene
+fluorene
+indeno123cdpyrene
+dibenzoahanthracene
+BDE 28
+
+```{r compounds insides}
+# Comprehensive table of plastic-related compounds
+inside_compounds <- tibble(
+  CompoundName = c(
+    "Naphthalene", "Benzothiophene", "Biphenyl", "Acenaphthylene", "Acenaphthene",
+    "Fluorene", "Dibenzothiophene", "Phenanthrene", "Anthracene", "Fluoranthene",
+    "Pyrene", "Benzo[a]anthracene", "Chrysene", "Benzo[b+k]fluoranthene", "Benzo[a]pyrene",
+    "Indeno[1,2,3-cd]pyrene", "Dibenzo[a,h]anthracene", "Benzo[ghi]perylene",
+    "BDE 28", "BDE 47", "BDE 100", "BDE 99", "BDE 154", "BDE 153", "BDE 183",
+    "DMP", "DEP", "DBP", "BBP", "DEHA", "DEHP", "ATBC", "4-tOP", "Nonylphenols"
+  ),
+  MainUse = c(
+    rep("Contaminant from combustion processes, coal tar, petroleum products", 18),
+    rep("Flame retardant additive in plastics, electronics, textiles, and furniture foam", 7),
+    "Plasticizer for cellulose acetate, vinyl resins, and other polymers",
+    "Plasticizer for cellulose acetate, PVC, and other polymer applications",
+    "Plasticizer for PVC, cellulose esters, synthetic rubber, and adhesives",
+    "Plasticizer for PVC, vinyl flooring, wall coverings, and consumer products",
+    "Plasticizer for PVC and other polymers; alternative to phthalates",
+    "Primary plasticizer for PVC; most widely used phthalate plasticizer",
+    "Non-phthalate plasticizer for PVC; eco-friendly alternative",
+    "Antioxidant and stabilizer in rubber and plastic manufacturing; surfactant",
+    "Surfactant production; antioxidant in rubber and plastics; resin modifier"
+  ),
+  Classification = c(
+    rep("Priority pollutant (US EPA); persistent organic pollutant; combustion/industrial origin", 6),
+    "Environmental contaminant; petroleum and combustion origin",
+    rep("Priority pollutant (US EPA); persistent organic pollutant; combustion/industrial origin", 11),
+    rep("Stockholm Convention POP candidate; banned/restricted flame retardant; industrial origin", 7),
+    "REACH Candidate List substance; reproductive toxin; industrial additive origin",
+    "REACH Candidate List substance; reproductive toxin; industrial additive origin",
+    "REACH Candidate List substance; reproductive toxin; banned in toys; industrial origin",
+    "REACH Candidate List substance; reproductive toxin; banned in toys; industrial origin",
+    "Environmental contaminant; industrial additive origin",
+    "REACH Candidate List substance; reproductive toxin; banned in toys; industrial origin",
+    "Non-classified; considered safer alternative plasticizer; industrial additive origin",
+    "Priority substance (EU WFD); endocrine disruptor; industrial origin",
+    "Priority hazardous substance; endocrine disruptor; restricted use; industrial origin"
+  ),
+  Hazard = c(
+    "Carcinogenic; toxic to aquatic organisms; bioaccumulative; mutagenic",
+    "Moderately toxic to aquatic organisms; potential carcinogen",
+    "Toxic to aquatic organisms; endocrine disruptor; bioaccumulative",
+    "Carcinogenic; toxic to aquatic organisms; bioaccumulative; mutagenic",
+    "Moderately toxic to aquatic organisms; suspected carcinogen",
+    "Toxic to aquatic organisms; suspected carcinogen; bioaccumulative",
+    "Moderately toxic to aquatic organisms; potential endocrine disruptor",
+    "Carcinogenic; toxic to aquatic organisms; bioaccumulative; mutagenic",
+    "Carcinogenic; toxic to aquatic organisms; bioaccumulative; phototoxic",
+    "Carcinogenic; highly toxic to aquatic organisms; bioaccumulative; mutagenic",
+    "Carcinogenic; highly toxic to aquatic organisms; bioaccumulative; mutagenic",
+    "Carcinogenic; highly toxic to aquatic organisms; bioaccumulative; mutagenic",
+    "Carcinogenic; highly toxic to aquatic organisms; bioaccumulative; mutagenic",
+    "Carcinogenic; highly toxic to aquatic organisms; bioaccumulative; mutagenic",
+    "Highly carcinogenic; highly toxic to aquatic organisms; bioaccumulative; mutagenic",
+    "Probable carcinogen; highly toxic to aquatic organisms; bioaccumulative; mutagenic",
+    "Carcinogenic; highly toxic to aquatic organisms; bioaccumulative; mutagenic",
+    "Probable carcinogen; highly toxic to aquatic organisms; bioaccumulative; mutagenic",
+    rep("Endocrine disruptor; thyroid hormone disruptor; neurotoxic; bioaccumulative; persistent", 7),
+    "Reproductive toxin; endocrine disruptor; developmental toxin; aquatic toxicity",
+    "Reproductive toxin; endocrine disruptor; developmental toxin; aquatic toxicity",
+    "Reproductive toxin; anti-androgenic; developmental toxin; aquatic toxicity; banned in toys",
+    "Reproductive toxin; anti-androgenic; carcinogenic; developmental toxin; high aquatic toxicity; banned in toys",
+    "Lower toxicity than phthalates; minimal reproductive effects; aquatic toxicity",
+    "Reproductive toxin; anti-androgenic; carcinogenic; developmental toxin; high aquatic toxicity; banned in toys",
+    "Lower toxicity profile; considered safer alternative; minimal reproductive effects",
+    "Endocrine disruptor; estrogenic activity; toxic to aquatic organisms; bioaccumulative; restricted use",
+    "Strong endocrine disruptor; estrogenic activity; highly toxic to aquatic organisms; bioaccumulative; priority hazardous substance"
+  ))
+
+inside_compounds
+
+#export excel
+# library(writexl)
+# write_xlsx(inside_compounds, "inside_compounds.xlsx")
+```
+
+```{r leaching kinetics}
+Op_time_FN <- rep(c(650, 2700, 2700, 624, 624, 624, 624, 12700, 
+                       0, 0, 0, 0, 0, 0, 0, 0), each = 5)
+Op_time_FN
+
+avg_metal_orga_FN <- metal_orga %>% 
+  group_by(FN, state, compounds) %>%
+  reframe(
+    n = n(),
+    avg_corr = mean(values_corr, na.rm = T),
+    sd_corr = sd(values_corr, na.rm = T)) %>% 
+  filter(FN != "blank") %>% 
+  arrange(state, FN) %>% 
+  mutate(Op_time = Op_time_FN)
+avg_metal_orga_FN
+
+avg_metal_orga <- metal_orga %>% 
+  filter(FN != "blank") %>% 
+  mutate(Op_time = case_when(
+    FN == "PA α35" & state == "EOL" ~ 650,
+    FN == "PA β33" & state == "EOL" ~ 2700,
+    FN == "PA β95" & state == "EOL" ~ 2700,
+    FN == "PA γ33" & state == "EOL" ~ 624,
+    FN == "PA γ60" & state == "EOL" ~ 624,
+    FN == "PBS δ35" & state == "EOL" ~ 624,
+    FN == "PBS δ60" & state == "EOL" ~ 624,
+    FN == "PE-PP ε4.25" & state == "EOL" ~ 624,
+    TRUE ~ 0
+  )) %>% 
+  group_by(state, Op_time, compounds) %>%
+  reframe(
+    n = n(),
+    avg_corr = mean(values_corr, na.rm = T),
+    sd_corr = sd(values_corr, na.rm = T))  
+avg_metal_orga
+
+
+G_leach_kinetics <- avg_metal_orga_FN %>%
+  ggplot(aes(x = Op_time, y = avg_corr, 
+             color = compounds, 
+             group = interaction(compounds))) + 
+  geom_point(size = 4) +
+  geom_line(linewidth = 1) +
+  # scale_y_log10(
+  #   breaks = c(0.1, 1, 10, 100, 1000),          # Set your desired breaks
+  #   labels = label_number(trim = TRUE)           # Remove scientific format
+  # ) +
+  facet_wrap(~FN, scales = "free") +
+  labs(title = "Leaching kinetics of plastic-associated compounds from fishing nets",
+       x = "State of the FNs", 
+       y = "Average concentration (µg/L)", 
+       color = "Plastic chemical categories",
+       shape = "Fishing nets") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = -4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 15, face = "bold"),
+        axis.text.y = element_text(size = 15, face = 'bold'),
+        title = element_text(size = 18, face = "bold", margin = margin(t = 0, r = 0, b = 20, l = 0)),
+        legend.title= element_text(size = 18, face = "bold", vjust = 1, margin = margin(t = 0, r = 5, b = 10, l = 0)),
+        legend.text = element_text(size = 18),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.spacing.y = unit(0.5, 'cm'),
+        legend.key.spacing.y = unit(0.2, "cm"),
+        legend.position="right",
+        panel.spacing = unit(2, "lines"),
+        plot.margin = unit(c(1, 1, 2, 1), "cm"))
+G_leach_kinetics  
+  
+```

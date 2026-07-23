@@ -1,0 +1,1675 @@
+---
+title: "Fish behavior"
+author: "Edgar Dusacre"
+date: "26/10/2022"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r Insertion package, include=FALSE}
+library(ggplot2) 
+library(tidyr)
+library(purrr)
+library(tidyverse)
+library(ggrepel)
+library(ggpubr)
+library(knitr)
+library(yaml)
+library(dplyr) 
+library(matrixStats)
+library(EnvStats)
+library(stringr)
+library(gtable)
+library(grid)
+library(FSA)
+library(scales)
+library(wbstats)
+library(ggh4x)
+library(multcompView)
+library(report)
+library(ecotox)
+library(wesanderson)
+library(RColorBrewer)
+library(readr)
+library(readxl)
+library(gmodels)
+library(ggpattern)
+library(zoo)
+library(forcats)
+library(emmeans)
+library(rcompanion)
+```
+
+
+```{r Charger les palettes de couleurs, include=FALSE}
+Plasfito_C <- c("#80CAD0", "#36A7A7", "#276573", "#054959","#E3CCC0", "#F7EAE1", "#A48A7B", "#C6AF8D", "#49BED3", "#256CB4", "#008163", "#44B494", "#7BC6B9")
+
+Plasfito_color <- c("GreenP4" = "#80CAD0", "GreenP3" = "#36A7A7", "GreenP2" = "#276573", "GreenP1" = "#054959","Brown1" = "#E3CCC0", "Brown2" = "#F7EAE1", "Brown3" = "#A48A7B", "Brown4" = "#C6AF8D", "Turquoise1" = "#49BED3", "Blue1" = "#256CB4", "Green1" = "#008163", "Green2" = "#44B494", "Green3" = "#7BC6B9")
+
+List_color_Fr <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                   "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573")
+
+List_color <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                 "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573",
+                 "Euskadi" = "#054959")
+
+Plasfito_Tps <- c("5" = "#80CAD0", "15" = "#36A7A7", "30" = "#276573")
+
+
+#A part si vous souhaitez changer les couleurs do not touch.
+Ech_K2CR2O7<- c("K2CR2O7" = "#80CAD0")
+
+Tps_color <- c("5" = "#80CAD0" , "15" = "#36A7A7", "30" = "#276573")
+
+Dilu_color <- c("0.0125" = "#80CAD0" , "0.025" = "#36A7A7", "0.05" = "#276573", "0.1" = "#008163")
+
+Conc_color <- c("0.4125" = "#80CAD0" , "0.825" = "#36A7A7", "1.65" = "#276573", "3.3" = "#008163")
+Conc_color3 <- c("0.825" = "aquamarine", "1.65" = "#36A7A7", "3.3" = "#276573")
+
+Color_biolu_Pasaia <- c("Ech1" = "aquamarine", "Ech2" = "#36A7A7" , "DMSO" = "#A48A7B")
+
+Color_real_FN <- c("dmso" = "#A48A7B", "CTL" = "#256CB4", "PA_a35" = "#4fd355", "PA_b33" = "#ca98d3", "PA_b95" = "#6e217c", "PA_g33" = "#92b78f", "PA_g60" = "#bbb3bc", "PBS_d35" = "#d3ad4f","PBS_d60" = "#c68640", "HPPE_e425" = "#36A7A7")
+```
+
+#new FISHING NETS - DMSO EXPERIMENT
+# BLA LOFF 
+```{r data import new}
+BLA_OFF_n <- read_excel("Behaviour/Serie1_091222/BLA_OFF1.xlsx") %>% 
+  rename("FN" = 'Selection Result',
+         "Rep" = "ID",
+         "Time" = "Time bin", 
+         "Vel_avg1" = "Velocity...7", 
+         "Vel_sd1" = "Velocity...8", 
+         "Vel_se1" = "Velocity...9",
+         "Dist_avg1" = "Distance...10",
+         "Dist_sd1" = "Distance...11",
+         "Dist_se1" = "Distance...12",
+         "Dist_tot1" = "Distance...13") %>% 
+  mutate(Trial = gsub("    ", "_", Trial),
+         Trial = as.factor(ifelse(Trial == "Trial_ 9", "Trial_9", Trial)),
+         Arena = as.factor(Arena),
+         Time = as.factor(ifelse(Time == "0:10:00-0:20:00", "10-20", NA)),
+         Bino = as.factor(Bino),
+         Rep = as.factor(ifelse(FN == "benzo" & Rep == "dmso2", "benzo2", Rep)),
+         FN = ifelse(Rep == "h3" & FN == "beta33", "beta95", FN),
+         FN = ifelse(Rep == "g3" & FN == "beta95", "alpha", FN),
+         FN = ifelse(Rep == "k3" & FN == "delta60", "gamma33", FN),
+         FN = ifelse(Rep == "m3" & FN == "epsi", "delta35", FN),
+         FN = ifelse(Rep == "i3" & FN == "gamma60", "beta33", FN),
+         FN = as.factor(FN),
+         state = as.factor("n")) %>% 
+  filter(rowSums(is.na(.)) != 7)
+         # Arena != "A5" | Trial != "Trial_13", Arena != "B5" | Trial != "Trial_11", Arena != "B6" | Trial != "Trial_11",
+         # Arena != "A6" | Trial != "Trial_15", Arena != "A4" | Trial != "Trial_14", Arena != "A1" | Trial != "Trial_15",
+         # Arena != "A4" | Trial != "Trial_11", Arena != "A1" | Trial != "Trial_19", Arena != "A2" | Trial != "Trial_13",
+         # Arena != "A7" | Trial != "Trial_11", Arena != "B4" | Trial != "Trial_9", Arena != "C4" | Trial != "Trial_11",
+         # Arena != "E1" | Trial != "Trial_14", Arena != "B5" | Trial != "Trial_12", Arena != "D6" | Trial != "Trial_12",
+         # Arena != "E5" | Trial != "Trial_13", Arena != "B4" | Trial != "Trial_14", Arena != "F2" | Trial != "Trial_16",
+         # Arena != "C5" | Trial != "Trial_13", Arena != "F3" | Trial != "Trial_16", Arena != "B1" | Trial != "Trial_18",
+         # Arena != "F5" | Trial != "Trial_12", Arena != "C3" | Trial != "Trial_13", Arena != "D5" | Trial != "Trial_14",
+         # Arena != "D5" | Trial != "Trial_16", Arena != "B8" | Trial != "Trial_12", Arena != "F4" | Trial != "Trial_13",
+         # Arena != "E3" | Trial != "Trial_12", Arena != "B4" | Trial != "Trial_9", Arena != "F5" | Trial != "Trial_13",
+         # Arena != "D5" | Trial != "Trial_15", Arena != "B5" | Trial != "Trial_13", Arena != "B1" | Trial != "Trial_13",
+         # Arena != "B1" | Trial != "Trial_15", Arena != "B5" | Trial != "Trial_16", Arena != "B5" | Trial != "Trial_16",
+         # Arena != "F7" | Trial != "Trial_9", Arena != "C5" | Trial != "Trial_11", Arena != "D5" | Trial != "Trial_19",
+         # Arena != "D2" | Trial != "Trial_11",  Arena != "C8" | Trial != "Trial_11", Arena != "E1" | Trial != "Trial_19",
+         # Arena != "F7" | Trial != "Trial_13", Arena != "E2" | Trial != "Trial_16", Arena != "E8" | Trial != "Trial_14",
+         # Arena != "F4" | Trial != "Trial_17", Arena != "D2" | Trial != "Trial_14", Arena != "B1" | Trial != "Trial_14",
+         # Arena != "C5" | Trial != "Trial_16", Arena != "E1" | Trial != "Trial_9", Arena != "C3" | Trial != "Trial_9",
+         # Arena != "F1" | Trial != "Trial_19", Arena != "B5" | Trial != "Trial_9", Arena != "C1" | Trial != "Trial_9",
+         # Arena != "B1" | Trial != "Trial_19", Arena != "B6" | Trial != "Trial_19", Arena != "D6" | Trial != "Trial_9",
+         # Arena != "C7" | Trial != "Trial_13") #to delete the line without data
+
+BLA_OFF_n
+
+BLA_OFF <- BLA_OFF_n 
+BLA_OFF
+```
+
+```{r Outliers new}
+#Boxplot by replicates to see if there are outliers
+
+Outliers <- BLA_OFF %>%  
+  ggplot(aes(FN, Dist_tot1, fill = Rep)) + 
+  #geom_violin(fill = NA, aes(color = FN), width = 2) +
+  geom_boxplot(width = 0.3) 
+Outliers
+```
+
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is outliers
+BLA_OFF_avg_Rep <- BLA_OFF %>% group_by(FN, Rep, state) %>%  summarise(n = n(), 
+                                                          Vel_avg = mean(Vel_avg1, na.rm=T),
+                                                          Vel_sd = sd(Vel_avg1, na.rm=T), 
+                                                          Vel_se = Vel_sd / sqrt(n),
+                                                          Dist_avg = mean(Dist_avg1, na.rm=T),
+                                                          Dist_sd = sd(Dist_avg1, na.rm=T), 
+                                                          Dist_se = Dist_sd / sqrt(n),
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n)) %>% dplyr::select(-Vel_sd, -Dist_sd, -Dtot_sd) %>% mutate(ID = "LOFF")
+
+BLA_OFF_avg_Rep
+
+BLA_OFF_avg <- BLA_OFF %>% group_by(FN, state) %>%  summarise(n = n(), 
+                                                          Vel_avg = mean(Vel_avg1, na.rm=T),
+                                                          Vel_sd = sd(Vel_avg1, na.rm=T), 
+                                                          Vel_se = Vel_sd / sqrt(n),
+                                                          Dist_avg = mean(Dist_avg1, na.rm=T),
+                                                          Dist_sd = sd(Dist_avg1, na.rm=T), 
+                                                          Dist_se = Dist_sd / sqrt(n),
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n)) #%>% dplyr::select(-Vel_sd, -Dist_sd, -Dtot_sd) %>% mutate(ID = "LOFF")
+  
+
+BLA_OFF_avg  
+```
+
+
+
+```{r Graph}
+
+BLA_OFF_avg %>% mutate(FN = fct_relevel(FN, 
+                            "benzo", "dmso", "beta33", "beta95", "gamma33", "gamma60", "delta35", "delta60", "alpha", "epsi")) %>%
+  ggplot(aes(x= FN, y = Dtot_avg, fill = state)) + 
+  geom_col(width =0.5, position = position_dodge()) +
+  geom_errorbar(aes(ymin= ifelse(Dtot_avg-Dtot_se < 0, 0, Dtot_avg-Dtot_se), ymax=Dtot_avg+Dtot_se), width=0.08, size = 1, position=position_dodge(width=0.5)) +
+  scale_fill_brewer(palette = "Paired")
+
+
+```
+
+
+```{r Statistics}
+#Test normality by FN
+df_normality <- BLA_OFF_n %>%
+  group_by(FN) %>% 
+  summarise(normality = shapiro.test(Dist_tot1)$p.value)
+df_normality
+
+Aov <- aov(Dist_tot1 ~ FN, data= BLA_OFF_n) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+# #Analyses Résidus
+
+ggplot(BLA_OFF_n, aes(x=Dist_tot1)) + geom_histogram(binwidth = 0.5)
+ggplot(BLA_OFF_n, aes(x=Dist_tot1)) + geom_density(binwidth = 0.5)
+#plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P < 0.05 H0 rejected normality not verified
+
+#Test of variance
+bartlett.test(Dist_tot1 ~ FN, data= BLA_OFF_n) #P-value > 0.05 --> equality of variance
+
+#Application of the Kruskal-wallis test 
+
+# Diviser le dataframe par FN
+df_list <- BLA_OFF %>%
+  filter(FN != "benzo") %>% 
+  group_by(FN) %>%
+  group_split() 
+df_list
+
+# Supprimer le dataframe à l'index 6 de la liste
+df_to_bind <- df_list[[6]]
+df_list <- df_list[-6]
+
+# Lier le dataframe df_to_bind à tous les autres dataframes dans la liste
+df_list <- lapply(df_list, function(df) bind_rows(df, df_to_bind))
+df_list
+
+results <- list()
+
+for (i in seq_along(df_list)) {
+  df_sub <- df_list[[i]]
+  states <- unique(df_sub$FN)
+  for (j in 1:(length(states) - 1)) {
+    for (k in (j + 1):length(states)) {
+      sample1 <- df_sub[df_sub$FN == states[j], "Dist_tot1"]$Dist_tot1
+      sample2 <- df_sub[df_sub$FN == states[k], "Dist_tot1"]$Dist_tot1
+      test_result <- wilcox.test(sample1, sample2, paired = FALSE)
+      result <- tibble(
+        FN = df_sub$FN[1],
+        vs = paste(states[j], states[k], sep = "_vs_"),
+        p_value = test_result$p.value,
+        W = test_result$statistic)
+      results <- c(results, list(result))}}}
+
+dmso_row <- tibble(FN = as.factor("dmso"), blank = "dmso", p_value = as.double(NA), W = as.double(NA), diff = as.character(NA))
+dmso_row
+
+results <- bind_rows(results) %>% 
+  mutate(p_value = if_else(is.na(p_value), 0, p_value)) %>%  
+  na.omit() %>% 
+  separate(vs, into = c("state1", "blank"), sep = "_vs_", remove = T) %>% 
+  dplyr::select(-state1) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "****", 
+                        if_else(p_value < 0.001, "***",
+                                if_else(p_value < 0.01, "**",
+                                        if_else(p_value < 0.05, "*", NA))))) %>% bind_rows(dmso_row)
+results
+
+
+max_values <- BLA_OFF %>%
+  group_by(FN) %>%
+  summarize(max_value = max(Dist_tot1, na.rm = T))
+max_values
+
+MWU_n_Lett<- results %>% left_join(max_values)
+MWU_n_Lett
+
+MWU_n_Lett_BLAOFF_new <- MWU_n_Lett
+MWU_n_Lett_BLAOFF_new
+```
+
+
+```{r graph fin BLA OFF}
+G1 <- BLA_OFF_n %>% ggplot(aes(x = FN, y = Dist_tot1, fill = FN)) + geom_boxplot(width = 0.2) + 
+  #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  # scale_fill_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Hyperactivity period in reaction to a sudden reduction of light intensity",
+       y = "Traveled distance (mm)", 
+       x = "Fishing nets")  +
+  # scale_x_discrete(labels = c("Blank H2O \nn = 48",
+  #                             "HPPE \u03B5\nØ4.25 mm \nn = 48",
+  #                             "PA6 \u03B3\nØ0.33 mm \nn = 48",
+  #                             "PA6 \u03B3\nØ0.60 mm \nn = 48",
+  #                             "PBS \u03B4\nØ0.35 mm \nn = 48",
+  #                             "PA6 \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G1 +
+  geom_text(data = MWU_n_Lett, aes(x = FN, y = max_value, label = diff),
+            size = 5, vjust = -0.7, color="black",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 14, df = 8, p > 0.05)") + 
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+```
+
+
+# BLA LON
+```{r data import}
+BLA_ON_n <- read_excel("Behaviour/Serie1_091222/BLA_ON1.xlsx") %>% 
+  rename("FN" = 'Selection Result',
+         "Rep" = "ID",
+         "Time" = "Time bin", 
+         "Vel_avg1" = "Velocity...7", 
+         "Vel_sd1" = "Velocity...8", 
+         "Vel_se1" = "Velocity...9",
+         "Dist_avg1" = "Distance...10",
+         "Dist_sd1" = "Distance...11",
+         "Dist_se1" = "Distance...12",
+         "Dist_tot1" = "Distance...13") %>% 
+  mutate(Trial = as.factor(gsub("    ", "_", Trial)),
+         Arena = as.factor(Arena),
+         Time = as.factor(ifelse(Time == "0:20:00-0:30:00", "20-30", "20-30")),
+         Bino = as.factor(Bino),
+         Rep = as.factor(ifelse(FN == "benzo" & Rep == "dmso2", "benzo2", Rep)),
+         FN = ifelse(Rep == "h3" & FN == "beta33", "beta95", FN),
+         FN = ifelse(Rep == "g3" & FN == "beta95", "alpha", FN),
+         FN = ifelse(Rep == "k3" & FN == "delta60", "gamma33", FN),
+         FN = ifelse(Rep == "m3" & FN == "epsi", "delta35", FN),
+         FN = ifelse(Rep == "i3" & FN == "gamma60", "beta33", FN),
+         FN = as.factor(FN),
+         state = as.factor("n")) %>% 
+  mutate_if(is.character, as.double, na.rm = T) %>%
+  filter(rowSums(is.na(.)) < 7)
+         # Arena != "A5" | Trial != "Trial_13", Arena != "B5" | Trial != "Trial_11", Arena != "B6" | Trial != "Trial_11",
+         # Arena != "A6" | Trial != "Trial_15", Arena != "A4" | Trial != "Trial_14", Arena != "A1" | Trial != "Trial_15",
+         # Arena != "A4" | Trial != "Trial_11", Arena != "A1" | Trial != "Trial_19", Arena != "A2" | Trial != "Trial_13",
+         # Arena != "A7" | Trial != "Trial_11", Arena != "B4" | Trial != "Trial_9", Arena != "C4" | Trial != "Trial_11",
+         # Arena != "E1" | Trial != "Trial_14", Arena != "B5" | Trial != "Trial_12", Arena != "D6" | Trial != "Trial_12",
+         # Arena != "E5" | Trial != "Trial_13", Arena != "B4" | Trial != "Trial_14", Arena != "F2" | Trial != "Trial_16",
+         # Arena != "C5" | Trial != "Trial_13", Arena != "F3" | Trial != "Trial_16", Arena != "B1" | Trial != "Trial_18",
+         # Arena != "F5" | Trial != "Trial_12", Arena != "C3" | Trial != "Trial_13", Arena != "D5" | Trial != "Trial_14",
+         # Arena != "D5" | Trial != "Trial_16", Arena != "B8" | Trial != "Trial_12", Arena != "F4" | Trial != "Trial_13",
+         # Arena != "E3" | Trial != "Trial_12", Arena != "B4" | Trial != "Trial_9", Arena != "F5" | Trial != "Trial_13",
+         # Arena != "D5" | Trial != "Trial_15", Arena != "B5" | Trial != "Trial_13", Arena != "B1" | Trial != "Trial_13",
+         # Arena != "B1" | Trial != "Trial_15", Arena != "B5" | Trial != "Trial_16", Arena != "B5" | Trial != "Trial_16",
+         # Arena != "F7" | Trial != "Trial_9", Arena != "C5" | Trial != "Trial_11", Arena != "D5" | Trial != "Trial_19",
+         # Arena != "D2" | Trial != "Trial_11",  Arena != "C8" | Trial != "Trial_11", Arena != "E1" | Trial != "Trial_19",
+         # Arena != "F7" | Trial != "Trial_13", Arena != "E2" | Trial != "Trial_16", Arena != "E8" | Trial != "Trial_14",
+         # Arena != "F4" | Trial != "Trial_17", Arena != "D2" | Trial != "Trial_14", Arena != "B1" | Trial != "Trial_14",
+         # Arena != "C5" | Trial != "Trial_16", Arena != "E1" | Trial != "Trial_9", Arena != "C3" | Trial != "Trial_9",
+         # Arena != "F1" | Trial != "Trial_19", Arena != "B5" | Trial != "Trial_9", Arena != "C1" | Trial != "Trial_9",
+         # Arena != "B1" | Trial != "Trial_19", Arena != "B6" | Trial != "Trial_19", Arena != "D6" | Trial != "Trial_9",
+         # Arena != "C7" | Trial != "Trial_13") 
+BLA_ON_n
+
+BLA_ON <- BLA_ON_n 
+```
+
+
+```{r Outliers}
+
+#Delete outlier with Dist_Tot > 4000 mm
+
+# BLA_ON_1 <- BLA_ON %>% filter(Dist_tot1 < 4000, Vel_avg1 < 30)
+# BLA_ON_1
+
+# Outliers <- BLA_ON_1 %>% ggplot(aes(FN, Vel_avg1, fill = FN)) + 
+#   geom_boxplot(width = 0.7) + 
+#   geom_jitter(width = 0.2, alpha = 0.5, color = "red3")
+# Outliers
+
+Outliers <- BLA_ON %>% ggplot(aes(FN, Dist_tot1, fill = FN)) + 
+  geom_boxplot(width = 0.7) 
+Outliers
+```
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is outliers
+BLA_ON_avg <- BLA_ON %>% group_by(FN, state) %>%  summarise(n = n(), 
+                                                          Vel_avg = mean(Vel_avg1, na.rm=T),
+                                                          Vel_sd = sd(Vel_avg1, na.rm=T), 
+                                                          Vel_se = Vel_sd / sqrt(n),
+                                                          Dist_avg = mean(Dist_avg1, na.rm=T),
+                                                          Dist_sd = sd(Dist_avg1, na.rm=T), 
+                                                          Dist_se = Dist_sd / sqrt(n),
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n)) #%>% dplyr::select(-Vel_sd, -Dist_sd, -Dtot_sd) %>% mutate(ID = "LON")
+  
+
+BLA_ON_avg  
+```
+
+```{r first graph}
+
+BLA_ON_avg %>% mutate(FN = fct_relevel(FN, 
+                            "benzo", "dmso", "beta33", "beta95", "gamma33", "gamma60", "delta35", "delta60", "alpha", "epsi")) %>%
+  ggplot(aes(x= FN, y = Dtot_avg, fill = state)) + 
+  geom_col(width =0.5, position = position_dodge()) +
+  geom_errorbar(aes(ymin= ifelse(Dtot_avg-Dtot_se < 0, 0, Dtot_avg-Dtot_se), ymax=Dtot_avg+Dtot_se), width=0.08, size = 1, position=position_dodge(width=0.5)) +
+  scale_fill_brewer(palette = "Paired")
+
+
+```
+
+```{r Statistics}
+#Test normality by FN
+df_normality <- BLA_ON_n %>%
+  group_by(FN) %>% 
+  summarise(normality = shapiro.test(Dist_tot1)$p.value)
+df_normality
+
+Aov <- aov(Dist_tot1 ~ FN, data= BLA_ON_n) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+# #Analyses Résidus
+
+ggplot(BLA_ON, aes(x=Dist_tot1)) + geom_histogram(binwidth = 0.5)
+ggplot(BLA_ON, aes(x=Dist_tot1)) + geom_density(binwidth = 0.5)
+#plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P < 0.05 H0 rejected normality not verified
+
+#Test of variance
+bartlett.test(Dist_tot1 ~ FN, data= BLA_ON) #P-value > 0.05 --> equality of variance
+
+# Diviser le dataframe par FN
+df_list <- BLA_ON %>%
+  filter(FN != "benzo") %>% 
+  group_by(FN) %>%
+  group_split() 
+df_list
+
+# Supprimer le dataframe à l'index 6 de la liste
+df_to_bind <- df_list[[6]]
+df_list <- df_list[-6]
+
+# Lier le dataframe df_to_bind à tous les autres dataframes dans la liste
+df_list <- lapply(df_list, function(df) bind_rows(df, df_to_bind))
+df_list
+
+results <- list()
+
+for (i in seq_along(df_list)) {
+  df_sub <- df_list[[i]]
+  states <- unique(df_sub$FN)
+  for (j in 1:(length(states) - 1)) {
+    for (k in (j + 1):length(states)) {
+      sample1 <- df_sub[df_sub$FN == states[j], "Dist_tot1"]$Dist_tot1
+      sample2 <- df_sub[df_sub$FN == states[k], "Dist_tot1"]$Dist_tot1
+      test_result <- wilcox.test(sample1, sample2, paired = FALSE)
+      result <- tibble(
+        FN = df_sub$FN[1],
+        vs = paste(states[j], states[k], sep = "_vs_"),
+        p_value = test_result$p.value,
+        W = test_result$statistic)
+      results <- c(results, list(result))}}}
+
+dmso_row <- tibble(FN = as.factor("dmso"), blank = "dmso", p_value = as.double(NA), W = as.double(NA), diff = as.character(NA))
+dmso_row
+
+results <- bind_rows(results) %>% 
+  mutate(p_value = if_else(is.na(p_value), 0, p_value)) %>%  
+  na.omit() %>% 
+  separate(vs, into = c("state1", "blank"), sep = "_vs_", remove = T) %>% 
+  dplyr::select(-state1) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "****", 
+                        if_else(p_value < 0.001, "***",
+                                if_else(p_value < 0.01, "**",
+                                        if_else(p_value < 0.05, "*", NA))))) %>% bind_rows(dmso_row)
+results
+
+
+max_values <- BLA_ON %>%
+  group_by(FN) %>%
+  summarize(max_value = max(Dist_tot1, na.rm = T))
+max_values
+
+MWU_n_Lett<- results %>% left_join(max_values)
+MWU_n_Lett
+
+MWU_n_Lett_BLAON_new <- MWU_n_Lett
+MWU_n_Lett_BLAON_new
+```
+
+
+```{r graph fin BLA ON}
+G1 <- BLA_ON_n %>% ggplot(aes(x = FN, y = Dist_tot1, fill = FN)) + geom_boxplot(width = 0.2) + 
+  #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Hyperactivity period in reaction to a sudden reduction of light intensity",
+       y = "Traveled distance (mm)", 
+       x = "Fishing nets")  +
+  # scale_x_discrete(labels = c("Blank H2O \nn = 48",
+  #                             "HPPE \u03B5\nØ4.25 mm \nn = 48",
+  #                             "PA6 \u03B3\nØ0.33 mm \nn = 48",
+  #                             "PA6 \u03B3\nØ0.60 mm \nn = 48",
+  #                             "PBS \u03B4\nØ0.35 mm \nn = 48",
+  #                             "PA6 \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G1 +
+  geom_text(data = MWU_n_Lett, aes(x = FN, y = max_value, label = diff),
+            size = 5, vjust = -0.7, color="black",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 14, df = 8, p > 0.05)") + 
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+```
+
+
+#TPZ
+```{r data import new}
+DDIZ_1_n <- read_excel("Behaviour/Serie1_091222/DDIZ.xlsx") %>% 
+  rename("FN" = 'Selection Result',
+         "Rep" = "ID",
+         "Time" = "Time bin", 
+         "Dura_s" = "Duration...8", 
+         "Dura_per" = "Duration...9",
+         "Dist_tot1" = "Distance") %>% 
+  mutate(Time = as.factor(Time),
+         Trial = as.factor(gsub("    ", "_", Trial)),
+         Arena = as.factor(Arena),
+         Time_Cat = as.factor(ifelse(Time == "0:10:00-0:20:00", "LOFF1",
+                           ifelse(Time == "0:20:00-0:30:00" | Time == "0:00:00-0:10:00", "LON", "LOFF2"))),
+         Bino = as.factor(Bino),
+         Rep = as.factor(ifelse(FN == "benzo" & Rep == "dmso2", "benzo2", Rep)),
+         FN = ifelse(Rep == "h3" & FN == "beta33", "beta95", FN),
+         FN = ifelse(Rep == "g3" & FN == "beta95", "alpha", FN),
+         FN = ifelse(Rep == "k3" & FN == "delta60", "gamma33", FN),
+         FN = ifelse(Rep == "m3" & FN == "epsi", "delta35", FN),
+         FN = ifelse(Rep == "i3" & FN == "gamma60", "beta33", FN),
+         FN = as.factor(FN),
+         Zone = as.factor(ifelse(Zone == "In Border", "Border", "Center")),
+         #FN = as.factor(gsub("\\(2\\)", "", gsub("\\s+", "", FN))),
+         #FN = as.factor(gsub("\\(3\\)", "", gsub("\\s+", "", FN))),
+         state = as.factor("n")) %>% 
+  mutate_if(is.character, as.double, na.rm = T) %>% 
+  filter(rowSums(is.na(.)) != 3)
+         # Arena != "A5" | Trial != "Trial_13", Arena != "B5" | Trial != "Trial_11", Arena != "B6" | Trial != "Trial_11",
+         # Arena != "A6" | Trial != "Trial_15", Arena != "A4" | Trial != "Trial_14", Arena != "A1" | Trial != "Trial_15",
+         # Arena != "A4" | Trial != "Trial_11", Arena != "A1" | Trial != "Trial_19", Arena != "A2" | Trial != "Trial_13",
+         # Arena != "A7" | Trial != "Trial_11", Arena != "B4" | Trial != "Trial_9", Arena != "C4" | Trial != "Trial_11",
+         # Arena != "E1" | Trial != "Trial_14", Arena != "B5" | Trial != "Trial_12", Arena != "D6" | Trial != "Trial_12",
+         # Arena != "E5" | Trial != "Trial_13", Arena != "B4" | Trial != "Trial_14", Arena != "F2" | Trial != "Trial_16",
+         # Arena != "C5" | Trial != "Trial_13", Arena != "F3" | Trial != "Trial_16", Arena != "B1" | Trial != "Trial_18",
+         # Arena != "F5" | Trial != "Trial_12", Arena != "C3" | Trial != "Trial_13", Arena != "D5" | Trial != "Trial_14",
+         # Arena != "D5" | Trial != "Trial_16", Arena != "B8" | Trial != "Trial_12", Arena != "F4" | Trial != "Trial_13",
+         # Arena != "E3" | Trial != "Trial_12", Arena != "B4" | Trial != "Trial_9", Arena != "F5" | Trial != "Trial_13",
+         # Arena != "D5" | Trial != "Trial_15", Arena != "B5" | Trial != "Trial_13", Arena != "B1" | Trial != "Trial_13",
+         # Arena != "B1" | Trial != "Trial_15", Arena != "B5" | Trial != "Trial_16", Arena != "B5" | Trial != "Trial_16",
+         # Arena != "F7" | Trial != "Trial_9", Arena != "C5" | Trial != "Trial_11", Arena != "D5" | Trial != "Trial_19",
+         # Arena != "D2" | Trial != "Trial_11",  Arena != "C8" | Trial != "Trial_11", Arena != "E1" | Trial != "Trial_19",
+         # Arena != "F7" | Trial != "Trial_13", Arena != "E2" | Trial != "Trial_16", Arena != "E8" | Trial != "Trial_14",
+         # Arena != "F4" | Trial != "Trial_17", Arena != "D2" | Trial != "Trial_14", Arena != "B1" | Trial != "Trial_14",
+         # Arena != "C5" | Trial != "Trial_16", Arena != "E1" | Trial != "Trial_9", Arena != "C3" | Trial != "Trial_9",
+         # Arena != "F1" | Trial != "Trial_19", Arena != "B5" | Trial != "Trial_9", Arena != "C1" | Trial != "Trial_9",
+         # Arena != "B1" | Trial != "Trial_19", Arena != "B6" | Trial != "Trial_19", Arena != "D6" | Trial != "Trial_9",
+         # Arena != "C7" | Trial != "Trial_13") #to delete the line without data
+
+DDIZ_1_n
+DDIZ_1 <- DDIZ_1_n 
+```
+
+```{r Outliers}
+#Boxplot by replicates to see if there is outliers
+
+Outliers <- DDIZ_1 %>% ggplot(aes(Rep, Dist_tot1, fill = FN)) + 
+  geom_boxplot(width = 0.7) 
+Outliers
+
+```
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is outliers
+DDIZ_avg <- DDIZ_1 %>% group_by(FN, Zone, Time_Cat, Rep, state) %>%  summarise(n = n(), 
+                                                          Dura_s_avg = mean(Dura_s, na.rm=T),
+                                                          Dura_s_sd = sd(Dura_s, na.rm=T), 
+                                                          Dura_s_se = Dura_s_sd / sqrt(n), 
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n))
+  
+
+DDIZ_avg  
+
+DDIZ_avg_border <- DDIZ_1 %>% group_by(FN, Zone, Time_Cat, state) %>%  summarise(n = n(), 
+                                                          Dura_s_avg = mean(Dura_s, na.rm=T),
+                                                          Dura_s_sd = sd(Dura_s, na.rm=T), 
+                                                          Dura_s_se = Dura_s_sd / sqrt(n), 
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n)) %>% filter(Zone == "Border")
+  
+
+DDIZ_avg_border
+
+```
+
+##LOFF1
+```{r Statistics DIZ Border}
+DDIZ_n_LOFF1 <- DDIZ_1 %>% filter(Time_Cat == "LOFF1", Zone == "Border", FN != "benzo")
+
+Outliers <- DDIZ_n_LOFF1 %>% ggplot(aes(Rep, Dist_tot1, fill = FN)) + 
+  geom_boxplot(width = 0.7) 
+Outliers
+
+#Test normality by FN
+df_normality <- DDIZ_n_LOFF1 %>% group_by(FN) %>% 
+  summarise(normality = shapiro.test(Dura_s)$p.value)
+df_normality
+
+Aov <- aov(Dura_s~ FN, data= DDIZ_n_LOFF1) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+#Analyses Résidus
+
+ggplot(DDIZ_n_LOFF1, aes(x=Dura_s)) + geom_histogram(binwidth = 0.5)
+ggplot(DDIZ_n_LOFF1, aes(x=Dura_s)) + geom_density(binwidth = 0.5)
+#plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P > 0.05 H0 cannot be rejected normality verified
+
+#Test of variance
+bartlett.test(Dura_s~ FN, data= DDIZ_n_LOFF1) #P-value > 0.05 --> equality of variance
+
+# Diviser le dataframe par FN
+df_list <- DDIZ_n_LOFF1 %>%
+  group_by(FN) %>%
+  group_split() 
+df_list
+
+# Supprimer le dataframe à l'index 6 de la liste
+df_to_bind <- df_list[[6]]
+df_list <- df_list[-6]
+
+# Lier le dataframe df_to_bind à tous les autres dataframes dans la liste
+df_list <- lapply(df_list, function(df) bind_rows(df, df_to_bind))
+df_list
+
+results <- list()
+
+for (i in seq_along(df_list)) {
+  df_sub <- df_list[[i]]
+  states <- unique(df_sub$FN)
+  for (j in 1:(length(states) - 1)) {
+    for (k in (j + 1):length(states)) {
+      sample1 <- df_sub[df_sub$FN == states[j], "Dura_s"]$Dura_s
+      sample2 <- df_sub[df_sub$FN == states[k], "Dura_s"]$Dura_s
+      test_result <- wilcox.test(sample1, sample2, paired = FALSE)
+      result <- tibble(
+        FN = df_sub$FN[1],
+        vs = paste(states[j], states[k], sep = "_vs_"),
+        p_value = test_result$p.value,
+        W = test_result$statistic)
+      results <- c(results, list(result))}}}
+
+dmso_row <- tibble(FN = as.factor("dmso"), blank = "dmso", p_value = as.double(NA), W = as.double(NA), diff = as.character(NA))
+dmso_row
+
+results <- bind_rows(results) %>% 
+  mutate(p_value = if_else(is.na(p_value), 0, p_value)) %>%  
+  na.omit() %>% 
+  separate(vs, into = c("state1", "blank"), sep = "_vs_", remove = T) %>% 
+  dplyr::select(-state1) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "****", 
+                        if_else(p_value < 0.001, "***",
+                                if_else(p_value < 0.01, "**",
+                                        if_else(p_value < 0.05, "*", NA))))) %>% bind_rows(dmso_row)
+results
+
+
+max_values <- DDIZ_n_LOFF1 %>%
+  group_by(FN) %>%
+  summarize(max_value = max(Dura_s, na.rm = T))
+max_values
+
+MWU_n_Lett<- results %>% left_join(max_values)
+MWU_n_Lett
+
+MWU_n_Lett_LOFF1_new <- MWU_n_Lett
+MWU_n_Lett_LOFF1_new
+
+```
+
+##LON
+```{r Statistics DIZ Border}
+DDIZ_n_LON <- DDIZ_1_n %>% filter(Time_Cat == "LON", Zone == "Border", FN != "benzo")
+
+Outliers <- DDIZ_n_LON %>% ggplot(aes(Rep, Dura_s, fill = FN)) + 
+  geom_boxplot(width = 0.7) 
+Outliers
+
+#Test normality by FN
+df_normality <- DDIZ_n_LON %>% group_by(FN) %>% 
+  summarise(normality = shapiro.test(Dura_s)$p.value)
+df_normality
+
+Aov <- aov(Dura_s~ FN, data= DDIZ_n_LON) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+#Analyses Résidus
+
+ggplot(DDIZ_n_LON, aes(x=Dura_s)) + geom_histogram(binwidth = 0.5)
+ggplot(DDIZ_n_LON, aes(x=Dura_s)) + geom_density(binwidth = 0.5)
+#plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P > 0.05 H0 cannot be rejected normality verified
+
+#Test of variance
+bartlett.test(Dura_s~ FN, data= DDIZ_n_LON) #P-value > 0.05 --> equality of variance
+
+# Diviser le dataframe par FN
+df_list <- DDIZ_n_LON %>%
+  group_by(FN) %>%
+  group_split() 
+df_list
+
+# Supprimer le dataframe à l'index 6 de la liste
+df_to_bind <- df_list[[6]]
+df_list <- df_list[-6]
+
+# Lier le dataframe df_to_bind à tous les autres dataframes dans la liste
+df_list <- lapply(df_list, function(df) bind_rows(df, df_to_bind))
+df_list
+
+results <- list()
+
+for (i in seq_along(df_list)) {
+  df_sub <- df_list[[i]]
+  states <- unique(df_sub$FN)
+  for (j in 1:(length(states) - 1)) {
+    for (k in (j + 1):length(states)) {
+      sample1 <- df_sub[df_sub$FN == states[j], "Dura_s"]$Dura_s
+      sample2 <- df_sub[df_sub$FN == states[k], "Dura_s"]$Dura_s
+      test_result <- wilcox.test(sample1, sample2, paired = FALSE)
+      result <- tibble(
+        FN = df_sub$FN[1],
+        vs = paste(states[j], states[k], sep = "_vs_"),
+        p_value = test_result$p.value,
+        W = test_result$statistic)
+      results <- c(results, list(result))}}}
+
+dmso_row <- tibble(FN = as.factor("dmso"), blank = "dmso", p_value = as.double(NA), W = as.double(NA), diff = as.character(NA))
+dmso_row
+
+results <- bind_rows(results) %>% 
+  mutate(p_value = if_else(is.na(p_value), 0, p_value)) %>%  
+  na.omit() %>% 
+  separate(vs, into = c("state1", "blank"), sep = "_vs_", remove = T) %>% 
+  dplyr::select(-state1) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "****", 
+                        if_else(p_value < 0.001, "***",
+                                if_else(p_value < 0.01, "**",
+                                        if_else(p_value < 0.05, "*", NA))))) %>% bind_rows(dmso_row)
+results
+
+
+max_values <- DDIZ_n_LON %>%
+  group_by(FN) %>%
+  summarize(max_value = max(Dura_s, na.rm = T))
+max_values
+
+MWU_n_Lett<- results %>% left_join(max_values)
+MWU_n_Lett
+
+MWU_n_Lett_LON_new <- MWU_n_Lett
+MWU_n_Lett_LON_new
+
+```
+
+##LOFF2
+```{r Statistics DIZ Border}
+DDIZ_n_LOFF2 <- DDIZ_1_n %>% filter(Time_Cat == "LOFF2", Zone == "Border", FN != "benzo") %>% 
+  group_by(Trial, Arena, FN, Rep, Time_Cat) %>% 
+  summarise(Dura_s = mean(Dura_s))
+DDIZ_n_LOFF2
+
+Outliers <- DDIZ_n_LOFF2 %>% ggplot(aes(Rep, Dura_s, fill = FN)) + 
+  geom_boxplot(width = 0.7) 
+Outliers
+
+#Test normality by FN
+df_normality <- DDIZ_n_LOFF2 %>% group_by(FN) %>% 
+  summarise(normality = shapiro.test(Dura_s)$p.value)
+df_normality
+
+Aov <- aov(Dura_s~ FN, data= DDIZ_n_LOFF2) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+#Analyses Résidus
+
+ggplot(DDIZ_n_LOFF2, aes(x=Dura_s)) + geom_histogram(binwidth = 0.5)
+ggplot(DDIZ_n_LOFF2, aes(x=Dura_s)) + geom_density(binwidth = 0.5)
+#plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P > 0.05 H0 cannot be rejected normality verified
+
+#Test of variance
+bartlett.test(Dura_s~ FN, data= DDIZ_n_LOFF2) #P-value > 0.05 --> equality of variance
+
+# Diviser le dataframe par FN
+df_list <- DDIZ_n_LOFF2 %>%
+  group_by(FN) %>%
+  group_split() 
+df_list
+
+# Supprimer le dataframe à l'index 6 de la liste
+df_to_bind <- df_list[[6]]
+df_list <- df_list[-6]
+
+# Lier le dataframe df_to_bind à tous les autres dataframes dans la liste
+df_list <- lapply(df_list, function(df) bind_rows(df, df_to_bind))
+df_list
+
+results <- list()
+
+for (i in seq_along(df_list)) {
+  df_sub <- df_list[[i]]
+  states <- unique(df_sub$FN)
+  for (j in 1:(length(states) - 1)) {
+    for (k in (j + 1):length(states)) {
+      sample1 <- df_sub[df_sub$FN == states[j], "Dura_s"]$Dura_s
+      sample2 <- df_sub[df_sub$FN == states[k], "Dura_s"]$Dura_s
+      test_result <- wilcox.test(sample1, sample2, paired = FALSE)
+      result <- tibble(
+        FN = df_sub$FN[1],
+        vs = paste(states[j], states[k], sep = "_vs_"),
+        p_value = test_result$p.value,
+        W = test_result$statistic)
+      results <- c(results, list(result))}}}
+
+dmso_row <- tibble(FN = as.factor("dmso"), blank = "dmso", p_value = as.double(NA), W = as.double(NA), diff = as.character(NA))
+dmso_row
+
+results <- bind_rows(results) %>% 
+  mutate(p_value = if_else(is.na(p_value), 0, p_value)) %>%  
+  na.omit() %>% 
+  separate(vs, into = c("state1", "blank"), sep = "_vs_", remove = T) %>% 
+  dplyr::select(-state1) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "****", 
+                        if_else(p_value < 0.001, "***",
+                                if_else(p_value < 0.01, "**",
+                                        if_else(p_value < 0.05, "*", NA))))) %>% bind_rows(dmso_row)
+results
+
+
+max_values <- DDIZ_n_LOFF2 %>%
+  group_by(FN) %>%
+  summarize(max_value = max(Dura_s, na.rm = T))
+max_values
+
+MWU_n_Lett<- results %>% left_join(max_values)
+MWU_n_Lett
+
+MWU_n_Lett_LOFF2_new <- MWU_n_Lett
+MWU_n_Lett_LOFF2_new
+
+```
+
+
+#VLSR (Vibrational and light startle response)
+```{r data import new}
+VLSR1 <- read_excel("Behaviour/Serie1_091222/VSR1.xlsx")
+VLSR2 <- read_excel("Behaviour/Serie1_091222/VSR2.xlsx")
+VLSR_1_n <- rbind(VLSR1, VLSR2) %>% 
+  rename("FN" = 'Selection Result',
+         "Rep" = "ID",
+         "Time" = "Time bin",
+         "Dist_tot1" = "Distance") %>%
+  mutate(Time = as.factor(Time),
+         Bino = as.factor(Bino),
+         Trial = as.factor(gsub("    ", "_", Trial)),
+         Arena = as.factor(Arena),
+         Rep = as.factor(ifelse(FN == "benzo" & Rep == "dmso2", "benzo2", Rep)),
+         FN = ifelse(Rep == "h3" & FN == "beta33", "beta95", FN),
+         FN = ifelse(Rep == "g3" & FN == "beta95", "alpha", FN),
+         FN = ifelse(Rep == "k3" & FN == "delta60", "gamma33", FN),
+         FN = ifelse(Rep == "m3" & FN == "epsi", "delta35", FN),
+         FN = ifelse(Rep == "i3" & FN == "gamma60", "beta33", FN),
+         FN = as.factor(FN),
+         state = as.factor("n")) %>%
+  mutate_if(is.character, as.double, na.rm = F) %>% 
+  filter(rowSums(is.na(.)) != 3,
+         FN != "Result 1", FN != "Result 1 (2)", FN != "Result 1 (3)")
+         # Arena != "A5" | Trial != "Trial_13", Arena != "B5" | Trial != "Trial_11", Arena != "B6" | Trial != "Trial_11",
+         # Arena != "A6" | Trial != "Trial_15", Arena != "A4" | Trial != "Trial_14", Arena != "A1" | Trial != "Trial_15",
+         # Arena != "A4" | Trial != "Trial_11", Arena != "A1" | Trial != "Trial_19", Arena != "A2" | Trial != "Trial_13",
+         # Arena != "A7" | Trial != "Trial_11", Arena != "B4" | Trial != "Trial_9", Arena != "C4" | Trial != "Trial_11",
+         # Arena != "E1" | Trial != "Trial_14", Arena != "B5" | Trial != "Trial_12", Arena != "D6" | Trial != "Trial_12",
+         # Arena != "E5" | Trial != "Trial_13", Arena != "B4" | Trial != "Trial_14", Arena != "F2" | Trial != "Trial_16",
+         # Arena != "C5" | Trial != "Trial_13", Arena != "F3" | Trial != "Trial_16", Arena != "B1" | Trial != "Trial_18",
+         # Arena != "F5" | Trial != "Trial_12", Arena != "C3" | Trial != "Trial_13", Arena != "D5" | Trial != "Trial_14",
+         # Arena != "D5" | Trial != "Trial_16", Arena != "B8" | Trial != "Trial_12", Arena != "F4" | Trial != "Trial_13",
+         # Arena != "E3" | Trial != "Trial_12", Arena != "B4" | Trial != "Trial_9", Arena != "F5" | Trial != "Trial_13",
+         # Arena != "D5" | Trial != "Trial_15", Arena != "B5" | Trial != "Trial_13", Arena != "B1" | Trial != "Trial_13",
+         # Arena != "B1" | Trial != "Trial_15", Arena != "B5" | Trial != "Trial_16", Arena != "B5" | Trial != "Trial_16",
+         # Arena != "F7" | Trial != "Trial_9", Arena != "C5" | Trial != "Trial_11", Arena != "D5" | Trial != "Trial_19",
+         # Arena != "D2" | Trial != "Trial_11",  Arena != "C8" | Trial != "Trial_11", Arena != "E1" | Trial != "Trial_19",
+         # Arena != "F7" | Trial != "Trial_13", Arena != "E2" | Trial != "Trial_16", Arena != "E8" | Trial != "Trial_14",
+         # Arena != "F4" | Trial != "Trial_17", Arena != "D2" | Trial != "Trial_14", Arena != "B1" | Trial != "Trial_14",
+         # Arena != "C5" | Trial != "Trial_16", Arena != "E1" | Trial != "Trial_9", Arena != "C3" | Trial != "Trial_9",
+         # Arena != "F1" | Trial != "Trial_19", Arena != "B5" | Trial != "Trial_9", Arena != "C1" | Trial != "Trial_9",
+         # Arena != "B1" | Trial != "Trial_19", Arena != "B6" | Trial != "Trial_19", Arena != "D6" | Trial != "Trial_9",
+         # Arena != "C7" | Trial != "Trial_13")
+
+VLSR_1_n
+
+VLSR_stimu_n <- VLSR_1_n %>% filter(Time =="0:30:00-0:30:01") %>% mutate(Dtot_log = log(Dist_tot1+1), Time_Cat = "Stimuli")
+VLSR_stimu_n
+```
+
+```{r Outliers}
+#Boxplot by replicates to see if there is outliers
+
+Outliers <- VLSR_stimu_n %>% mutate(FN = fct_relevel(FN, 
+                            "benzo", "dmso", "beta33", "beta95", "gamma33", "gamma60", "delta35", "delta60", "alpha", "epsi")) %>%
+  ggplot(aes(Rep, Dist_tot1, fill = FN)) + 
+  geom_violin(width = 0.7, alpha = 0.5, color = "grey") +
+  geom_boxplot(width = 0.2) + 
+  scale_fill_brewer(palette = "Paired") +
+  theme_minimal()
+Outliers
+
+```
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is heterogeneity of replicate
+VLSR_avg <- VLSR_stimu_n %>% group_by(FN, Rep, Time_Cat, state) %>%  summarise(n = n(), 
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n))
+  
+VLSR_avg  
+
+#Average and boxplot by FN
+VLSR_avg <- VLSR_stimu_n %>% group_by(FN, Time_Cat, state) %>%  summarise(n = n(), 
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n),
+                                                          Dtot_med = median(Dist_tot1, na.rm=T)) %>% arrange(state)
+  
+VLSR_avg 
+
+
+```
+
+Hypothesis Normality
+H0: The data are sampled from a population having a normal distribution.
+HA: The data are sampled from a population not having a normal distribution.
+
+```{r Statistics}
+#Test normality by FN
+df_normality <- VLSR_stimu_n %>% group_by(FN, state) %>% 
+  summarise(normality = shapiro.test(Dist_tot1)$p.value)
+df_normality
+
+Aov <- aov(Dtot_log ~ FN, data= VLSR_stimu_n) ## P-value < 0.05 
+report(Aov)
+anova(Aov)
+summary.lm(Aov)
+
+#Analyses Résidus
+
+ggplot(VLSR_stimu_n, aes(x=Dtot_log)) + geom_histogram(binwidth = 0.5)
+ggplot(VLSR_stimu_n, aes(x=Dtot_log)) + geom_density(binwidth = 0.5)
+#plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P < 0.05 H0 rejected normality not verified
+
+#Test of variance
+bartlett.test(Dist_tot1 ~ FN, data= VLSR_stimu_n) #P-value > 0.05 --> equality of variance
+
+# Diviser le dataframe par FN
+df_list <- VLSR_stimu_n %>%
+  filter(FN != "benzo") %>% 
+  group_by(FN) %>%
+  group_split() 
+df_list
+
+# Supprimer le dataframe à l'index 6 de la liste
+df_to_bind <- df_list[[6]]
+df_list <- df_list[-6]
+
+# Lier le dataframe df_to_bind à tous les autres dataframes dans la liste
+df_list <- lapply(df_list, function(df) bind_rows(df, df_to_bind))
+df_list
+
+results <- list()
+
+for (i in seq_along(df_list)) {
+  df_sub <- df_list[[i]]
+  states <- unique(df_sub$FN)
+  for (j in 1:(length(states) - 1)) {
+    for (k in (j + 1):length(states)) {
+      sample1 <- df_sub[df_sub$FN == states[j], "Dist_tot1"]$Dist_tot1
+      sample2 <- df_sub[df_sub$FN == states[k], "Dist_tot1"]$Dist_tot1
+      test_result <- wilcox.test(sample1, sample2, paired = FALSE)
+      result <- tibble(
+        FN = df_sub$FN[1],
+        vs = paste(states[j], states[k], sep = "_vs_"),
+        p_value = test_result$p.value,
+        W = test_result$statistic)
+      results <- c(results, list(result))}}}
+
+dmso_row <- tibble(FN = as.factor("dmso"), blank = "dmso", p_value = as.double(NA), W = as.double(NA), diff = as.character(NA))
+dmso_row
+
+results_VLSR <- bind_rows(results) %>% 
+  mutate(p_value = if_else(is.na(p_value), 0, p_value)) %>%  
+  na.omit() %>% 
+  separate(vs, into = c("state1", "blank"), sep = "_vs_", remove = T) %>% 
+  dplyr::select(-state1) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "****", 
+                        if_else(p_value < 0.001, "***",
+                                if_else(p_value < 0.01, "**",
+                                        if_else(p_value < 0.05, "*", NA))))) %>% bind_rows(dmso_row)
+results_VLSR
+
+
+max_values <- VLSR_stimu_n %>%
+  filter(FN != "benzo") %>% 
+  group_by(FN) %>%
+  summarize(max_value = max(Dist_tot1, na.rm = T))
+max_values
+
+MWU_n_Lett<- results_VLSR %>% left_join(max_values)
+MWU_n_Lett
+
+MWU_n_Lett_VLSR_new <- MWU_n_Lett
+MWU_n_Lett_VLSR_new
+
+
+```
+
+
+```{r graph fin VLSR}
+G1 <- VLSR_stimu_n %>% filter(FN != "benzo") %>% ggplot(aes(x = FN, y = Dist_tot1, fill = FN)) + 
+  geom_boxplot(width = 0.2) + 
+  # geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  # scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Total distance covered in the second after tapping (mm)",
+       y = "Traveled distance (mm)", 
+       x = "Fishing nets")  +
+  # scale_x_discrete(labels = c("Blank H2O \nn = 48",
+  #                             "HPPE \u03B5\nØ4.25 mm \nn = 48",
+  #                             "PA6 \u03B3\nØ0.33 mm \nn = 48",
+  #                             "PA6 \u03B3\nØ0.60 mm \nn = 48",
+  #                             "PBS \u03B4\nØ0.35 mm \nn = 48",
+  #                             "PA6 \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G1 + 
+  geom_text(data = MWU_n_Lett, aes(x = FN, y = max_value, label = diff),
+            size = 7, vjust = -0.7, color="red",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 9.5, df = 5, p < 0.05) \nPostHoc test: Dunn with bonferroni correction") + 
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+```
+
+
+#VLMR (Vibrational and light motor response)
+```{r data import new}
+VLMR_n <- read_excel("Behaviour/Serie1_091222/VMR.xlsx") %>% 
+  rename("FN" = 'Selection Result',
+         "Rep" = "ID",
+         "Time" = "Time bin",
+         "Dist_tot1" = "Distance") %>%
+  mutate(Time = as.factor(Time),
+         Bino = as.factor(Bino),
+         Trial = as.factor(gsub("    ", "_", Trial)),
+         Arena = as.factor(Arena),
+         Rep = as.factor(ifelse(FN == "benzo" & Rep == "dmso2", "benzo2", Rep)),
+         FN = ifelse(Rep == "h3" & FN == "beta33", "beta95", FN),
+         FN = ifelse(Rep == "g3" & FN == "beta95", "alpha", FN),
+         FN = ifelse(Rep == "k3" & FN == "delta60", "gamma33", FN),
+         FN = ifelse(Rep == "m3" & FN == "epsi", "delta35", FN),
+         FN = ifelse(Rep == "i3" & FN == "gamma60", "beta33", FN),
+         FN = as.factor(FN),
+         state = as.factor("n"),
+         Time_Cat = as.factor(ifelse(Time == "0:28:00-0:30:00" | Time == "0:08:00-0:10:00", "LON", "Stimuli"))) %>%
+  mutate_if(is.character, as.double, na.rm = F) %>% 
+  filter(FN != "Result 1", FN != "Result 1 (2)", FN != "Result 1 (3)")
+         # Arena != "A5" | Trial != "Trial_13", Arena != "B5" | Trial != "Trial_11", Arena != "B6" | Trial != "Trial_11",
+         # Arena != "A6" | Trial != "Trial_15", Arena != "A4" | Trial != "Trial_14", Arena != "A1" | Trial != "Trial_15",
+         # Arena != "A4" | Trial != "Trial_11", Arena != "A1" | Trial != "Trial_19", Arena != "A2" | Trial != "Trial_13",
+         # Arena != "A7" | Trial != "Trial_11", Arena != "B4" | Trial != "Trial_9", Arena != "C4" | Trial != "Trial_11",
+         # Arena != "E1" | Trial != "Trial_14", Arena != "B5" | Trial != "Trial_12", Arena != "D6" | Trial != "Trial_12",
+         # Arena != "E5" | Trial != "Trial_13", Arena != "B4" | Trial != "Trial_14", Arena != "F2" | Trial != "Trial_16",
+         # Arena != "C5" | Trial != "Trial_13", Arena != "F3" | Trial != "Trial_16", Arena != "B1" | Trial != "Trial_18",
+         # Arena != "F5" | Trial != "Trial_12", Arena != "C3" | Trial != "Trial_13", Arena != "D5" | Trial != "Trial_14",
+         # Arena != "D5" | Trial != "Trial_16", Arena != "B8" | Trial != "Trial_12", Arena != "F4" | Trial != "Trial_13",
+         # Arena != "E3" | Trial != "Trial_12", Arena != "B4" | Trial != "Trial_9", Arena != "F5" | Trial != "Trial_13",
+         # Arena != "D5" | Trial != "Trial_15", Arena != "B5" | Trial != "Trial_13", Arena != "B1" | Trial != "Trial_13",
+         # Arena != "B1" | Trial != "Trial_15", Arena != "B5" | Trial != "Trial_16", Arena != "B5" | Trial != "Trial_16",
+         # Arena != "F7" | Trial != "Trial_9", Arena != "C5" | Trial != "Trial_11", Arena != "D5" | Trial != "Trial_19",
+         # Arena != "D2" | Trial != "Trial_11",  Arena != "C8" | Trial != "Trial_11", Arena != "E1" | Trial != "Trial_19",
+         # Arena != "F7" | Trial != "Trial_13", Arena != "E2" | Trial != "Trial_16", Arena != "E8" | Trial != "Trial_14",
+         # Arena != "F4" | Trial != "Trial_17", Arena != "D2" | Trial != "Trial_14", Arena != "B1" | Trial != "Trial_14",
+         # Arena != "C5" | Trial != "Trial_16", Arena != "E1" | Trial != "Trial_9", Arena != "C3" | Trial != "Trial_9",
+         # Arena != "F1" | Trial != "Trial_19", Arena != "B5" | Trial != "Trial_9", Arena != "C1" | Trial != "Trial_9",
+         # Arena != "B1" | Trial != "Trial_19", Arena != "B6" | Trial != "Trial_19", Arena != "D6" | Trial != "Trial_9",
+         # Arena != "C7" | Trial != "Trial_13")
+
+VLMR_n
+VLMR1 <- VLMR_n
+
+```
+
+```{r Outliers}
+#Boxplot by replicates to see if there is outliers
+
+Outliers <- VLMR1 %>% mutate(FN = fct_relevel(FN, 
+                            "benzo", "dmso", "beta33", "beta95", "gamma33", "gamma60", "delta35", "delta60", "alpha", "epsi")) %>%
+  ggplot(aes(FN, Dist_tot1, fill = FN)) + 
+  geom_boxplot(width = 0.7) + 
+  geom_jitter(width = 0.2, alpha = 0.5, color = "grey") +
+  scale_fill_brewer(palette = "Paired") +
+  theme_minimal()
+Outliers
+
+```
+
+```{r Average tibble}
+
+#Average and boxplot by replicates to see if there is heterogeneity of replicate
+VLMR_avg <- VLMR1 %>% group_by(Arena, FN, Time_Cat, Rep, state) %>%  summarise(n = n(), 
+                                                          Dtot_avg = mean(Dist_tot1, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n))
+  
+VLMR_avg  
+
+VLMR_avg2 <- VLMR_avg %>% dplyr::select(Arena, FN, Rep, Time_Cat, Dtot_avg, state) %>% 
+  pivot_wider(names_from = Time_Cat, values_from = c(Dtot_avg))
+VLMR_avg2
+
+VLMR_diff <- VLMR_avg2 %>% 
+  group_by(Arena, FN, Rep, state) %>% 
+  summarise(Dist_tot = Stimuli - LON) %>% 
+  mutate(Dist_tot = if_else(Dist_tot <0, 0, Dist_tot))
+
+VLMR_diff
+
+VLMR_diff_avg <- VLMR_diff %>% group_by(FN, state) %>%  summarise(n = n(), 
+                                                          Dtot_avg = mean(Dist_tot, na.rm=T),
+                                                          Dtot_sd = sd(Dist_tot, na.rm=T), 
+                                                          Dtot_se = Dtot_sd / sqrt(n))
+VLMR_diff_avg
+```
+
+Hypothesis Normality
+H0: The data are sampled from a population having a normal distribution.
+HA: The data are sampled from a population not having a normal distribution.
+
+```{r Statistics}
+#Test normality by FN
+df_normality <- VLMR_diff %>% group_by(FN, state) %>% 
+  summarise(normality = shapiro.test(Dist_tot)$p.value)
+df_normality
+
+VLMR_diff2 <- VLMR_diff %>% filter(FN != "benzo")
+
+Aov <- aov(Dist_tot ~ FN, data= VLMR_diff2) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+#Analyses Résidus
+
+ggplot(VLMR_diff, aes(x=Dist_tot)) + geom_histogram(binwidth = 0.5)
+ggplot(VLMR_diff, aes(x=Dist_tot)) + geom_density(binwidth = 0.5)
+#plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P > 0.05 H0 cannot be rejected normality verified
+
+#Test of variance
+bartlett.test(Dist_tot ~ FN, data= VLMR_diff) #P-value > 0.05 --> equality of variance
+
+# Diviser le dataframe par FN
+df_list <- VLMR_diff2 %>%
+  group_by(FN) %>%
+  group_split() 
+df_list
+
+# Supprimer le dataframe à l'index 6 de la liste
+df_to_bind <- df_list[[6]]
+df_list <- df_list[-6]
+
+# Lier le dataframe df_to_bind à tous les autres dataframes dans la liste
+df_list <- lapply(df_list, function(df) bind_rows(df, df_to_bind))
+df_list
+
+results <- list()
+
+for (i in seq_along(df_list)) {
+  df_sub <- df_list[[i]]
+  states <- unique(df_sub$FN)
+  for (j in 1:(length(states) - 1)) {
+    for (k in (j + 1):length(states)) {
+      sample1 <- df_sub[df_sub$FN == states[j], "Dist_tot"]$Dist_tot
+      sample2 <- df_sub[df_sub$FN == states[k], "Dist_tot"]$Dist_tot
+      test_result <- wilcox.test(sample1, sample2, paired = FALSE)
+      result <- tibble(
+        FN = df_sub$FN[1],
+        vs = paste(states[j], states[k], sep = "_vs_"),
+        p_value = test_result$p.value,
+        W = test_result$statistic)
+      results <- c(results, list(result))}}}
+
+dmso_row <- tibble(FN = as.factor("dmso"), blank = "dmso", p_value = as.double(NA), W = as.double(NA), diff = as.character(NA))
+dmso_row
+
+results_VLSR <- bind_rows(results) %>% 
+  mutate(p_value = if_else(is.na(p_value), 0, p_value)) %>%  
+  na.omit() %>% 
+  separate(vs, into = c("state1", "blank"), sep = "_vs_", remove = T) %>% 
+  dplyr::select(-state1) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "****", 
+                        if_else(p_value < 0.001, "***",
+                                if_else(p_value < 0.01, "**",
+                                        if_else(p_value < 0.05, "*", NA))))) %>% bind_rows(dmso_row)
+results_VLSR
+
+
+max_values <- VLMR_diff2 %>%
+  group_by(FN) %>%
+  summarize(max_value = max(Dist_tot, na.rm = T))
+max_values
+
+MWU_n_Lett<- results_VLSR %>% left_join(max_values)
+MWU_n_Lett
+
+MWU_n_Lett_VLMR_new <- MWU_n_Lett
+MWU_n_Lett_VLMR_new
+```
+
+```{r graph fin VLSR}
+G1 <- VLMR_diff2 %>% ggplot(aes(x = FN, y = Dist_tot, fill = FN)) + geom_boxplot(width = 0.2) + 
+  #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  scale_y_continuous(limits = c(0, 700), breaks = seq(0, 700, by = 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Total distance covered in the second after tapping (mm)",
+       y = "Traveled distance (mm)", 
+       x = "Fishing nets")  +
+  # scale_x_discrete(labels = c("Blank H2O \nn = 48",
+  #                             "HPPE \u03B5\nØ4.25 mm \nn = 48",
+  #                             "PA6 \u03B3\nØ0.33 mm \nn = 48",
+  #                             "PA6 \u03B3\nØ0.60 mm \nn = 48",
+  #                             "PBS \u03B4\nØ0.35 mm \nn = 48",
+  #                             "PA6 \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(2, 1, 1, 1), "cm"))
+G1 + 
+  geom_text(data = MWU_n_Lett, aes(x = FN, y = max_value, label = diff),
+            size = 7, vjust = -0.7, color="red",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Statistics:\nIndependent Mann-Whitney U-test\nSignificant difference p-value < 0.05\nn = 15-43") + 
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+```
+
+
+#AUC 
+```{r data import new}
+AUC_n <- read_excel("Behaviour/Serie1_091222/AUC.xlsx") %>% 
+  rename("FN" = 'Selection Result',
+         "Rep" = "ID",
+         "Time" = "Time bin", 
+         "Vel_avg1" = "Velocity...7", 
+         "Vel_sd1" = "Velocity...8", 
+         "Vel_se1" = "Velocity...9",
+         "Dist_avg1" = "Distance...10",
+         "Dist_sd1" = "Distance...11",
+         "Dist_se1" = "Distance...12",
+         "Dist_tot1" = "Distance...13") %>%
+  mutate(Time = as.factor(Time),
+         Time_Cat = as.factor(c("LOFF2")),
+         Bino = as.factor(Bino),
+         Trial = as.factor(gsub("    ", "_", Trial)),
+         Arena = as.factor(Arena),
+         state = as.factor("n"),
+         Rep = as.factor(ifelse(FN == "benzo" & Rep == "dmso", "benzo", Rep)),
+         FN = ifelse(Rep == "h3" & FN == "beta33", "beta95", FN),
+         FN = ifelse(Rep == "g3" & FN == "beta95", "alpha", FN),
+         FN = ifelse(Rep == "k3" & FN == "delta60", "gamma33", FN),
+         FN = ifelse(Rep == "m3" & FN == "epsi", "delta35", FN),
+         FN = ifelse(Rep == "i3" & FN == "gamma60", "beta33", FN),
+         FN = as.factor(FN)) %>%
+  mutate_if(is.character, as.double, na.rm = T) %>% 
+  dplyr::select(-Bino) %>% 
+  filter(rowSums(is.na(.)) != 7)
+         # Arena != "A5" | Trial != "Trial_13", Arena != "B5" | Trial != "Trial_11", Arena != "B6" | Trial != "Trial_11",
+         # Arena != "A6" | Trial != "Trial_15", Arena != "A4" | Trial != "Trial_14", Arena != "A1" | Trial != "Trial_15",
+         # Arena != "A4" | Trial != "Trial_11", Arena != "A1" | Trial != "Trial_19", Arena != "A2" | Trial != "Trial_13",
+         # Arena != "A7" | Trial != "Trial_11", Arena != "B4" | Trial != "Trial_9", Arena != "C4" | Trial != "Trial_11",
+         # Arena != "E1" | Trial != "Trial_14", Arena != "B5" | Trial != "Trial_12", Arena != "D6" | Trial != "Trial_12",
+         # Arena != "E5" | Trial != "Trial_13", Arena != "B4" | Trial != "Trial_14", Arena != "F2" | Trial != "Trial_16",
+         # Arena != "C5" | Trial != "Trial_13", Arena != "F3" | Trial != "Trial_16", Arena != "B1" | Trial != "Trial_18",
+         # Arena != "F5" | Trial != "Trial_12", Arena != "C3" | Trial != "Trial_13", Arena != "D5" | Trial != "Trial_14",
+         # Arena != "D5" | Trial != "Trial_16", Arena != "B8" | Trial != "Trial_12", Arena != "F4" | Trial != "Trial_13",
+         # Arena != "E3" | Trial != "Trial_12", Arena != "B4" | Trial != "Trial_9", Arena != "F5" | Trial != "Trial_13",
+         # Arena != "D5" | Trial != "Trial_15", Arena != "B5" | Trial != "Trial_13", Arena != "B1" | Trial != "Trial_13",
+         # Arena != "B1" | Trial != "Trial_15", Arena != "B5" | Trial != "Trial_16", Arena != "B5" | Trial != "Trial_16",
+         # Arena != "F7" | Trial != "Trial_9", Arena != "C5" | Trial != "Trial_11", Arena != "D5" | Trial != "Trial_19",
+         # Arena != "D2" | Trial != "Trial_11",  Arena != "C8" | Trial != "Trial_11", Arena != "E1" | Trial != "Trial_19",
+         # Arena != "F7" | Trial != "Trial_13", Arena != "E2" | Trial != "Trial_16", Arena != "E8" | Trial != "Trial_14",
+         # Arena != "F4" | Trial != "Trial_17", Arena != "D2" | Trial != "Trial_14", Arena != "B1" | Trial != "Trial_14",
+         # Arena != "C5" | Trial != "Trial_16", Arena != "E1" | Trial != "Trial_9", Arena != "C3" | Trial != "Trial_9",
+         # Arena != "F1" | Trial != "Trial_19", Arena != "B5" | Trial != "Trial_9", Arena != "C1" | Trial != "Trial_9",
+         # Arena != "B1" | Trial != "Trial_19", Arena != "B6" | Trial != "Trial_19", Arena != "D6" | Trial != "Trial_9",
+         # Arena != "C7" | Trial != "Trial_13") #to delete the line without data
+
+AUC_n
+
+AUC_1bis <- AUC_n
+
+mapping <- c(
+  "0:10:00-0:10:30" = "0:30:00-0:30:30",
+  "0:10:30-0:11:00" = "0:30:30-0:31:00",
+  "0:11:00-0:11:30" = "0:31:00-0:31:30",
+  "0:11:30-0:12:00" = "0:31:30-0:32:00",
+  "0:12:00-0:12:30" = "0:32:00-0:32:30",
+  "0:12:30-0:13:00" = "0:32:30-0:33:00",
+  "0:13:00-0:13:30" = "0:33:00-0:33:30",
+  "0:13:30-0:14:00" = "0:33:30-0:34:00",
+  "0:14:00-0:14:30" = "0:34:00-0:34:30",
+  "0:14:30-0:15:00" = "0:34:30-0:35:00",
+  "0:15:00-0:15:30" = "0:35:00-0:35:30",
+  "0:15:30-0:16:00" = "0:35:30-0:36:00",
+  "0:16:00-0:16:30" = "0:36:00-0:36:30",
+  "0:16:30-0:17:00" = "0:36:30-0:37:00",
+  "0:17:00-0:17:30" = "0:37:00-0:37:30",
+  "0:17:30-0:18:00" = "0:37:30-0:38:00",
+  "0:18:00-0:18:30" = "0:38:00-0:38:30",
+  "0:18:30-0:19:00" = "0:38:30-0:39:00",
+  "0:19:00-0:19:30" = "0:39:00-0:39:30",
+  "0:19:30-0:20:00" = "0:39:30-0:40:00"
+)
+
+# Remplacement des valeurs de la colonne "Time" selon le mapping
+AUC_1_n <- AUC_1bis %>%
+  mutate(Time = case_when(
+    Time %in% names(mapping) ~ mapping[Time],
+    TRUE ~ Time
+  ))
+AUC_1 <- AUC_1_n
+
+
+```
+
+```{r Outliers}
+#Boxplot by replicates to see if there is outliers
+
+Outliers <- AUC_1 %>% mutate(FN = fct_relevel(FN, 
+                            "benzo", "dmso", "beta33", "beta95", "gamma33", "gamma60", "delta60", "alpha", "epsi")) %>%
+  ggplot(aes(FN, Dist_avg1, fill = FN)) + 
+  geom_boxplot(width = 0.7) + 
+  geom_jitter(width = 0.2, alpha = 0.5, color = "grey") +
+  scale_fill_brewer(palette = "Paired") +
+  theme_minimal()
+Outliers
+
+```
+
+```{r Average tibble}
+
+
+#Average and boxplot by replicates to see if there is heterogeneity of replicate
+AUC_avg_Rep <- AUC_1 %>% group_by(Arena, FN, Rep, Time, Time_Cat, state) %>%  summarise(n = n(), 
+                                                          Dist_tot = mean(Dist_tot1, na.rm=T),
+                                                          Dist_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dist_se = Dist_sd / sqrt(n),
+                                                          Vel_avg = mean(Vel_avg1, na.rm=T),
+                                                          Vel_sd = sd(Vel_avg1, na.rm=T), 
+                                                          Vel_se = Vel_sd / sqrt(n))
+  
+AUC_avg_Rep  
+
+#Average and boxplot by FN to see if there is heterogeneity of replicate
+AUC_avg <- AUC_1 %>% group_by(FN, Time, Time_Cat, state) %>%  summarise(n = n(), 
+                                                          Dist_tot = mean(Dist_tot1, na.rm=T),
+                                                          Dist_sd = sd(Dist_tot1, na.rm=T), 
+                                                          Dist_se = Dist_sd / sqrt(n),
+                                                          Vel_avg = mean(Vel_avg1, na.rm=T),
+                                                          Vel_sd = sd(Vel_avg1, na.rm=T), 
+                                                          Vel_se = Vel_sd / sqrt(n))
+  
+AUC_avg  
+
+#Average table for facet graphs
+facet1 <- tibble(facet = as.factor(rep(c("alpha", "beta", "gamma", "delta" , "epsi", "benzo"), each = 20)))
+
+df <- AUC_avg  %>% 
+             filter(FN == "dmso") 
+
+df1 <- df %>% bind_rows(replicate(5, df, simplify = FALSE)) 
+df1
+
+df2 <- cbind(df1, facet1)
+df2
+
+
+df3 <- AUC_avg  %>% filter(FN != "dmso") %>% 
+  mutate(facet = as.factor(ifelse(grepl("beta", FN), "beta", 
+                              ifelse(grepl("gamma", FN), "gamma", 
+                                     ifelse(grepl("delta", FN), "delta",
+                                         ifelse(grepl("alpha", FN), "alpha",
+                                             ifelse(grepl("epsi", FN), "epsi",
+                                                 ifelse(grepl("benzo", FN), "benzo", FN))))))))
+df3
+
+AUC_avg_facet <- tibble(rbind(df2, df3)) %>% mutate(Time = as.character(Time))
+AUC_avg_facet
+
+time_to_numeric <- function(time_interval) {
+  end_time <- str_extract(time_interval, "\\d+:\\d+:\\d+$")
+  end_mins <- as.numeric(strftime(strptime(end_time, format = "%H:%M:%S"), format = "%M"))
+  end_mins
+}
+
+df4 <- AUC_avg_facet %>%
+  mutate(Time_num = map_dbl(Time, time_to_numeric))
+
+df4
+```
+
+
+```{r Plot }
+
+#Distance total
+
+G <- df4 %>% mutate(FN = fct_relevel(FN, 
+                            "benzo", "dmso", "beta33", "beta95", "gamma33", "gamma60", "delta60", "alpha", "epsi")) %>%
+  ggplot(aes(x = Time, y = Dist_tot, group = FN, color = FN)) + 
+  geom_point(size = 2) +
+  geom_line(size = 1) +
+  geom_errorbar(aes(ymin= ifelse(Dist_tot-Dist_se < 0, 0, Dist_tot-Dist_se), ymax=Dist_tot+Dist_se), width=0.1, size = 0.5) +
+  facet_wrap(vars(FN), ncol = 2) +
+  scale_color_brewer(palette = "Paired") + theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust=1))
+
+G
+
+```
+
+```{r AUC}
+#Transformer AUC_1 pour creer Time_end
+AUC_1ter <- AUC_avg_Rep %>%  
+  mutate(Time_start = as.numeric(format(as.POSIXct(sub("-.*", "", Time), format = "%H:%M:%S"), format = "%H%M%S")),
+         Time_end = as.numeric(format(as.POSIXct(sub(".*-", "", Time), format = "%H:%M:%S"), format = "%H%M%S"))) %>% 
+  mutate(Time_start = sprintf("%.2f", Time_start/100), 
+         Time_end = as.numeric(sprintf("%.2f", Time_end/100)))
+AUC_1ter
+
+library(pracma)
+
+AUC_results_new <- AUC_1ter %>%
+  group_by(Arena, FN, Rep) %>%
+  summarize(AUC = trapz(Time_end, Dist_tot)) %>% 
+  arrange(Rep) %>% 
+  mutate(state = "new")
+AUC_results_new
+
+AUC_final_new <- AUC_results_new %>% group_by(FN) %>% summarise(n = n(), 
+                                                        AUC_avg = mean(AUC),
+                                                        AUC_sd = sd(AUC),
+                                                        AUC_se = AUC_sd / sqrt(n))
+AUC_final_new
+
+#AUC
+AUC_final_new %>% mutate(FN = fct_relevel(FN, 
+                            "benzo", "dmso", "beta33", "beta95", "gamma33", "gamma60", "delta60", "alpha", "epsi")) %>%
+  ggplot(aes(x= FN, y = AUC_avg, fill = FN)) + 
+  geom_bar(stat = "identity", position = position_dodge(preserve = "single", width=0.6), width =0.5) +
+  geom_errorbar(aes(ymin= ifelse(AUC_avg-AUC_se < 0, 0, AUC_avg-AUC_se), ymax=AUC_avg+AUC_se), position=position_dodge(width=0.6), width=0.08, size = 1) +
+  labs(title = "Average distance traveled until to come back at the baseline level", y = "Air under the curve (Distance average/Time)") +
+  scale_fill_brewer(palette = "Paired") +
+  theme_minimal()
+```
+
+
+Hypothesis Normality
+H0: The data are sampled from a population having a normal distribution.
+HA: The data are sampled from a population not having a normal distribution
+  
+```{r Statistics}
+#Test normality by FN
+df_normality <- AUC_results_new %>% group_by(FN) %>% 
+  summarise(normality = shapiro.test(AUC)$p.value)
+df_normality
+
+Aov <- aov(AUC ~ FN, data= AUC_results_new) ## P-value < 0.05 
+anova(Aov)
+summary.lm(Aov)
+
+#Analyses Résidus
+
+ggplot(AUC_results_new, aes(x=AUC)) + geom_histogram(binwidth = 0.5)
+ggplot(AUC_results_new, aes(x=AUC)) + geom_density(binwidth = 0.5)
+#plot(Aov) #--> Normalité ok
+shapiro.test(residuals(Aov)) #--> P > 0.05 H0 cannot be rejected normality verified
+
+#Test of variance
+bartlett.test(AUC ~ FN, data= AUC_results_new) #P-value > 0.05 --> equality of variance
+
+# Diviser le dataframe par FN
+df_list <- AUC_results_new %>%
+  filter(FN != "benzo") %>% 
+  group_by(FN) %>%
+  group_split() 
+df_list
+
+# Supprimer le dataframe à l'index 6 de la liste
+df_to_bind <- df_list[[5]]
+df_list <- df_list[-5]
+
+# Lier le dataframe df_to_bind à tous les autres dataframes dans la liste
+df_list <- lapply(df_list, function(df) bind_rows(df, df_to_bind))
+df_list
+
+results <- list()
+
+for (i in seq_along(df_list)) {
+  df_sub <- df_list[[i]]
+  states <- unique(df_sub$FN)
+  for (j in 1:(length(states) - 1)) {
+    for (k in (j + 1):length(states)) {
+      sample1 <- df_sub[df_sub$FN == states[j], "AUC"]$AUC
+      sample2 <- df_sub[df_sub$FN == states[k], "AUC"]$AUC
+      test_result <- wilcox.test(sample1, sample2, paired = FALSE)
+      result <- tibble(
+        FN = df_sub$FN[1],
+        vs = paste(states[j], states[k], sep = "_vs_"),
+        p_value = test_result$p.value,
+        W = test_result$statistic)
+      results <- c(results, list(result))}}}
+
+dmso_row <- tibble(FN = as.factor("dmso"), blank = "dmso", p_value = as.double(NA), W = as.double(NA), diff = as.character(NA))
+dmso_row
+
+results_VLSR <- bind_rows(results) %>% 
+  mutate(p_value = if_else(is.na(p_value), 0, p_value)) %>%  
+  na.omit() %>% 
+  separate(vs, into = c("state1", "blank"), sep = "_vs_", remove = T) %>% 
+  dplyr::select(-state1) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "****", 
+                        if_else(p_value < 0.001, "***",
+                                if_else(p_value < 0.01, "**",
+                                        if_else(p_value < 0.05, "*", NA))))) %>% bind_rows(dmso_row)
+results_VLSR
+
+
+max_values <- AUC_results_new %>%
+  group_by(FN) %>%
+  summarize(max_value = max(AUC, na.rm = T))
+max_values
+
+MWU_n_Lett<- results_VLSR %>% left_join(max_values)
+MWU_n_Lett
+
+MWU_n_Lett_AUC_new <- MWU_n_Lett
+MWU_n_Lett_AUC_new
+
+```
+
+```{r graph fin AUC}
+
+G1 <- AUC_results_new %>% ggplot(aes(x = FN, y = AUC, fill = FN)) + 
+  geom_boxplot(width = 0.1) + 
+  #geom_errorbar(aes(ymin =mean_per-sd_per, ymax= ifelse(mean_per+sd_per > 100, 100, mean_per+sd_per)), width=0.05) +
+  #scale_y_continuous(breaks = c(10, 25, 50, 75, 100)) +
+  scale_fill_manual(values = Color_real_FN) +
+  scale_color_manual(values = Color_real_FN) +
+  theme_bw() +
+  labs(title = "Habituation to vibratory stimuli",
+       y = "Distance covered (mm)", 
+       x = "Fishing nets")  +
+  # scale_x_discrete(labels = c("Blank H2O \nn = 48",
+  #                             "HPPE \u03B5\nØ4.25 mm \nn = 48",
+  #                             "PA6 \u03B3\nØ0.33 mm \nn = 48",
+  #                             "PA6 \u03B3\nØ0.60 mm \nn = 48",
+  #                             "PBS \u03B4\nØ0.35 mm \nn = 48",
+  #                             "PBS \u03B4\nØ0.60 mm \nn = 48")) +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        legend.position="none",
+        legend.title=element_blank(),
+        legend.spacing.x = unit(0.5, 'cm'),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+G1 + 
+  geom_text(data = MWU_n_Lett_AUC_new, aes(x = FN, y = max_value+20, label = diff),
+            size = 5, vjust = 0, color="black",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test: \n(H = 11.1, df = 5, p < 0.05) \nPostHoc test: Dunn with holm correction") +
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 202, 
+               angle = 0, 
+               lineheight = 1))
+
+```

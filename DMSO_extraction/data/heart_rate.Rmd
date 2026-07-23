@@ -1,0 +1,898 @@
+---
+title: "Heart_Rate"
+author: "Edgar Dusacre"
+date: "2023-03-21"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+```{r Insertion package, include=FALSE}
+library(ggplot2) 
+library(tidyr)
+library(purrr)
+library(tidyverse)
+library(ggrepel)
+library(ggpubr)
+library(knitr)
+library(yaml)
+library(dplyr) 
+library(matrixStats)
+library(EnvStats)
+library(stringr)
+library(gtable)
+library(grid)
+library(FSA)
+library(scales)
+library(wbstats)
+library(ggh4x)
+library(multcompView)
+library(report)
+library(ecotox)
+library(wesanderson)
+library(RColorBrewer)
+library(readr)
+library(readxl)
+library(gmodels)
+library(ggpattern)
+library(zoo)
+library(forcats)
+library(car)
+library(dunn.test)
+
+
+library(forcats)
+library(binom)
+library(lubridate)
+library(ade4)
+library(broom)
+library(rstatix)
+library(rcompanion)
+library(chron)
+library(PMCMRplus)
+
+```
+
+
+
+```{r Charger les palettes de couleurs, include=FALSE}
+Plasfito_C <- c("#80CAD0", "#36A7A7", "#276573", "#054959","#E3CCC0", "#F7EAE1", "#A48A7B", "#C6AF8D", "#49BED3", "#256CB4", "#008163", "#44B494", "#7BC6B9")
+
+Plasfito_color <- c("GreenP4" = "#80CAD0", "GreenP3" = "#36A7A7", "GreenP2" = "#276573", "GreenP1" = "#054959","Brown1" = "#E3CCC0", "Brown2" = "#F7EAE1", "Brown3" = "#A48A7B", "Brown4" = "#C6AF8D", "Turquoise1" = "#49BED3", "Blue1" = "#256CB4", "Green1" = "#008163", "Green2" = "#44B494", "Green3" = "#7BC6B9")
+
+List_color_Fr <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                   "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573")
+
+List_color <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                 "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573",
+                 "Euskadi" = "#054959")
+
+Plasfito_Tps <- c("5" = "#80CAD0", "15" = "#36A7A7", "30" = "#276573")
+
+
+#A part si vous souhaitez changer les couleurs do not touch.
+Ech_K2CR2O7<- c("K2CR2O7" = "#80CAD0")
+
+Tps_color <- c("5" = "#80CAD0" , "15" = "#36A7A7", "30" = "#276573")
+
+Dilu_color <- c("0.0125" = "#80CAD0" , "0.025" = "#36A7A7", "0.05" = "#276573", "0.1" = "#008163")
+
+Conc_color <- c("0.4125" = "#80CAD0" , "0.825" = "#36A7A7", "1.65" = "#276573", "3.3" = "#008163")
+Conc_color3 <- c("0.825" = "aquamarine", "1.65" = "#36A7A7", "3.3" = "#276573")
+
+Color_biolu_Pasaia <- c("Ech1" = "aquamarine", "Ech2" = "#36A7A7" , "DMSO" = "#A48A7B")
+
+Color_real_FN <- c("dmso" = "#A48A7B", "ctl H2O" = "#256CB4", "pa_a33" = "#4fd355", "pa_b33" = "#ca98d3", "pa_b95" = "#6e217c", "pa_g33" = "#92b78f", "pa_g60" = "#bbb3bc", "pbs_d35" = "#d3ad4f","pbs_d60" = "#c68640", "pe_e4.25" = "#36A7A7")
+
+Color_state <- c("Solvent ctl" = "#A48A7B", "ctl H2O" = "#256CB4", "new" = "aquamarine", "used" = "#36A7A7")
+
+Color_real_FN <- c("Solvent control" = "#A48A7B", "ctl H2O" = "#256CB4", "PA α ø.35" = "#4fd355", "PA β ø.33" = "#ca98d3", "PA β ø.95" = "#6e217c", "PA γ ø.33" = "#92b78f", "PA γ ø.60" = "#bbb3bc", "PBS δ ø.35" = "#d3ad4f","PBS δ ø.60" = "#c68640", "HPPE ε ø4.25" = "#36A7A7")
+
+Color_real_FN4 <- c("Solvent control" = "#A48A7B", "ctl H2O" = "#256CB4", "PA6 α 35" = "#4fd355", "PA6 β 33" = "#ca98d3", "PA6 β 95" = "#6e217c", "PA6 γ 33" = "#92b78f", "PA6 γ 60" = "#bbb3bc", "PBS-PBAT δ 35" = "#d3ad4f","PBS-PBAT δ 60" = "#c68640", "HPPE-PP ε 4.25" = "#36A7A7")
+
+Color_real_FN3 <- c("ctl" = "#A48A7B", "ctl H2O" = "#256CB4", "pa_a35" = "#4fd355", "pa_b33" = "#ca98d3", "pa_b95" = "#6e217c", "pa_g33" = "#92b78f", "pa_g60" = "#bbb3bc", "pbs_d35" = "#d3ad4f","pbs_d60" = "#c68640", "pe_e4.25" = "#36A7A7", "hppe_e425" = "#36A7A7")
+
+Color_real_FN2 <- c("ctl" = "#A48A7B", "ctl H2O" = "#256CB4", "PA_a35" = "#4fd355", "PA_b33" = "#ca98d3", "PA_b95" = "#6e217c", "PA_g33" = "#92b78f", "PA_g60" = "#bbb3bc", "PBS_d35" = "#d3ad4f","PBS_d60" = "#c68640", "PE_e4.25" = "#36A7A7", "HPPE_e425" = "#36A7A7")
+
+Color_real_FN5 <- c("DMSO\ncontrol" = "#A48A7B", "ctl H2O" = "#256CB4", "PA α35" = "#4fd355", "PA β33" = "#ca98d3", "PA β95" = "#6e217c", "PA γ33" = "#92b78f", "PA γ60" = "#bbb3bc", "PBS δ35" = "#d3ad4f","PBS δ60" = "#c68640", "PE-PP ε4.25" = "#36A7A7")
+```
+
+
+```{r fct n}
+stat_box_data <- function(y, upper_limit = max(BPM_ajusted$ajusted_BPM) * 1.15) {
+  return( 
+    data.frame(
+      y = 0.95 * upper_limit,
+      label = paste('n =', length(y), '\n',
+                    'mean =', round(mean(y), 1), '\n')
+    )
+  )
+}
+
+stat_box_data <- function(y, lower_limit = min(BPM_ajusted$ajusted_BPM) * 1.15) {
+  return( 
+    data.frame(
+      y = 0.95 * lower_limit,
+      label = paste('n =', length(y))
+    )
+  )
+}
+```
+
+```{r data import}
+HR_DMSO_n <- read_excel("Hearth rate/HR_analysis_122022_bis.xlsx") %>% 
+  rename(N = BPS_n) %>% 
+  select(-BPS_se, -BPM_se, -BPM_n) %>% 
+  mutate(state = "new",
+         ID = if_else(FN == "pbs_d60_n" & ID == "benzo", "l1", ID),
+         FN = if_else(FN == "benzo" & ID == "m3", "pbs_d35", FN)) %>% 
+  filter(FN != "dmso" | Hole != "1" | Subject != "S02",
+         FN != "dmso" | Hole != "3" | Subject != "S03",
+         FN != "dmso" | Hole != "4" | Subject != "S03",
+         FN != "dmso" | Hole != "1" | Subject != "S01")
+HR_DMSO_n
+
+HR_DMSO_n$FN <- gsub("_n", "", HR_DMSO_n$FN)
+
+HR_DMSO_u <- read_excel("Hearth rate/HR_analysis_bis.xlsx") %>% 
+  rename(N = BPS_n) %>% 
+  select(-BPS_se, -BPM_se, -BPM_n)%>% 
+  mutate(state = "used") %>% 
+  filter(FN != "blc", FN != "ph4_14", FN != "ph7_23")
+HR_DMSO_u
+
+HR_DMSO_u$FN <- gsub("_u", "", HR_DMSO_u$FN)
+
+HR_dmso_tot <- rbind(HR_DMSO_n, HR_DMSO_u) 
+HR_dmso_tot
+
+
+```
+
+```{r DMSO}
+HR_dmso <-HR_dmso_tot  %>% filter(FN == "dmso")
+HR_dmso
+
+HR_dmso %>%
+  ggplot(aes(x = FN, y = BPM, fill=state)) +
+  geom_boxplot(notch = F)+
+  theme_minimal()+
+  labs(y = "Rythme cardiaque (BPM)",
+       title = "Comparaison des dmso")+
+  theme(axis.title.x = element_blank())+
+  annotate(geom="text", x= "dmso", y=40, label="n=18        n=20",
+           color="black", parse = F, size = 3)+
+  annotate(geom="text", x="dmso", y=230, label="a                                                                                  a",
+           color="black", parse = F, size = 3)
+
+```
+
+```{r Mean comparison  dmso}
+dmso_avg <- HR_dmso %>% 
+  group_by(state, FN) %>% 
+  summarise(n = n(),
+            mean = mean(BPM), 
+            sd = sd(BPM),
+            se = sd/sqrt(n))
+dmso_avg
+
+dmso_ctl_n <- dmso_avg %>% filter(state == "new")
+dmso_ctl_u <- dmso_avg %>% filter(state == "used")
+
+```
+
+```{r Normalisation des données autour du CTL}
+
+HR_aju <- HR_dmso_tot %>% 
+  filter(FN != "benzo") %>% 
+  mutate(aju_HR = if_else(state == "new", (BPM * 100) / dmso_ctl_n$mean, 
+                              if_else(state == "used", (BPM * 100) / dmso_ctl_u$mean, NA)))
+HR_aju
+
+#export data
+# library(writexl)
+# write_xlsx(HR_aju, "HR_aju_ibr.xlsx")
+
+df_avg_HR <- HR_aju %>% 
+  group_by(FN, state) %>% 
+  summarise(n = n(),
+            avg_HR_adj = mean(aju_HR, na.rm = T), 
+            sd_HR_adj = sd(aju_HR, na.rm = T),
+            se_HR_adj = sd_HR_adj/sqrt(n)) 
+
+df_avg_HR
+
+#export as csv
+#write.csv(df_avg_HR, "C:/Users/edusacre/ownCloud/PhD/SCIENCES/Manips/Tox/PCA_tables_dmso/Avg_HR.csv")
+
+```
+
+Here, we have 3 sets of hypotheses
+▶ H0: The age of the fishing net has no effect on the Heart rates
+(x n = x u = x ctl)
+▶ HA: The age of the fishing net has an effect on the Heart rates
+(x undergrad != x grad != x ctl)
+
+▶ H0: The FN have no effect on the Heart rates
+(x FN1 = x FN2 ...)
+▶ HA: The FN have no effect on the Heart rates
+(x FN1 = x FN2 ...)
+
+▶ H0: The state has the same effect on the toxicity of the FN 
+▶ HA: The state has not the same effect on the toxicity of the FN 
+
+```{r toxicity score}
+
+Tox_sco_HR <- df_avg_HR %>% 
+  mutate(m_effect = if_else(FN == "pa_b33" & state == "used", abs(100-avg_HR_adj), 
+                            if_else(FN == "pa_b95" & state == "used", abs(100-avg_HR_adj), 0)),
+         score = m_effect/0.33*0.4) %>% 
+  dplyr::select(FN, state, m_effect, score)
+Tox_sco_HR
+
+#export as csv
+write.csv(Tox_sco_HR, "dmso_tox_score/Tox_sco_HR.csv")
+  
+IBR_HR <- HR_aju %>% 
+  mutate(ID_IBR = paste(FN, state, sep = "_")) %>% 
+  dplyr::select(FN, state, ID, ID_IBR, aju_HR)
+IBR_HR
+
+#export as csv
+#windows: 
+#write.csv(IBR_HR, "C:/Users/edusacre/ownCloud/PhD/SCIENCES/Manips/Tox/IBR_tables/IBR_HR.csv")
+
+#mac
+#write.csv(IBR_HR, "~/ownCloud/PhD/SCIENCES/Manips/Tox/IBR_tables/IBR_HR.csv")
+
+```
+
+
+
+```{r statistics General}
+#test ANOVA
+#H0= toute les moyennes sont égales
+#H1= au moins une des moyennes est différente des autres
+
+Aov <- HR_aju %>% filter(state == "n" | state == "Solvent ctl")
+
+res <- aov(aju_HR ~ state * FN, data = HR_aju)
+summary(res)
+
+#H0 = distribution normale 
+#H1 = pas de distribution normale
+shapiro.test(res$residuals) #p-value > 0.05 donc H0 cannot be rejected 
+
+#Homogeneite des variances
+#H0 = les deux variances sont egales
+#H1 = les deux variances ne sont pas egales
+leveneTest(aju_HR ~ state * FN, data = HR_aju) 
+#p-value < 0.05, HO est rejetee
+```
+
+
+```{r statistics New general}
+New <- HR_aju %>% filter(state == "new" | state == "Solvent ctl", FN != "benzo") %>% mutate_if(is.character, as.factor)
+New
+#condition non respectee donc test de kruskal
+KW <- kruskal.test(aju_HR~FN, New)
+KW
+
+MWU_res_n <- PMCMRplus::kwAllPairsDunnTest(aju_HR~FN, New, p.adjust.method = "holm")
+MWU_res_n
+
+#Letters
+
+df_pval =  MWU_res_n$p.value
+df_pval
+
+df_pval2 = fullPTable(df_pval)
+df_pval2
+
+Lett <- multcompLetters(df_pval2)
+Wlett <- as.vector(unlist(Lett$Letters))
+
+label_n <- data.frame(label = Wlett)
+label_n
+
+max_values <- New %>%
+  group_by(FN) %>%
+  summarize(max_value = max(aju_HR, na.rm = F))
+max_values
+
+Star_dmso <- as_tibble(df_pval2, rownames = "FN") %>% 
+  dplyr::select(FN, dmso) %>% 
+  mutate(diff = if_else(dmso == 1 & FN == "dmso", NA,
+                        if_else(dmso >= 0.05, "ns",
+                                if_else(dmso < 0.0001, "####",
+                                        if_else(dmso < 0.001, "###",
+                                                if_else(dmso < 0.01, "##",
+                                                      if_else(dmso < 0.05, "#", NA)))))))
+Star_dmso
+
+MWU_n_Lett_New <- cbind(max_values, label_n, diff = Star_dmso$diff, state = c("new")) %>% 
+  mutate(FN = if_else(grepl("pa_g60", FN), "PA \u03B360",
+                      if_else(grepl("pa_g33", FN), "PA \u03B333",
+                                       if_else(grepl("pbs_d60", FN), "PBS \u03B460",
+                                               if_else(grepl("pbs_d35", FN), "PBS \u03B435",
+                                                       if_else(grepl("pe_e4.25", FN), "PE-PP \u03B54.25",
+                                                               if_else(grepl("pa_b95", FN), "PA \u03B295",
+                      if_else(grepl("pa_b33", FN), "PA \u03B233",
+                              if_else(grepl("pa_a33", FN), "PA \u03B135", 
+                                      if_else(grepl("dmso", FN), "Control", FN))))))))))
+MWU_n_Lett_New
+```
+
+
+```{r statistics Used general}
+Used <- HR_aju %>% filter(state == "used" | state == "Solvent ctl", FN != "benzo") %>% mutate_if(is.character, as.factor)
+Used
+
+#condition non respectee donc test de kruskal
+KW <- kruskal.test(aju_HR~FN, Used)
+KW
+
+MWU_res_n <- PMCMRplus::kwAllPairsDunnTest(aju_HR~FN, Used, p.adjust.method = "holm")
+MWU_res_n
+
+#Letters
+
+df_pval =  MWU_res_n$p.value
+df_pval
+
+df_pval2 = fullPTable(df_pval)
+df_pval2
+
+Lett <- multcompLetters(df_pval2)
+Wlett <- as.vector(unlist(Lett$Letters))
+
+label_n <- data.frame(label = Wlett)
+label_n
+
+max_values <- Used %>%
+  group_by(FN) %>%
+  summarize(max_value = max(aju_HR, na.rm = F))
+max_values
+
+Star_dmso <- as_tibble(df_pval2, rownames = "FN") %>% 
+  dplyr::select(FN, dmso) %>% 
+  mutate(diff = if_else(dmso == 1 & FN == "dmso", NA,
+                        if_else(dmso >= 0.05, "ns",
+                                if_else(dmso < 0.0001, "####",
+                                        if_else(dmso < 0.001, "###",
+                                                if_else(dmso < 0.01, "##",
+                                                      if_else(dmso < 0.05, "#", NA)))))))
+Star_dmso
+
+MWU_n_Lett_Used <- cbind(max_values, label_n, diff = Star_dmso$diff, state = c("used")) %>% 
+  mutate(FN = if_else(grepl("pa_g60", FN), "PA \u03B360",
+                      if_else(grepl("pa_g33", FN), "PA \u03B333",
+                                       if_else(grepl("pbs_d60", FN), "PBS \u03B460",
+                                               if_else(grepl("pbs_d35", FN), "PBS \u03B435",
+                                                       if_else(grepl("pe_e4.25", FN), "PE-PP \u03B54.25",
+                                                               if_else(grepl("pa_b95", FN), "PA \u03B295",
+                      if_else(grepl("pa_b33", FN), "PA \u03B233",
+                              if_else(grepl("pa_a33", FN), "PA \u03B135", 
+                                      if_else(grepl("dmso", FN), "Control", FN))))))))))
+MWU_n_Lett_Used
+
+MWU_n_Lett <- bind_rows(MWU_n_Lett_New, MWU_n_Lett_Used)
+MWU_n_Lett
+
+```
+
+
+```{r statistic FN U vs N}
+#MU test FN u vs n---------------
+
+df_list <- HR_aju %>%
+  group_split(FN)
+
+results <- list()
+
+for (i in seq_along(df_list)) {
+  df_sub <- df_list[[i]]
+  states <- unique(df_sub$state)
+  for (j in 1:(length(states) - 1)) {
+    for (k in (j + 1):length(states)) {
+      sample1 <- df_sub[df_sub$state == states[j], "BPM"]$BPM
+      sample2 <- df_sub[df_sub$state == states[k], "BPM"]$BPM
+      test_result <- wilcox.test(sample1, sample2, paired = FALSE)
+      result <- tibble(
+        FN = df_sub$FN[1],
+        vs = paste(states[j], states[k], sep = "_vs_"),
+        p_value = test_result$p.value,
+        W = test_result$statistic)
+      results <- c(results, list(result))}}}
+
+results_MU <- bind_rows(results) %>% 
+  mutate(p_value = if_else(is.na(p_value), 0, p_value)) %>%  
+  na.omit() %>% 
+  separate(vs, into = c("state1", "state2"), sep = "_vs_", remove = T) %>% 
+  mutate(diff = if_else(p_value < 0.0001, "****", 
+                        if_else(p_value < 0.001, "***",
+                                if_else(p_value < 0.01, "**",
+                                        if_else(p_value < 0.05, "*", "ns"))))) %>% 
+  mutate(FN = if_else(grepl("pa_g60", FN), "PA \u03B360",
+                      if_else(grepl("pa_g33", FN), "PA \u03B333",
+                                       if_else(grepl("pbs_d60", FN), "PBS \u03B460",
+                                               if_else(grepl("pbs_d35", FN), "PBS \u03B435",
+                                                       if_else(grepl("pe_e4.25", FN), "HPPE \u03B54.25",
+                                                               if_else(grepl("pa_b95", FN), "PA \u03B295",
+                      if_else(grepl("pa_b33", FN), "PA \u03B233",
+                              if_else(grepl("pa_a33", FN), "PA \u03B135", 
+                                      if_else(grepl("dmso", FN), "DMSO\ncontrol", FN))))))))))
+results_MU
+
+r1 <- results_MU %>% dplyr::select(FN, state1, p_value, W, diff) %>% rename(state = state1)
+r2 <- results_MU %>% dplyr::select(FN, state2, p_value, W, diff) %>% rename(state = state2)
+
+res_sign <- bind_rows(r1, r2) %>% 
+  arrange(FN) 
+res_sign
+
+
+
+```
+
+```{r plot publi}
+Dead_1 <- HR_aju %>% 
+  mutate(FN = if_else(grepl("pa_g60", FN), "PA \u03B360",
+                      if_else(grepl("pa_g33", FN), "PA \u03B333",
+                                       if_else(grepl("pbs_d60", FN), "PBS \u03B460",
+                                               if_else(grepl("pbs_d35", FN), "PBS \u03B435",
+                                                       if_else(grepl("pe_e4.25", FN), "PE-PP \u03B54.25",
+                                                               if_else(grepl("pa_b95", FN), "PA \u03B295",
+                      if_else(grepl("pa_b33", FN), "PA \u03B233",
+                              if_else(grepl("pa_a33", FN), "PA \u03B135", 
+                                      if_else(grepl("dmso", FN), "DMSO\ncontrol", FN)))))))))) %>% 
+  mutate(state = if_else(state == "used", "EOL", state)) %>% 
+  mutate(state = factor(state, levels = c("new", "EOL"))) %>% 
+  ggplot(aes(FN, aju_HR, fill = FN, pattern = state)) +
+  geom_boxplot_pattern(width = 0.5, position = "dodge", pattern_density = 0.1, 
+                   pattern_fill = "white", pattern_color = "white", pattern_spacing = 0.015, show.legend = T) +
+  scale_pattern_discrete(na.value = "none", choices = c("new" = "none", "EOL" = "stripe"), 
+                         limits = c("new", "EOL")) +
+  scale_fill_manual(values = Color_real_FN5, guide = "none")+
+  scale_y_continuous(limits = c(70, 155), breaks = seq(70, 155, by = 10)) +
+  stat_summary(fun = mean, 
+               geom = "point", 
+               size = 2, 
+               color = "red3", 
+               position = position_dodge(width = 0.6)) +
+  geom_hline(yintercept = 100, colour = "black", linetype = "dashed") +
+  labs(x = "Fishing nets",
+       y = "Heart rate (% of the DMSO control)",
+       # title = expression(paste("Effect of FN extracts on the cardiac rhythm of ", italic("Oryzias latipes"), " larvae")),
+       # subtitle = "Exposure time 48 hours \nMesoplastic eq. concentration 0.33 mg/ml\nDMSO dilution 1/1000",
+       pattern = "FN State") +
+  theme_bw() +
+  theme(legend.position = "none") +
+  theme(axis.title.x = element_text(size = 18, face = "bold", vjust = 0.5, margin = margin(t = 10, r = 20, b = 0, l = 0)),
+        axis.title.y = element_text(size = 18, face = "bold", vjust = 3, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 16, face = 'bold'),
+        axis.text.y = element_text(size = 16, face = 'bold'),
+        title = element_text(size = 22, face = "bold"),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        legend.position = "right",
+        legend.spacing.y = unit(0.3, 'cm'),
+        legend.key.spacing.y = unit(0.3, 'cm'),
+        legend.text = element_text(size = 12, face = 'bold', color = "black"),
+        legend.key.size = unit(0.85, "cm"),
+        legend.key.width = unit(1, "cm"),
+        legend.title.align = 0,
+        plot.margin = unit(c(1, 1, 1, 1), "cm")) +
+  guides(pattern = guide_legend(byrow = TRUE))
+Dead_1
+
+Dead_1 + 
+  geom_text(data = MWU_n_Lett %>% mutate(diff = if_else(diff == "ns", NA, diff)) %>% filter(FN != "Control"), aes(x = FN, y = 155, label = diff),
+            size = 5, vjust = 0, color="red3", fontface = "bold",
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  geom_bracket(aes(xmin = 8.88 , xmax= 9.12, 
+                           y.position = 125,
+                           label = "***"),
+                       size = 1.2,
+               label.size = 7,
+                       data = subset(res_sign, FN == "HPPE ε4.25"),
+               inherit.aes = FALSE) +
+  geom_bracket(aes(xmin = 1.88 , xmax= 2.12, 
+                           y.position = 135,
+                           label = "*"),
+                       size = 1.2,
+               label.size = 7,
+                       data = subset(res_sign, FN == "PA α35"),
+               inherit.aes = FALSE) +
+  geom_bracket(aes(xmin = 2.88 , xmax= 3.12, 
+                           y.position = 146,
+                           label = "***"),
+                       size = 1.2,
+               label.size = 7,
+                       data = subset(res_sign, FN == "PA β33"),
+               inherit.aes = FALSE) +
+  geom_bracket(aes(xmin = 3.88 , xmax= 4.12, 
+                           y.position = 147,
+                           label = "**"),
+                       size = 1.2,
+               label.size = 7,
+                       data = subset(res_sign, FN == "PA β95"),
+               inherit.aes = FALSE) +
+  geom_bracket(aes(xmin = 6.88 , xmax= 7.12, 
+                           y.position = 130,
+                           label = "**"),
+                       size = 1.2,
+               label.size = 7,
+                       data = subset(res_sign, FN == "PBS δ35"),
+               inherit.aes = FALSE) +
+  geom_bracket(aes(xmin = 7.88 , xmax= 8.12, 
+                           y.position = 132,
+                           label = "*"),
+                       size = 1.2,
+               label.size = 7,
+                       data = subset(res_sign, FN == "PBS δ60"),
+               inherit.aes = FALSE) +
+  geom_bracket(aes(xmin = 5.88 , xmax= 6.12, 
+                           y.position = 132,
+                           label = "****"),
+                       size = 1.2,
+               label.size = 7,
+                       data = subset(res_sign, FN == "PA γ60"),
+               inherit.aes = FALSE) #+
+  # labs(caption = "STATISTICS: \nMann-Whitney U-test:\n# = Control vs. FN\n* = New vs. Used\nn = 16") + 
+  # theme(plot.caption = element_text(family = "serif", 
+  #              face = "bold", 
+  #              color = 1, 
+  #              size = 12, 
+  #              hjust = 0.99, 
+  #              vjust = 263, 
+  #              angle = 0, 
+  #              lineheight = 1)) 
+```
+
+
+```{r General plot with statistics, eval=FALSE, include=FALSE}
+
+MWU_Lett_all <- bind_rows(MWU_n_Lett_Used, MWU_n_Lett_New) %>% mutate(label = if_else(state == "new", NA, label)) %>% 
+  mutate(FN = if_else(grepl("pa_g60", FN), "PA6 \u03B3 60",
+                      if_else(grepl("pa_g33", FN), "PA6 \u03B3 33",
+                                       if_else(grepl("pbs_d60", FN), "PBS-PBAT \u03B4 60",
+                                               if_else(grepl("pbs_d35", FN), "PBS-PBAT \u03B4 35",
+                                                       if_else(grepl("pe_e4.25", FN), "PE-PP \u03B5 4.25",
+                                                               if_else(grepl("pa_b95", FN), "PA6 \u03B2 95",
+                      if_else(grepl("pa_b33", FN), "PA6 \u03B2 33",
+                              if_else(grepl("pa_a33", FN), "PA6 \u03B1 35", 
+                                      if_else(grepl("dmso", FN), "Solvent control", FN))))))))))
+MWU_Lett_all
+
+BoxBPM_all <- HR_aju %>% filter(FN != "benzo", !(aju_HR <75)) %>%
+  mutate(FN = if_else(grepl("pa_g60", FN), "PA6 \u03B3 60",
+                      if_else(grepl("pa_g33", FN), "PA6 \u03B3 33",
+                                       if_else(grepl("pbs_d60", FN), "PBS-PBAT \u03B4 60",
+                                               if_else(grepl("pbs_d35", FN), "PBS-PBAT \u03B4 35",
+                                                       if_else(grepl("pe_e4.25", FN), "PE-PP \u03B5 4.25",
+                                                               if_else(grepl("pa_b95", FN), "PA6 \u03B2 95",
+                      if_else(grepl("pa_b33", FN), "PA6 \u03B2 33",
+                              if_else(grepl("pa_a33", FN), "PA6 \u03B1 35", 
+                                      if_else(grepl("dmso", FN), "Solvent control", FN)))))))))) %>% 
+  mutate(state = if_else(state == "used", "EOL", state)) %>% 
+  mutate(state = factor(state, levels = c("new", "EOL"))) %>% 
+  ggplot(aes(x = FN, y = aju_HR, fill = FN)) +
+  geom_boxplot(width = 0.2, position = position_dodge(width = 0.6)) +
+  stat_summary(fun = mean, 
+               geom = "point", 
+               size = 2, 
+               color = "red3", 
+               position = position_dodge(width = 0.6)) +
+  # stat_summary( 
+  #   fun.data = stat_box_data, 
+  #   geom = "text", 
+  #   hjust = 0.5,
+  #   vjust = 0.9, 
+  #   position = position_dodge(width = 0.85)) +
+  facet_grid(~state) +
+  scale_y_continuous(limits = c(70, 145), breaks = seq(70, 145, by = 10)) +
+  geom_hline(yintercept = 100, colour = "black", linetype = "dashed") +
+  theme_bw() +
+  labs(x = "Fishing nets",
+       y = "Heart rate (% of the control)",
+       title = expression(paste("Effect of dmso extracts on the cardiac rhythm of ", italic("Oryzias latipes"), " larvae")),
+       subtitle = "Exposure time 48 hours \nMesoplastic eq. concentration 330 µg/ml\nDMSO dilution 1/1000",
+       fill = "Treatment" ) +
+  scale_fill_manual(values = Color_real_FN4) +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = -4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 18, face = "bold", margin = margin(t = 0, r = 0, b = 20, l = 0)),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.title= element_text(size = 18, face = "bold", vjust = 1, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        legend.text = element_text(size = 18),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.spacing.y = unit(0.2, 'cm'),
+        legend.position = "right",
+        plot.margin = unit(c(1, 1, 2, 1), "cm")) +
+  guides(fill = guide_legend(byrow = TRUE))
+BoxBPM_all
+
+BoxBPM_all + 
+  geom_text(data = MWU_Lett_all, aes(x = FN, y = max_value -1, label = label),
+            size = 5, vjust = -1, color="black", 
+            position = position_dodge(width=0.6),
+            show.legend = FALSE,
+            na.rm = F) +
+  labs(caption = "Kruskal Wallis test with holm correction: \nnew: p > 0.05 \nused: p < 0.05\nPostHoc test: Dunn test\nn = 16") + 
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 12, 
+               hjust = 0.99, 
+               vjust = 225, 
+               angle = 0, 
+               lineheight = 1))
+
+#-----------------
+
+BoxBPM_n_vs_u <- HR_aju %>% filter(FN != "benzo", FN != "dmso", !(aju_HR <75)) %>%
+  mutate(FN = if_else(grepl("pa_g60", FN), "PA6 \u03B3 60",
+                      if_else(grepl("pa_g33", FN), "PA6 \u03B3 33",
+                                       if_else(grepl("pbs_d60", FN), "PBS-PBAT \u03B4 60",
+                                               if_else(grepl("pbs_d35", FN), "PBS-PBAT \u03B4 35",
+                                                       if_else(grepl("pe_e4.25", FN), "HPPE-PP \u03B5 4.25",
+                                                               if_else(grepl("pa_b95", FN), "PA6 \u03B2 95",
+                      if_else(grepl("pa_b33", FN), "PA6 \u03B2 33",
+                              if_else(grepl("pa_a33", FN), "PA6 \u03B1 35", FN))))))))) %>% 
+  ggplot(aes(x = state, y = aju_HR, fill = FN)) +
+  geom_boxplot(width = 0.2, position = position_dodge(width = 0.6)) +
+  stat_summary(fun = mean, 
+               geom = "point", 
+               size = 2, 
+               color = "red3", 
+               position = position_dodge(width = 0.6)) +
+  # stat_summary( 
+  #   fun.data = stat_box_data, 
+  #   geom = "text", 
+  #   hjust = 0.5,
+  #   vjust = 0.9, 
+  #   position = position_dodge(width = 0.85)) +
+  facet_grid(~FN, scales = "free_x") +
+  scale_y_continuous(limits = c(70, 145), breaks = seq(70, 145, by = 10)) +
+  geom_hline(yintercept = 100, colour = "black", linetype = "dashed") +
+  theme_bw() +
+  labs(x = "Fishing nets",
+       y = "Heart rate (% of the control)",
+       title = expression(paste("Effect of dmso extracts on the cardiac rhythm of ", italic("Oryzias latipes"), " larvae")),
+       subtitle = "Exposure time 48 hours \nMesoplastic eq. concentration 330 µg/ml\nDMSO dilution 1/1000",
+       fill = "Treatment" ) +
+  scale_fill_manual(values = Color_real_FN4) +
+  theme(axis.title.x = element_text(size = 20, face = "bold", vjust = -4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.title.y = element_text(size = 20, face = "bold", vjust = 4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_text(size = 18, face = 'bold'),
+        axis.text.y = element_text(size = 18, face = 'bold'),
+        title = element_text(size = 18, face = "bold", margin = margin(t = 0, r = 0, b = 20, l = 0)),
+        strip.text = element_text(face = "bold", size = rel(2)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.title= element_text(size = 18, face = "bold", vjust = 1, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        legend.text = element_text(size = 18),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.spacing.y = unit(0.2, 'cm'),
+        legend.position = "none",
+        plot.margin = unit(c(1, 1, 2, 1), "cm")) +
+  guides(fill = guide_legend(byrow = TRUE))
+BoxBPM_n_vs_u
+
+BoxBPM_n_vs_u + 
+   geom_bracket(aes(xmin = 1 , xmax= 2, 
+                           y.position = 130,
+                           label = "***"),
+                       size = 1,
+                       data = subset(res_sign, FN == "HPPE-PP \u03B5 4.25"),
+               inherit.aes = FALSE) +
+  geom_bracket(aes(xmin = 1 , xmax= 2, 
+                           y.position = 130,
+                           label = "*"),
+                       size = 1,
+                       data = subset(res_sign, FN == "PA6 α 35"),
+               inherit.aes = FALSE) +
+  geom_bracket(aes(xmin = 1 , xmax= 2, 
+                           y.position = 143,
+                           label = "***"),
+                       size = 1,
+                       data = subset(res_sign, FN == "PA6 β 33"),
+               inherit.aes = FALSE) +
+  geom_bracket(aes(xmin = 1 , xmax= 2, 
+                           y.position = 145,
+                           label = "**"),
+                       size = 1,
+                       data = subset(res_sign, FN == "PA6 β 95"),
+               inherit.aes = FALSE) +
+  geom_bracket(aes(xmin = 1 , xmax= 2, 
+                           y.position = 130,
+                           label = "****"),
+                       size = 1,
+                       data = subset(res_sign, FN == "PA6 γ 60"),
+               inherit.aes = FALSE) +
+  geom_bracket(aes(xmin = 1 , xmax= 2, 
+                           y.position = 130,
+                           label = "**"),
+                       size = 1,
+                       data = subset(res_sign, FN == "PBS-PBAT δ 35"),
+               inherit.aes = FALSE) +
+  geom_bracket(aes(xmin = 1 , xmax= 2, 
+                           y.position = 130,
+                           label = "**"),
+                       size = 1,
+                       data = subset(res_sign, FN == "PBS-PBAT δ 60"),
+               inherit.aes = FALSE) +
+  labs(caption = "Statistics:\nMann-Whitney U-test\n* = p-value < 0.05\n** = p-value < 0.01\n*** = p-value < 0.001\n**** = p-value < 0.0001\nn = 16") + 
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 12, 
+               hjust = 0.99, 
+               vjust = 225, 
+               angle = 0, 
+               lineheight = 1))
+
+
+
+```
+
+
+```{r Correlation using time}
+
+df_used_time <- df_avg_HR %>% 
+  filter(state == "used") %>% 
+  mutate(U_time = if_else(FN == "pa_g60", 624,
+                          if_else(FN == "pa_g33", 624,
+                                  if_else(FN == "pbs_d60", 624,
+                                          if_else(FN == "pbs_d35", 624,
+                                                  if_else(FN == "hppe_e4.25", 8280,
+                                                          if_else(FN == "pa_b95", 2700,
+                                                                  if_else(FN == "pa_b33", 2700,
+                                                                          if_else(FN == "pa_a33", 640, NA))))))))) 
+
+df_used_time
+
+correlation <- cor.test(df_used_time$mean, df_used_time$U_time, method = "spearman")
+correlation
+
+# Créer le graphique avec ggplot2
+ggplot(df_used_time, aes(x = U_time, y = mean)) +
+  geom_point(color = "blue") + # Points en bleu
+  geom_smooth(method = "lm", color = "red", fill = "red", alpha = 0.2) + # Régression linéaire avec intervalle de confiance
+  labs(title = "Correlation between per_Inhni and U_time",
+       x = "U_time (hours)",
+       y = "per_Inhi") +
+  theme_bw() 
+
+```
+
+No correlation between the bioluminescence inhibition and the time for which the Fn were used for.
+
+```{r Correlation surface exchanges}
+
+df_S_Ex <- df_avg %>% 
+  filter(FN != "dmso", state != "used+", state == "used") %>% 
+  mutate(S_Ex = if_else(FN == "pa_g60", 34.1,
+                          if_else(FN == "pa_g33", 52.1,
+                                  if_else(FN == "pbs_d60", 26.8,
+                                          if_else(FN == "pbs_d35", 40.4,
+                                                  if_else(FN == "hppe_e425", 11.7,
+                                                          if_else(FN == "pa_b95", 95.3,
+                                                                  if_else(FN == "pa_b33", 53.0,
+                                                                          if_else(FN == "pa_a35", 66.6, NA))))))))) 
+
+df_S_Ex
+
+correlation <- cor.test(df_S_Ex$mean, df_S_Ex$S_Ex, method = "spearman")
+correlation
+
+# Créer le graphique avec ggplot2
+ggplot(df_S_Ex, aes(x = S_Ex, y = mean)) +
+  geom_point(color = "blue") + # Points en bleu
+  geom_smooth(method = "lm", color = "red", fill = "red", alpha = 0.2) + # Régression linéaire avec intervalle de confiance
+  labs(title = "Correlation between per_Inhni and U_time",
+       x = "U_time (hours)",
+       y = "per_Inhi") +
+  theme_bw() 
+
+```
+
+
+```{r Correlation using time}
+
+df_used_time <- df_avg_HR %>% 
+  filter(state == "used", FN != "dmso") %>% 
+  mutate(U_time = if_else(FN == "pa_g60", 624,
+                          if_else(FN == "pa_g33", 624,
+                                  if_else(FN == "pbs_d60", 624,
+                                          if_else(FN == "pbs_d35", 624,
+                                                  if_else(FN == "pe_e4.25", 8280,
+                                                          if_else(FN == "pa_b95", 2700,
+                                                                  if_else(FN == "pa_b33", 2700,
+                                                                          if_else(FN == "pa_a33", 640, NA))))))))) 
+
+df_used_time
+
+correlation <- cor.test(df_used_time$avg_HR_adj, df_used_time$U_time, method = "spearman")
+correlation
+
+# Créer le graphique avec ggplot2
+ggplot(df_used_time, aes(x = U_time, y = avg_HR_adj)) +
+  geom_point(color = "blue") + # Points en bleu
+  geom_smooth(method = "lm", color = "red", fill = "red", alpha = 0.2) + # Régression linéaire avec intervalle de confiance
+  labs(title = "Correlation between per_Inhni and U_time",
+       x = "U_time (hours)",
+       y = "per_Inhi") +
+  theme_bw() 
+
+```
+
+No correlation between the bioluminescence inhibition and the time for which the Fn were used for.
+
+```{r Correlation surface exchanges}
+
+df_S_Ex <- df_avg_HR %>% 
+  filter(FN != "dmso", state != "used+", FN != "dmso") %>% 
+  mutate(S_Ex = if_else(FN == "pa_g60", 34.1,
+                          if_else(FN == "pa_g33", 52.1,
+                                  if_else(FN == "pbs_d60", 26.8,
+                                          if_else(FN == "pbs_d35", 40.4,
+                                                  if_else(FN == "pe_e4.25", 11.7,
+                                                          if_else(FN == "pa_b95", 95.3,
+                                                                  if_else(FN == "pa_b33", 53.0,
+                                                                          if_else(FN == "pa_a33", 66.6, NA))))))))) 
+
+df_S_Ex
+
+correlation <- cor.test(df_S_Ex$avg_HR_adj, df_S_Ex$S_Ex, method = "spearman")
+correlation
+
+# Créer le graphique avec ggplot2
+ggplot(df_S_Ex, aes(x = S_Ex, y = avg_HR_adj)) +
+  geom_point(color = "blue") + # Points en bleu
+  geom_smooth(method = "lm", color = "red", fill = "red", alpha = 0.2) + # Régression linéaire avec intervalle de confiance
+  labs(title = "Correlation between per_Inhni and U_time",
+       x = "U_time (hours)",
+       y = "per_Inhi") +
+  theme_bw() 
+
+```
+
+No correlation between the bioluminescence inhibition and the FN's surface exchanges.
+
+No correlation between the bioluminescence inhibition and the time for which the Fn were used for.
+
+```{r Correlation surface exchanges}
+
+df_S_Ex <- df_avg %>% 
+  filter(FN != "dmso", state != "used+", state == "used") %>% 
+  mutate(S_Ex = if_else(FN == "pa_g60", 34.1,
+                          if_else(FN == "pa_g33", 52.1,
+                                  if_else(FN == "pbs_d60", 26.8,
+                                          if_else(FN == "pbs_d35", 40.4,
+                                                  if_else(FN == "hppe_e425", 11.7,
+                                                          if_else(FN == "pa_b95", 95.3,
+                                                                  if_else(FN == "pa_b33", 53.0,
+                                                                          if_else(FN == "pa_a35", 66.6, NA))))))))) 
+
+df_S_Ex
+
+correlation <- cor.test(df_S_Ex$mean, df_S_Ex$S_Ex, method = "spearman")
+correlation
+
+# Créer le graphique avec ggplot2
+ggplot(df_S_Ex, aes(x = S_Ex, y = mean)) +
+  geom_point(color = "blue") + # Points en bleu
+  geom_smooth(method = "lm", color = "red", fill = "red", alpha = 0.2) + # Régression linéaire avec intervalle de confiance
+  labs(title = "Correlation between per_Inhni and U_time",
+       x = "U_time (hours)",
+       y = "per_Inhi") +
+  theme_bw() 
+
+```
+
+No correlation between the bioluminescence inhibition and the FN's surface exchanges.
+

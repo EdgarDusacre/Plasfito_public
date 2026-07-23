@@ -1,0 +1,301 @@
+---
+title: "Survival"
+author: "Edgar Dusacre"
+date: "2023-05-23"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r Insertion package, include=FALSE}
+library(ggplot2) 
+library(tidyr)
+library(purrr)
+library(tidyverse)
+library(ggrepel)
+library(ggpubr)
+library(knitr)
+library(yaml)
+library(dplyr) 
+library(matrixStats)
+library(EnvStats)
+library(stringr)
+library(gtable)
+library(grid)
+library(FSA)
+library(scales)
+library(wbstats)
+library(ggh4x)
+library(multcompView)
+library(report)
+library(ecotox)
+library(wesanderson)
+library(RColorBrewer)
+library(readr)
+library(readxl)
+library(gmodels)
+library(ggpattern)
+library(zoo)
+library(forcats)
+library(ggtext)
+```
+
+```{r Charger les palettes de couleurs, include=FALSE}
+Plasfito_C <- c("#80CAD0", "#36A7A7", "#276573", "#054959","#E3CCC0", "#F7EAE1", "#A48A7B", "#C6AF8D", "#49BED3", "#256CB4", "#008163", "#44B494", "#7BC6B9")
+
+Plasfito_color <- c("GreenP4" = "#80CAD0", "GreenP3" = "#36A7A7", "GreenP2" = "#276573", "GreenP1" = "#054959","Brown1" = "#E3CCC0", "Brown2" = "#F7EAE1", "Brown3" = "#A48A7B", "Brown4" = "#C6AF8D", "Turquoise1" = "#49BED3", "Blue1" = "#256CB4", "Green1" = "#008163", "Green2" = "#44B494", "Green3" = "#7BC6B9")
+
+List_color_Fr <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                   "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573")
+
+List_color <- c("Mimizan" = "#008163" , "Bayonne" = "#44B494", "Hendaye" = "#7BC6B9", 
+                 "Capbretons"  = "#80CAD0", "Arcachon" = "#36A7A7", "St_Jean" = "#276573",
+                 "Euskadi" = "#054959")
+
+Plasfito_Tps <- c("5" = "#80CAD0", "15" = "#36A7A7", "30" = "#276573")
+
+
+#A part si vous souhaitez changer les couleurs do not touch.
+Ech_K2CR2O7<- c("K2CR2O7" = "#80CAD0")
+
+Tps_color <- c("5" = "#80CAD0" , "15" = "#36A7A7", "30" = "#276573")
+
+Dilu_color <- c("0.0125" = "#80CAD0" , "0.025" = "#36A7A7", "0.05" = "#276573", "0.1" = "#008163")
+
+Conc_color <- c("0.4125" = "#80CAD0" , "0.825" = "#36A7A7", "1.65" = "#276573", "3.3" = "#008163")
+Conc_color3 <- c("0.825" = "aquamarine", "1.65" = "#36A7A7", "3.3" = "#276573")
+
+Color_biolu_Pasaia <- c("Ech1" = "aquamarine", "Ech2" = "#36A7A7" , "DMSO" = "#A48A7B")
+
+Color_code_FN <- c("Solvent control" = "#A48A7B", "ctl H2O" = "#256CB4", "PA α ø.35" = "#4fd355", "PA β ø.33" = "#ca98d3", "PA β ø.95" = "#6e217c", "PA γ ø.33" = "#92b78f", "PA γ ø.60" = "#bbb3bc", "PBS δ ø.35" = "#d3ad4f","PBS δ ø.60" = "#c68640", "HPPE ε ø4.25" = "#36A7A7")
+```
+
+
+```{r data import DMSO}
+Dead_dmso <- read_excel("Development/Survival_fish.xlsx") %>% filter(FN != "benzo")  %>% 
+  mutate(Time = as.factor(Time)) %>% mutate(fq_dead = round(Dead/N_initial, digits = 2), per_dead = fq_dead*100)
+Dead_dmso
+
+```
+
+```{r Visualization}
+#Data of total dead
+Visua <- Dead_dmso %>% ggplot(aes(FN, Dead, fill = Time)) + 
+  geom_col(width = 0.3) +
+  facet_wrap(~state) +
+  scale_y_continuous(breaks = seq(0, 20, by = 2))
+Visua
+
+#Data of mean dead
+Visua_box <- Dead_dmso %>% ggplot(aes(FN, Dead, fill = Time)) + 
+  geom_boxplot(width = 0.3) +
+  facet_wrap(~state)
+Visua_box
+```
+
+```{r data average}
+#Cumulated number of dead in 48h
+n <- Dead_dmso %>% filter(Time == 48) %>% 
+  select(FN, state, ID, N_initial) %>% 
+  group_by(FN, state) %>% summarise(n = sum(N_initial))
+n
+
+Stat_dead_dmso1 <- Dead_dmso %>% 
+  group_by(FN, state) %>% 
+  summarise(sum_dead = sum(Dead))
+Stat_dead_dmso1
+
+Stat_dead_dmso2 <- cbind(Stat_dead_dmso1, n = n$n) %>% mutate(survived = n-sum_dead , died = sum_dead, fq_dead = round(sum_dead/n, digits = 2), per_dead = fq_dead*100) %>% arrange(desc(state))
+Stat_dead_dmso2
+
+Stat_dead_dmso3 <- cbind(Stat_dead_dmso1, n = n$n) %>% mutate(survived = n-sum_dead , died = sum_dead, fq_dead = round(sum_dead/n, digits = 2), per_dead = fq_dead*100) %>% select(FN, state, survived, died) %>%  arrange(desc(state))
+Stat_dead_dmso3
+
+Stat_dead_dmso_n <- Stat_dead_dmso3 %>%  filter(state == "n")
+Stat_dead_dmso_u <- Stat_dead_dmso3 %>%  filter(state == "u")
+
+```
+
+```{r stat new}
+# Create the contingency table
+contingency_table <- aggregate(cbind(survived, died) ~ FN, data = Stat_dead_dmso_n, FUN = sum)
+
+# Perform Fisher's exact test
+fisher_test <- list()
+
+# Get the unique treatment groups
+treatment_groups <- unique(contingency_table$FN)
+
+for (treatment in treatment_groups) {
+  if (treatment != "Solvent control") {
+    # Subset the contingency table for the current treatment and control groups
+    treatment_data <- subset(contingency_table, FN == treatment | FN == "Solvent control")
+
+    # Create a contingency table for the Fisher's exact test
+    comparison_table <- matrix(c(treatment_data$died, treatment_data$survived), nrow = 2)
+
+    # Perform Fisher's exact test
+    fisher_test[[treatment]] <- fisher.test(comparison_table)
+  }
+}
+
+# Add significant differences to the tibble
+for (treatment in treatment_groups) {
+  if (treatment != "Solvent control") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.001) {
+      significance <- "**"
+    } else if (p_value < 0.01) {
+      significance <- "*"
+    } else if (p_value < 0.05) {
+      significance <- "*"
+    } else {
+      significance <- NA
+    }
+    # Add the significance information to the original tibble
+    Stat_dead_dmso_n$significance[Stat_dead_dmso_n$FN == treatment] <- significance
+  } else {
+    Stat_dead_dmso_n$significance[Stat_dead_dmso_n$FN == "Solvent control"] <- NA
+  }
+}
+
+# Print the modified tibble
+Stat_dead_dmso_n
+
+# Print the results
+for (treatment in treatment_groups) {
+  if (treatment != "Solvent control") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.05) {
+      significance <- "Significant"
+    } else {
+      significance <- "Not significant"
+    }
+    message("Comparison between Control and ", treatment, ": ", significance, " (p-value = ", p_value, ")")
+  }
+}
+
+```
+
+
+```{r stats used}
+# Create the contingency table
+contingency_table <- aggregate(cbind(survived, died) ~ FN, data = Stat_dead_dmso_u, FUN = sum)
+
+# Perform Fisher's exact test
+fisher_test <- list()
+
+# Get the unique treatment groups
+treatment_groups <- unique(contingency_table$FN)
+
+for (treatment in treatment_groups) {
+  if (treatment != "Solvent control") {
+    # Subset the contingency table for the current treatment and control groups
+    treatment_data <- subset(contingency_table, FN == treatment | FN == "Solvent control")
+
+    # Create a contingency table for the Fisher's exact test
+    comparison_table <- matrix(c(treatment_data$died, treatment_data$survived), nrow = 2)
+
+    # Perform Fisher's exact test
+    fisher_test[[treatment]] <- fisher.test(comparison_table)
+  }
+}
+
+# Add significant differences to the tibble
+for (treatment in treatment_groups) {
+  if (treatment != "Solvent control") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.001) {
+      significance <- "**"
+    } else if (p_value < 0.01) {
+      significance <- "*"
+    } else if (p_value < 0.05) {
+      significance <- "*"
+    } else {
+      significance <- NA
+    }
+    # Add the significance information to the original tibble
+    Stat_dead_dmso_u$significance[Stat_dead_dmso_u$FN == treatment] <- significance
+  } else {
+    Stat_dead_dmso_u$significance[Stat_dead_dmso_u$FN == "Solvent control"] <- NA
+  }
+}
+
+# Print the modified tibble
+Stat_dead_dmso_u
+
+# Print the results
+for (treatment in treatment_groups) {
+  if (treatment != "Solvent control") {
+    result <- fisher_test[[treatment]]
+    p_value <- result$p.value
+    if (p_value < 0.05) {
+      significance <- "Significant"
+    } else {
+      significance <- "Not significant"
+    }
+    message("Comparison between Control and ", treatment, ": ", significance, " (p-value = ", p_value, ")")
+  }
+}
+
+```
+
+```{r Full table}
+Stat_dead_dmso4 <- Stat_dead_dmso2 %>%  ungroup() %>% select(fq_dead, per_dead, -FN)
+Stat_dead_dmso4
+
+Stat_dead_dmso5 <- rbind(Stat_dead_dmso_u, Stat_dead_dmso_n)
+Stat_dead_dmso5
+
+Stat_dead_dmso <- cbind(Stat_dead_dmso5, Stat_dead_dmso4)
+Stat_dead_dmso
+```
+
+
+```{r Visualization}
+#Data of total dead
+x_order <- c("Solvent control", "PA α ø.35", "PA β ø.33", "PA β ø.95", "PA γ ø.33", "PA γ ø.60", "PBS δ ø.35", "PBS δ ø.60", "HPPE ε ø4.25")
+legend_order <- x_order
+
+Visua <- Stat_dead_dmso %>% ggplot(aes(factor(fct_relevel(FN, x_order)), per_dead, fill = factor(FN, levels = legend_order))) + 
+  geom_col(width = 0.3, position = "dodge") +
+  scale_y_continuous(breaks = seq(0, 30, by = 5)) +
+  geom_text(aes(label = significance), position = position_dodge(width = 0.3), vjust = -0.5, size = 6) +  # Ajout des étiquettes avec les étoiles
+  scale_y_continuous(breaks = seq(0, 30, by = 5)) +
+  facet_wrap(~state, labeller = labeller(state = c(n = "New fishing net's leachates", u = "Used fishing net's leachates"))) +
+  scale_fill_manual(values = Color_code_FN) +
+  labs(title = "Percentage of fish mortality after 48 hours of exposure",
+       subtitle = "Extraction with DMSO | Exposure concentration 1:1000",
+       y = "Mortality percentage",
+       x = "Fishing nets",
+       fill = "Fishing nets") +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 14, face = "bold", vjust = -4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.title.y = element_text(size = 14, face = "bold", vjust = 4, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(size = 14, face = 'bold'),
+        title = element_text(size = 18, face = "bold", margin = margin(t = 0, r = 0, b = 20, l = 0)),
+        strip.text = element_text(face = "bold", size = rel(1)),
+        strip.background = element_rect(fill = "grey", color = "grey", size = 0.1),
+        legend.title= element_text(size = 14, face = "bold", vjust = 1, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        legend.text = element_text(size = 14),
+        legend.spacing.x = unit(0.5, 'cm'),
+        legend.spacing.y = unit(0.2, 'cm'),
+        plot.margin = unit(c(1, 1, 2, 1), "cm")) +
+  guides(fill = guide_legend(byrow = TRUE))
+
+Visua +
+  labs(caption = "Fisher's exact test one by one \nControl vs Fishing nets") + 
+  theme(plot.caption = element_text(family = "serif", 
+               face = "bold", 
+               color = 1, 
+               size = 14, 
+               hjust = 0.999, 
+               vjust = 180, 
+               angle = 0, 
+               lineheight = 1))
+
+```
